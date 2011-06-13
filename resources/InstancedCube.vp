@@ -1,0 +1,36 @@
+// Vertex Shader
+
+#version 400
+
+uniform mat4 mvp_matrix;
+uniform int  MAP_SIZE;
+
+in vec3  v_vertex;
+in vec3  v_normal;
+in vec2  v_tex_coord;
+in vec4  v_pos_and_size;
+in float v_type;
+
+
+     out vec4 f_normal;
+     out vec2 f_tex_coord;
+     out vec4 f_position;
+flat out int  f_type;
+
+
+//in vec2 vTexCoords;
+
+//smooth out vec2 vVaryingTexCoords;
+
+void main(void)
+{
+  f_position    = mvp_matrix * vec4 (v_pos_and_size.w  * v_vertex + v_pos_and_size.xyz, 1.0f);
+  f_normal      = vec4 (v_normal, 1.);
+  f_tex_coord   = v_tex_coord;
+  f_type        = int (v_type);
+  gl_Position   = f_position;
+  vec3 v_shift  = vec3 ( (gl_InstanceID / (MAP_SIZE * MAP_SIZE)) % MAP_SIZE - MAP_SIZE / 2,
+                         (gl_InstanceID /  MAP_SIZE ) % MAP_SIZE - MAP_SIZE / 2,
+                         gl_InstanceID  % MAP_SIZE - MAP_SIZE / 2 )
+                  * 2.;
+}
