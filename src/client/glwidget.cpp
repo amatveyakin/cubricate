@@ -349,6 +349,29 @@ int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
   return 0;
 }
 
+/*
+// 0 means success
+int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
+  std::ifstream map ("resources/World1.schematic");
+  if (!map.is_open ()) {
+    std::cout << "Unable to open map!\n";
+    return 1;
+  }
+  for (int z = 0; z < 128; ++z) {
+    for (int y = 0; y < 80; ++y) {
+      for (int x = 0; x < 80; ++x) {
+        char cur_block;
+        map >> cur_block;
+        map >> cur_block;
+        if (x < MAP_SIZE && y < MAP_SIZE && z < MAP_SIZE)
+          cubeArray.add_cube (x, y, z, cur_block);
+      }
+    }
+  }
+  std::cout << "n_cubes = " << cubeArray.n_cubes () << std::endl;
+  return 0;
+}
+*/
 
 
 
