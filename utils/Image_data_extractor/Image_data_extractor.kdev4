@@ -1,0 +1,3 @@
+[Project]
+Manager=KDevCMakeManager
+Name=Image_data_extractor
