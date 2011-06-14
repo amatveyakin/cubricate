@@ -425,6 +425,7 @@ void GLWidget::paintGL () {
   glCullFace (GL_BACK);
   glEnable (GL_CULL_FACE);
   glEnable (GL_DEPTH_TEST);
+  glEnable (GL_MULTISAMPLE);
 
   glUseProgram  (m_instancedCubeShader);
   glBindVertexArray (m_cubesVao);

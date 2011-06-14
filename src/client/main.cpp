@@ -12,6 +12,9 @@
 #include "glwidget.hpp"
 
 
+const bool showFullscreen = false;
+
+
 // // 0 means success
 // int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
 //   std::ifstream height_map ("resources/height_map" + stringify (TREE_HEIGHT) + ".txt");
@@ -44,13 +47,27 @@ int main (int argc, char** argv) {
 //   if (!loadGameMap (cubeArray))
 //     return 1;
 
-  GLWidget glwidget;
-  QRect screenGeometry = app.desktop ()->screenGeometry (-1);
-  QPoint diagonal = screenGeometry.bottomRight() - screenGeometry.topLeft();
-  QRect windowGeometry = QRect (diagonal / 4, diagonal * 3 / 4);
-  glwidget.setGeometry (windowGeometry);
-  glwidget.show ();
-//   glwidget.showFullScreen();
+  QGLFormat glFormat = QGLFormat::defaultFormat ();
+  glFormat.setSampleBuffers (true);
+  QGLFormat::setDefaultFormat (glFormat);
+  if (!QGLFormat::hasOpenGL ()) {
+    std::cout << "This system does not support OpenGL :-(" << std::endl;
+    return 1;
+  }
+
+  GLWidget glWidget;
+  if (!glWidget.format ().sampleBuffers ())
+    std::cout << "This system does not have sample buffer support :-(" << std::endl;
+
+  if (showFullscreen) {
+    glWidget.showFullScreen();
+  }
+  else {
+    QRect screenGeometry = app.desktop ()->screenGeometry (-1);
+    QPoint diagonal = screenGeometry.bottomRight () - screenGeometry.topLeft ();
+    glWidget.setGeometry (QRect (diagonal / 4, diagonal * 3 / 4));
+    glWidget.show ();
+  }
 
   return app.exec ();
 }
