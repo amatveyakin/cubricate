@@ -2,9 +2,6 @@
 #define UTILS_HPP
 
 
-#include <string>
-#include <sstream>
-#include <stdexcept>
 #include "c++0x_workaround.hpp"
 
 
@@ -24,24 +21,26 @@ static inline void FREE_ARRAY (T*& pointer) {
 }
 
 
-template <typename T>
-static inline T sqr (T x) {
-  return x * x;
-}
+#if defined CLIENT_APP && defined SERVER_APP
+  #error "Both client & server compilation modes are active!"
+#endif
 
-template <typename T>
-static inline T sgn (T x) {
-  return (x > 0) - (x < 0);
-}
+#if !defined CLIENT_APP && !defined SERVER_APP
+  #error "None of client & server compilation modes is active!"
+#endif
 
 
-template <typename T>
-inline std::string stringify (T x) {
-  std::ostringstream tmp_stream;
-  if (!(tmp_stream << x))
-    throw std::invalid_argument ("Conversation to string failed");
-  return tmp_stream.str();
-}
+#ifdef CLIENT_APP
+  #define CLIENT_PART(code__) code__
+#else
+  #define CLIENT_PART(code__)
+#endif
+
+#ifdef SERVER_APP
+  #define SERVER_PART(code__) code__
+#else
+  #define SERVER_PART(code__)
+#endif
 
 
 #endif

@@ -7,6 +7,8 @@
 #include <QKeyEvent>
 
 #include "common/utils.hpp"
+#include "common/math_utils.hpp"
+#include "common/string_utils.hpp"
 #include "common/game_parameters.hpp"
 
 #include "client/cube_array.hpp"
@@ -25,14 +27,14 @@ const double FPS_MEASURE_INTERVAL = 1.; /* sec */
 
 void GLWidget::lockCubes () {
   GLfloat* buffer_pos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
-                                                      N_MAX_BLOCKS_DRAWN * (4 * sizeof(GLfloat) + sizeof(GLfloat)),
+                                                      N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
                                                       GL_MAP_WRITE_BIT);
   GLfloat* buffer_type = (GLfloat *) (buffer_pos + 4 * N_MAX_BLOCKS_DRAWN);
   m_cubeArray.set_pointers (buffer_pos, buffer_type);
 }
 
 void GLWidget::unlockCubes () {
-  glUnmapBuffer(GL_ARRAY_BUFFER);
+  glUnmapBuffer (GL_ARRAY_BUFFER);
 }
 
 bool GLWidget::coordinatesValid (int x, int y, int z) {
@@ -44,7 +46,7 @@ bool GLWidget::coordinatesValid (int x, int y, int z) {
 void GLWidget::getCubeByPoint (M3DVector3i cube, M3DVector3f point, M3DVector3f direction) {
   const float EPSILON = 0.00001;
   for (int i = 0; i < 3; ++i)
-    cube[i] = (int) floor (point[i] + sgn (direction[i]) * EPSILON + 0.5);
+    cube[i] = (int) floor (point[i] + xSgn (direction[i]) * EPSILON + 0.5);
 }
 
 void GLWidget::lookAt (M3DVector3f result) {
@@ -53,45 +55,45 @@ void GLWidget::lookAt (M3DVector3f result) {
   M3DVector3f parameter;
   M3DVector3f nearestInt;
 
-  m_viewFrame.GetOrigin(currentPoint);
-  m_viewFrame.GetForwardVector(forwardVector);
+  m_viewFrame.GetOrigin (currentPoint);
+  m_viewFrame.GetForwardVector (forwardVector);
 
   M3DVector3i cube;
-  getCubeByPoint(cube, currentPoint, forwardVector);
-  while  (  coordinatesValid(cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)
-         && !m_cubeArray.cube_presents(cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)) {
+  getCubeByPoint (cube, currentPoint, forwardVector);
+  while  (  coordinatesValid (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)
+         && !m_cubeArray.cube_presents (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)) {
     for (int i = 0; i < 3; ++i) {
       nearestInt[i] = (forwardVector[i] > 0) ? (floor (currentPoint[i] - 0.5) + 1.5) : (ceil (currentPoint[i] + 0.5) - 1.5);
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
-      assert(parameter[i] >= 0);
+      assert (parameter[i] >= 0);
     }
-    float t = std::min (std::min (parameter[0], parameter[1]), parameter[2]);
+    float t = xMin (parameter[0], parameter[1], parameter[2]);
     assert (t >= 0);
 
     for (int i = 0; i < 3; ++i)
       currentPoint[i] += forwardVector[i] * t;
 
-    getCubeByPoint(cube, currentPoint, forwardVector);
+    getCubeByPoint (cube, currentPoint, forwardVector);
   }
-  m3dCopyVector3(result, currentPoint);
+  m3dCopyVector3 (result, currentPoint);
 }
 
 void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius) {
-  lockCubes();
+  lockCubes ();
 
   for  (int x = std::max (explosionX - explosionRadius, 0); x <= std::min (explosionX + explosionRadius, MAP_SIZE - 1); ++x)
     for  (int y = std::max (explosionY - explosionRadius, 0); y <= std::min (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
       for  (int z = std::max (explosionZ - explosionRadius, 0); z <= std::min (explosionZ + explosionRadius, MAP_SIZE - 1); ++z) {
-        if  (sqr (x - explosionX) + sqr (y - explosionY) + sqr (z - explosionZ) < sqr (explosionRadius)) {
+        if  (xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius)) {
           m_cubeArray.remove_cube (x, y, z);
         }
         else if  (   m_cubeArray.cube_presents (x, y, z)
-                  && sqr (x - explosionX) + sqr (y - explosionY) + sqr (z - explosionZ) < sqr (explosionRadius + 1)) {
+                  && xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius + 1)) {
           m_cubeArray.add_cube (x, y, z, 239);
         }
       }
 
-  unlockCubes();
+  unlockCubes ();
 }
 
 void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
@@ -99,9 +101,10 @@ void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
   int meteoriteZ = MAP_SIZE - 1;
   while  (meteoriteZ > 0 && !m_cubeArray.cube_presents (meteoriteX, meteoriteY, meteoriteZ))
     meteoriteZ--;
-  explosion(meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
+  explosion (meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
 }
 
+/*
 bool GLWidget::loadTGATexture (const char *szFileName, GLenum minFilter, GLenum magFilter, GLenum wrapMode)
 {
   GLbyte *pBits;
@@ -109,31 +112,31 @@ bool GLWidget::loadTGATexture (const char *szFileName, GLenum minFilter, GLenum 
   GLenum eFormat;
 
   // Read the texture bits
-  pBits = gltReadTGABits(szFileName, &nWidth, &nHeight, &nComponents, &eFormat);
-  if(pBits == NULL)
+  pBits = gltReadTGABits (szFileName, &nWidth, &nHeight, &nComponents, &eFormat);
+  if (!pBits)
     return false;
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
-         eFormat, GL_UNSIGNED_BYTE, pBits);
+  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+  glTexImage2D (GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
+                eFormat, GL_UNSIGNED_BYTE, pBits);
 
-  free(pBits);
+  free (pBits);
 
   if (minFilter == GL_LINEAR_MIPMAP_LINEAR ||
       minFilter == GL_LINEAR_MIPMAP_NEAREST ||
       minFilter == GL_NEAREST_MIPMAP_LINEAR ||
       minFilter == GL_NEAREST_MIPMAP_NEAREST)
-    glGenerateMipmap(GL_TEXTURE_2D);
+    glGenerateMipmap (GL_TEXTURE_2D);
 
   return true;
 }
-
+*/
 
 //           up
 //                  back
@@ -157,68 +160,67 @@ bool GLWidget::loadTGATexture (const char *szFileName, GLenum minFilter, GLenum 
 
 // vertex coordinates
 // 0:   -1., -1., -1.
-// 1:   +1., -1., -1.
-// 2:   -1., +1., -1.
-// 3:   +1., +1., -1.
-// 4:   -1., -1., +1.
-// 5:   +1., -1., +1.
-// 6:   -1., +1., +1.
-// 7:   +1., +1., +1.
+// 1:    1., -1., -1.
+// 2:   -1.,  1., -1.
+// 3:    1.,  1., -1.
+// 4:   -1., -1.,  1.
+// 5:    1., -1.,  1.
+// 6:   -1.,  1.,  1.
+// 7:    1.,  1.,  1.
 
 void GLWidget::initBuffers () {
-  GLfloat cube_vertices[] = {  -1., -1.,  1.,    1., -1.,  1.,    1.,  1.,  1.,   -1.,  1.,  1.,     // up
-                                1., -1., -1.,    1.,  1., -1.,    1.,  1.,  1.,    1., -1.,  1.,     // right
-                               -1.,  1., -1.,   -1., -1., -1.,   -1., -1.,  1.,   -1.,  1.,  1.,     // left
-                               -1., -1., -1.,    1., -1., -1.,    1., -1.,  1.,   -1., -1.,  1.,     // front
-                                1.,  1., -1.,   -1.,  1., -1.,   -1.,  1.,  1.,    1.,  1.,  1.,     // back
-                               -1., -1., -1.,   -1.,  1., -1.,    1.,  1., -1.,    1., -1., -1.   }; // down
+  GLfloat cube_vertices[] = { -1., -1.,  1.,    1., -1.,  1.,    1.,  1.,  1.,   -1.,  1.,  1.,    // up
+                               1., -1., -1.,    1.,  1., -1.,    1.,  1.,  1.,    1., -1.,  1.,    // right
+                              -1.,  1., -1.,   -1., -1., -1.,   -1., -1.,  1.,   -1.,  1.,  1.,    // left
+                              -1., -1., -1.,    1., -1., -1.,    1., -1.,  1.,   -1., -1.,  1.,    // front
+                               1.,  1., -1.,   -1.,  1., -1.,   -1.,  1.,  1.,    1.,  1.,  1.,    // back
+                              -1., -1., -1.,   -1.,  1., -1.,    1.,  1., -1.,    1., -1., -1.  }; // down
 
-  GLfloat cube_normals[] =  {   0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,
-                                1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,
-                               -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,
-                                0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,
-                                0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,
-                                0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.   };
+  GLfloat cube_normals[] =  {  0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,
+                               1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,
+                              -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,
+                               0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,
+                               0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,
+                               0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.  };
 
-  GLfloat cube_tex_coords[] =  {   0., 0.,   1., 0.,  1., 1.,  0., 1.,
-                                   0., 0.,   1., 0.,  1., 1.,  0., 1.,
-                                   0., 0.,   1., 0.,  1., 1.,  0., 1.,
-                                   0., 0.,   1., 0.,  1., 1.,  0., 1.,
-                                   0., 0.,   1., 0.,  1., 1.,  0., 1.,
-                                   0., 0.,   1., 0.,  1., 1.,  0., 1.};
+  GLfloat cube_tex_coords[] = {  0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                                 0., 0.,   1., 0.,   1., 1.,   0., 1.  };
 
-  glGenVertexArrays(1, &m_cubesVao);
-  glBindVertexArray(m_cubesVao);
+  glGenVertexArrays (1, &m_cubesVao);
+  glBindVertexArray (m_cubesVao);
 
-  glGenBuffers(1, &m_cubeVbo);
-  glBindBuffer(GL_ARRAY_BUFFER, m_cubeVbo);
-  glBufferData(GL_ARRAY_BUFFER,  sizeof(cube_vertices)
-                               + sizeof(cube_normals)
-                               + sizeof(cube_tex_coords)
-                               + N_MAX_BLOCKS_DRAWN * (4 * sizeof(GLfloat) + sizeof(GLfloat)),
-                                 NULL, GL_DYNAMIC_DRAW);
+  glGenBuffers (1, &m_cubeVbo);
+  glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
+  glBufferData (GL_ARRAY_BUFFER,
+                sizeof (cube_vertices) + sizeof (cube_normals) + sizeof (cube_tex_coords) + N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
+                nullptr,
+                GL_DYNAMIC_DRAW);
 
 
   GLint offset = 0;
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof(cube_vertices),   cube_vertices);
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cube_vertices),   cube_vertices);
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof(cube_vertices);
+  offset += sizeof (cube_vertices);
 
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof(cube_normals),    cube_normals);
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cube_normals),    cube_normals);
   glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof(cube_normals);
+  offset += sizeof (cube_normals);
 
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof(cube_tex_coords), cube_tex_coords);
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cube_tex_coords), cube_tex_coords);
   glVertexAttribPointer (2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof(cube_tex_coords);
+  offset += sizeof (cube_tex_coords);
 
   m_CUBES_INFORMATION_OFFSET = offset;
   // TODO: It's probably better to pack each cube's data instead of doing a shift
-  glVertexAttribPointer (3, 4, GL_FLOAT,   GL_FALSE, 0, (GLvoid *) offset);
-  offset += N_MAX_BLOCKS_DRAWN * 4 * sizeof(GLfloat);
+  glVertexAttribPointer (3, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
+  offset += N_MAX_BLOCKS_DRAWN * 4 * sizeof (GLfloat);
 
   glVertexAttribPointer (4, 1, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  glUnmapBuffer(GL_ARRAY_BUFFER);
+  glUnmapBuffer (GL_ARRAY_BUFFER);
 
   glEnableVertexAttribArray (0);
   glEnableVertexAttribArray (1);
@@ -227,40 +229,35 @@ void GLWidget::initBuffers () {
   glEnableVertexAttribArray (4);
   glVertexAttribDivisorARB (3, 1);
   glVertexAttribDivisorARB (4, 1);
-  glBindVertexArray(0);
+  glBindVertexArray (0);
 }
 
 void GLWidget::initTextures () {
-//   glGenTextures(1, &textureID);
-//   glBindTexture(GL_TEXTURE_2D, textureID);
-//   bool succeeded = LoadTGATexture("resources/textures/tile_119.tga", GL_NEAREST, GL_NEAREST, GL_REPEAT);
-//   assert(succeeded);
+  glGenTextures (1, &m_squareTextureArray);
+  glBindTexture (GL_TEXTURE_2D_ARRAY, m_squareTextureArray);
+  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  glGenTextures(1, &m_squareTextureArray);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, m_squareTextureArray);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexImage3D (GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 16, 16, 256, 0,
+                GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 16, 16, 256, 0,
-           GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-  for(int i = 0; i < 256; i++) {
+  for (int i = 0; i < 256; i++) {
     char cFile[32];
-    sprintf(cFile, "resources/textures/tile_%d.tga", i);
+    sprintf (cFile, "resources/textures/tile_%d.tga", i);
 
     GLbyte *pBits;
     int nWidth, nHeight, nComponents;
     GLenum eFormat;
 
     // Read the texture bits
-    pBits = gltReadTGABits(cFile, &nWidth, &nHeight, &nComponents, &eFormat);
-    assert(pBits != NULL);
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, nWidth, nHeight, 1, GL_BGRA, GL_UNSIGNED_BYTE, pBits);
+    pBits = gltReadTGABits (cFile, &nWidth, &nHeight, &nComponents, &eFormat);
+    assert (pBits);
+    glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, nWidth, nHeight, 1, GL_BGRA, GL_UNSIGNED_BYTE, pBits);
 
-    free(pBits);
+    free (pBits);
   }
 }
 
@@ -406,7 +403,7 @@ void GLWidget::initializeGL () {
   setupRenderContext ();
 
 
-  GLfloat* buffer_pos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof(GLfloat) + sizeof(GLfloat)),
+  GLfloat* buffer_pos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
                                                       GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
   GLfloat* buffer_type = (GLfloat *) (buffer_pos + 4 * N_MAX_BLOCKS_DRAWN);
 
@@ -436,11 +433,8 @@ void GLWidget::paintGL () {
   M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP;
   m3dTranslationMatrix44 (mat_World, -MAP_SIZE / 2., -MAP_SIZE / 2., -MAP_SIZE / 2.);
   m_viewFrame.GetCameraMatrix (mat_View, false);
-  //mat_Projection = *viewFrustum.GetProjectionMatrix();
-  m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix(), mat_View);
+  m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
   m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
-  //transformPipeline.GetModelViewProjectionMatrix();
-  //rotation_matrix[15] *= MAP_SIZE * 2.;
   glUniformMatrix4fv (m_locMvp, 1, GL_FALSE, mat_WVP);
 
   glBindTexture (GL_TEXTURE_2D, m_squareTextureArray);
@@ -451,9 +445,6 @@ void GLWidget::paintGL () {
 
   glBindVertexArray (0);
 
-//   glutSwapBuffers ();
-  glFlush();
-
   m_nFramesDrawn++;
 }
 
@@ -461,12 +452,8 @@ void GLWidget::resizeGL (int width, int height) {
   if (height <= 0)
     height = 1;
 
-  // Set Viewport to window dimensions
   glViewport (0, 0, width, height);
-
   m_viewFrustum.SetPerspective (90.0f, float (width) / float (height), 0.1f, MAP_SIZE * 10.);
-  //projectionMatrix .LoadMatrix(viewFrustum.GetProjectionMatrix());
-  //transformPipeline.SetMatrixStacks(modelViewMatix, projectionMatrix);
 
   updateGL ();
 }

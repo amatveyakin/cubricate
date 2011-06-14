@@ -2,6 +2,7 @@
 #define CPP0X_WORKAROUND_HPP
 
 
+// TODO: delete when we switch to gcc-4.6
 const                        // this is a const object...
 class {
 public:
