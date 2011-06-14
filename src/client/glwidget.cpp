@@ -213,7 +213,7 @@ void GLWidget::initBuffers () {
   offset += sizeof(cube_tex_coords);
 
   m_CUBES_INFORMATION_OFFSET = offset;
-  //TODO Вероятно, лучше упаковать данные о каждом кубе, а не делать сдвиг
+  // TODO: It's probably better to pack each cube's data instead of doing a shift
   glVertexAttribPointer (3, 4, GL_FLOAT,   GL_FALSE, 0, (GLvoid *) offset);
   offset += N_MAX_BLOCKS_DRAWN * 4 * sizeof(GLfloat);
 
