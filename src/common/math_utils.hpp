@@ -6,12 +6,12 @@
 
 
 template <typename NumericT>
-inline NumericT xMin (NumericT x, NumericT y) {
+static inline NumericT xMin (NumericT x, NumericT y) {
   return (x < y) ? x : y;
 }
 
 template <typename NumericT>
-inline NumericT xMax (NumericT x, NumericT y) {
+static inline NumericT xMax (NumericT x, NumericT y) {
   return (x < y) ? y : x;
 }
 
@@ -49,7 +49,7 @@ static inline NumericT xSgn (NumericT x) {
 
 
 template <typename NumericT>
-inline NumericT xGCD (NumericT a, NumericT b) {
+static inline NumericT xGCD (NumericT a, NumericT b) {
   static_assert (std::numeric_limits <NumericT>::is_integer, "The GCD function expects an integral type");
   while (b != 0) {
     NumericT c = a % b;
@@ -60,7 +60,7 @@ inline NumericT xGCD (NumericT a, NumericT b) {
 }
 
 template <typename NumericT>
-inline NumericT xLCM (NumericT a, NumericT b) {
+static inline NumericT xLCM (NumericT a, NumericT b) {
   static_assert (std::numeric_limits <NumericT>::is_integer, "The LCM function expects an integral type");
   // The ``result = a * b / gcd (a, b)'' code may cause an integer overflow
   NumericT result = a / xGCD (a, b);

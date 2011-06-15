@@ -8,8 +8,7 @@
 #include "common/game_parameters.hpp"
 
 #include "client/cube_array.hpp"
-
-#include "glwidget.hpp"
+#include "client/glwidget.hpp"
 
 
 const bool showFullscreen = false;

@@ -2,7 +2,7 @@
 #define UTILS_HPP
 
 
-#include "c++0x_workaround.hpp"
+#include "common/c++0x_workaround.hpp"
 
 
 #define FIX_UNUSED(x)  ((void)(x))

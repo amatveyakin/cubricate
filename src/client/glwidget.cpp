@@ -12,8 +12,7 @@
 #include "common/game_parameters.hpp"
 
 #include "client/cube_array.hpp"
-
-#include "glwidget.hpp"
+#include "client/glwidget.hpp"
 
 
 
@@ -139,7 +138,7 @@ bool GLWidget::loadTGATexture (const char *szFileName, GLenum minFilter, GLenum 
 */
 
 //           up
-//                  back
+//                  front
 //          +------+                      6+------+7
 //         /|     /|                      /|     /|
 //        +------+ |                    4+------+5|
@@ -147,7 +146,7 @@ bool GLWidget::loadTGATexture (const char *szFileName, GLenum minFilter, GLenum 
 //        | +----|-+                     |2+----|-+3
 //        |/     |/                      |/     |/
 //        +------+                      0+------+1
-//    front
+//    back
 //           down
 
 // vertex indices
@@ -324,7 +323,7 @@ void GLWidget::shutdownRenderContext () {
 
 // 0 means success
 int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
-  std::ifstream height_map ("resources/height_map" + stringify (TREE_HEIGHT) + ".txt");
+  std::ifstream height_map ("resources/height_map" + toStr (TREE_HEIGHT) + ".txt");
   if (!height_map.is_open ()) {
     std::cout << "Unable to open height map!\n";
     return 1;
