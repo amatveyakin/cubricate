@@ -14,11 +14,14 @@ struct WorldBlock {
   BlockType type;
   union {
     struct {
-      unsigned int attachedTo : 3;
+      unsigned char attachedTo : 3;
     };
     unsigned char parameters;
   };
 };
+
+
+static_assert (sizeof (WorldBlock) == sizeof (unsigned char [2]), "Is this assertion fails, it's a good reason to check that WorldBlock::parameters didn't become too fat.");
 
 
 #endif

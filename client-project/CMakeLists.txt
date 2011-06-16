@@ -8,7 +8,8 @@ set (gltools_src_dir ${src_dir}/client/GLTools/src)
 include_directories (${QT_INCLUDES} ${src_dir} ${src_dir}/client/GLTools/include/)
 add_definitions (-DCLIENT_APP)
 
-set (Cubricate_client_SRCS ${src_dir}/client/main.cpp ${src_dir}/client/glwidget.cpp ${src_dir}/common/world_chunk.cpp
+set (Cubricate_client_SRCS ${src_dir}/client/main.cpp ${src_dir}/client/client_world.cpp ${src_dir}/client/glwidget.cpp
+     ${src_dir}/common/world_chunk.cpp ${src_dir}/common/world_map.cpp ${src_dir}/common/player.cpp
      ${gltools_src_dir}/GLBatch.cpp  ${gltools_src_dir}/glew.cpp  ${gltools_src_dir}/GLShaderManager.cpp
      ${gltools_src_dir}/GLTools.cpp  ${gltools_src_dir}/GLTriangleBatch.cpp  ${gltools_src_dir}/math3d.cpp)
 qt4_automoc (${Cubricate_client_SRCS})

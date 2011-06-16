@@ -1,4 +1,5 @@
-#include "world_map.hpp"
+#include "common/cube_geometry.hpp"
+#include "common/world_map.hpp"
 
 
 const int CHUNK_USE_RADIUS  = 8;

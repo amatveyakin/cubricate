@@ -4,10 +4,14 @@
 
 #include <stdexcept>
 
+#include "common/game_parameters.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/string_utils.hpp"
 
 
+//   Numbering and naming convetions
+//  ---------------------------------
+//
 //              up
 //                    front
 //            +------+                            6+------+7
@@ -45,7 +49,54 @@
 //                                                           down
 
 
-enum class CubeFace {
+
+//   World floating-point coordinates and cube integer coordinates relationship
+//  ----------------------------------------------------------------------------
+//
+//            +------+
+//           /|     /|
+//          +------+ |
+//          | | . <----- (x, y, z) point
+//          | +----|-+
+//          |/     |/
+//          +------+
+//                  (x, y, z) cube
+//
+//
+//
+//       #################################################
+//    7  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//    6  # (-1,1) chunk  #  (0,1) chunk  #  (1,1) chunk  #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//    5  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//    4  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #################################################
+//    3  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//    2  # (-1,0) chunk  #  (0,0) chunk  #  (1,0) chunk  #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//    1  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//    0  #   |   |   |   # .<--------------------------------- the origin of
+//       #   |   |   |   #   |   |   |   #   |   |   |   #     the world coordinates
+//       #################################################
+//   -1  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//   -2  # (-1,-1) chunk # (0,-1) chunk  # (1,-1) chunk  #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//   -3  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #___|___|___|___#___|___|___|___#___|___|___|___#
+//   -4  #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #   |   |   |   #   |   |   |   #   |   |   |   #
+//       #################################################
+//
+//        -4  -3  -2  -1   0   1   2   3   4   5   6   7
+
+
+enum class Direction {
   RIGHT,
   FRONT,
   UP,
@@ -54,73 +105,92 @@ enum class CubeFace {
   DOWN
 };
 
-const int N_CUBE_FACES = 6;
+const int N_DIRECTIONS = 6;
 
 
-typedef Vec2i CubePos;
-
-struct CubeWithFace : CubePos {
-  CubeFace face;
+struct CubeWithFace : Vec3i {
+  const Vec3i& cube () const  { return static_cast <const Vec3i&> (*this); }
+  Vec3i& cube ()              { return static_cast <Vec3i&> (*this); }
+  Direction face;
 };
 
 
 // TODO: write other variants for these functions
 
-static inline void getUnifiedCube (/* i/o */ int& x, int& y, int& z, CubeFace& face) {
+static inline void getUnifiedCube (/* i/o */ int& x, int& y, int& z, Direction& face) {
   switch (face) {
-    case CubeFace::RIGHT:
-      face = CubeFace::RIGHT;
+    case Direction::RIGHT:
+    case Direction::FRONT:
+    case Direction::UP:
       return;
-    case CubeFace::FRONT:
-      face = CubeFace::FRONT;
-      return;
-    case CubeFace::UP:
-      face = CubeFace::UP;
-      return;
-    case CubeFace::LEFT:
+    case Direction::LEFT:
       x--;
-      face = CubeFace::RIGHT;
+      face = Direction::RIGHT;
       return;
-    case CubeFace::BACK:
+    case Direction::BACK:
       y--;
-      face = CubeFace::FRONT;
+      face = Direction::FRONT;
       return;
-    case CubeFace::DOWN:
+    case Direction::DOWN:
       z--;
-      face = CubeFace::UP;
+      face = Direction::UP;
       return;
   }
   throw std::invalid_argument ("Bad face type: " + toStr (int (face)));
 }
 
-static inline void getAdjacentCube (/* i/o */ int& x, int& y, int& z, CubeFace& face) {
+static inline void getAdjacentCube (/* i/o */ int& x, int& y, int& z, Direction& face) {
   switch (face) {
-    case CubeFace::RIGHT:
+    case Direction::RIGHT:
       x++;
-      face = CubeFace::LEFT;
+      face = Direction::LEFT;
       return;
-    case CubeFace::FRONT:
+    case Direction::FRONT:
       y++;
-      face = CubeFace::BACK;
+      face = Direction::BACK;
       return;
-    case CubeFace::UP:
+    case Direction::UP:
       z++;
-      face = CubeFace::DOWN;
+      face = Direction::DOWN;
       return;
-    case CubeFace::LEFT:
+    case Direction::LEFT:
       x--;
-      face = CubeFace::RIGHT;
+      face = Direction::RIGHT;
       return;
-    case CubeFace::BACK:
+    case Direction::BACK:
       y--;
-      face = CubeFace::FRONT;
+      face = Direction::FRONT;
       return;
-    case CubeFace::DOWN:
+    case Direction::DOWN:
       z--;
-      face = CubeFace::UP;
+      face = Direction::UP;
       return;
   }
   throw std::invalid_argument ("Bad face type: " + toStr (int (face)));
+}
+
+
+static inline Vec3i worldToCube (Vec3d pos) {
+  return Vec3i::fromVectorConverted (pos + Vec3d (0.5, 0.5, 0.5));
+}
+
+static inline Vec3i cubeToChunk (Vec3i cube) {
+  return cube.divFloored (CHUNK_SIZE);
+}
+
+static inline void cubeToChunk (/* in */ Vec3i cube, /* out */ Vec3i& chunk, Vec3i& cubeInChunk) {
+  // TODO: implement a combined divModFloored function
+  chunk       = cube.divFloored (CHUNK_SIZE);
+  cubeInChunk = cube.modFloored (CHUNK_SIZE);
+}
+
+static inline Vec3i worldToChunk (Vec3d pos) {
+  return cubeToChunk (worldToCube (pos));
+}
+
+static inline void worldToChunk (/* in */ Vec3d pos, /* out */ Vec3i& chunk, Vec3i& cubeInChunk) {
+  Vec3i cube = worldToCube (pos);
+  cubeToChunk (cube, chunk, cubeInChunk);
 }
 
 #endif

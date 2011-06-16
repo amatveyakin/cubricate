@@ -1,101 +1,204 @@
-#ifndef LINEAR_ALGEBRA
-#define LINEAR_ALGEBRA
+#ifndef LINEAR_ALGEBRA_HPP
+#define LINEAR_ALGEBRA_HPP
 
 
 // TODO: check disassemble for variants ``foo (Vec2d)'' and ``foo (const Vec2d&)''
 //      (and better use the second one: the underlying class may potentially be quite complex)
 
 
+#include <cstddef>
 #include <cmath>
 #include <limits>
-#include "math_utils.hpp"
+
+#include "common/math_utils.hpp"
+
+
+
+#define DECLARE_DERIVED(Type__) \
+  private: \
+    const Type__& derived () const    { return static_cast <const Type__&> (*this); } \
+    Type__& derived ()                { return static_cast <Type__&> (*this); }
+
 
 
 template <typename VectorT, typename ElementT>
-class LinearVectorOperations {
+class VectorIndexingOperations {
 public:
-  typedef ElementT ElementType;
-  typedef VectorT  VectorType;
+  ElementT operator[] (size_t index) const {
+    return derived ().coords [index];
+  }
 
-  VectorType& operator+= (VectorType a) {
-    for (int i = 0; i < VectorType::DIMENSION; ++i)
+  ElementT& operator[] (size_t index) {
+    return derived ().coords [index];
+  }
+
+  DECLARE_DERIVED (VectorT)
+};
+
+
+template <typename VectorT, typename ElementT>
+class CommonVectorLinearOperations {
+public:
+  static VectorT zeroVector () {
+    return VectorT ();
+  }
+
+
+  // in-place operators
+
+  VectorT& operator+= (VectorT a) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
       derived ().coords[i] += a.coords[i];
     return derived ();
   }
 
-  VectorType& operator-= (VectorType a) {
-    for (int i = 0; i < VectorType::DIMENSION; ++i)
+  VectorT& operator-= (VectorT a) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
       derived ().coords[i] -= a.coords[i];
     return derived ();
   }
 
-  VectorType& operator*= (ElementType q) {
-    for (int i = 0; i <VectorType:: DIMENSION; ++i)
+  VectorT& operator*= (ElementT q) {
+    for (int i = 0; i <VectorT:: DIMENSION; ++i)
       derived ().coords[i] *= q;
     return derived ();
   }
 
-  VectorType& operator/= (ElementType q) {
-    for (int i = 0; i < VectorType::DIMENSION; ++i)
+  VectorT& operator/= (ElementT q) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
       derived ().coords[i] /= q;
     return derived ();
   }
 
-  VectorType operator+ (VectorType a) const {
-    VectorType result (derived ());
+  VectorT& operator%= (ElementT q) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      derived ().coords[i] %= q;
+    return derived ();
+  }
+
+
+  // unary operators
+
+  VectorT operator- () const {
+    return zeroVector () - derived ();
+  }
+
+
+  // binary operators
+
+  VectorT operator+ (VectorT a) const {
+    VectorT result (derived ());
     result += a;
     return result;
   }
 
-  VectorType operator- (VectorType a) const {
-    VectorType result (derived ());
+  VectorT operator- (VectorT a) const {
+    VectorT result (derived ());
     result -= a;
     return result;
   }
 
-  VectorType operator* (ElementType q) const {
-    VectorType result (derived ());
+  VectorT operator* (ElementT q) const {
+    VectorT result (derived ());
     result *= q;
     return result;
   }
 
-  VectorType operator/ (ElementType q) const {
-    VectorType result (derived ());
+  VectorT operator/ (ElementT q) const {
+    VectorT result (derived ());
     result /= q;
     return result;
   }
 
-private:
-  const VectorType& derived () const    { return static_cast< const VectorType& > (*this); }
-  VectorType& derived ()                { return static_cast< VectorType& > (*this); }
+  VectorT operator% (ElementT q) const {
+    VectorT result (derived ());
+    result %= q;
+    return result;
+  }
+
+  DECLARE_DERIVED (VectorT)
 };
+
+template <typename VectorT, typename ElementT>
+class VectorLinearOperations : public CommonVectorLinearOperations <VectorT, ElementT> { };
+
+template <typename VectorT>
+class VectorLinearOperations <VectorT, int> : public CommonVectorLinearOperations <VectorT, int> {
+public:
+  // in-place operators
+
+  VectorT& applyDivFloored (int q) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      derived ().coords[i] = intDivFloored (derived ().coords[i], q);
+    return derived ();
+  }
+
+  VectorT& applyModFloored (int q) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      derived ().coords[i] = intModFloored (derived ().coords[i], q);
+    return derived ();
+  }
+
+
+  // binary operators
+
+  VectorT divFloored (int q) const {
+    VectorT result (derived ());
+    result.applyDivFloored (q);
+    return result;
+  }
+
+  VectorT modFloored (int q) const {
+    VectorT result (derived ());
+    result.applyModFloored (q);
+    return result;
+  }
+
+  DECLARE_DERIVED (VectorT)
+};
+
 
 template <typename VectorT, typename ElementT>
 class VectorConversations {
 public:
-  typedef ElementT ElementType;
-  typedef VectorT  VectorType;
-
-  void fromArray (const ElementType* coords__) {
-    for (int i = 0; i < VectorType::DIMENSION; ++i)
+  void copyFromArray (const ElementT* coords__) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
       derived ().coords[i] = coords__[i];
   }
 
-  void toArray (ElementType* coords__) const {
-    for (int i = 0; i < VectorType::DIMENSION; ++i)
+  template <typename OtherElementT>
+  void copyFromArrayConverted (const OtherElementT* coords__) {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      derived ().coords[i] = coords__[i];
+  }
+
+  template <typename OtherVectorT>
+  void copyFromVectorConverted (OtherVectorT source) {
+    copyFromArrayConverted (source.coords);
+  }
+
+  void copyToArray (ElementT* coords__) const {
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
       coords__[i] = derived ().coords[i];
   }
 
-private:
-  const VectorType& derived () const    { return static_cast< const VectorType& > (*this); }
-  VectorType& derived ()                { return static_cast< VectorType& > (*this); }
+
+  template <typename OtherVectorT>
+  static VectorT fromVectorConverted (OtherVectorT source) {
+    VectorT result;
+    result.copyFromVectorConverted (source);
+    return result;
+  }
+
+  DECLARE_DERIVED (VectorT)
 };
 
 
 
 template <typename ElementT>
-struct Vec2Base : public LinearVectorOperations <Vec2Base <ElementT>, ElementT>,
-                  public VectorConversations    <Vec2Base <ElementT>, ElementT> {
+struct Vec2Base : public VectorIndexingOperations <Vec2Base <ElementT>, ElementT>,
+                  public VectorLinearOperations   <Vec2Base <ElementT>, ElementT>,
+                  public VectorConversations      <Vec2Base <ElementT>, ElementT> {
   static const int DIMENSION = 2;
   typedef ElementT ElementType;
 
@@ -106,14 +209,16 @@ struct Vec2Base : public LinearVectorOperations <Vec2Base <ElementT>, ElementT>,
     ElementType coords[DIMENSION];
   };
 
-  Vec2Base() : x (0), y (0) { }
+  Vec2Base () : x (0), y (0) { }
   Vec2Base (ElementType x__, ElementType y__) : x (x__), y (y__) { }
   Vec2Base (ElementType* coords__) { fromArray (coords__); }
+  void setCoordinates (ElementType x__, ElementType y__)  { x = x__;  y = y__; }
 };
 
 template <typename ElementT>
-struct Vec3Base : public LinearVectorOperations <Vec3Base <ElementT>, ElementT>,
-                  public VectorConversations    <Vec3Base <ElementT>, ElementT> {
+struct Vec3Base : public VectorIndexingOperations <Vec3Base <ElementT>, ElementT>,
+                  public VectorLinearOperations   <Vec3Base <ElementT>, ElementT>,
+                  public VectorConversations      <Vec3Base <ElementT>, ElementT> {
   static const int DIMENSION = 3;
   typedef ElementT ElementType;
 
@@ -124,14 +229,16 @@ struct Vec3Base : public LinearVectorOperations <Vec3Base <ElementT>, ElementT>,
     ElementType coords[DIMENSION];
   };
 
-  Vec3Base() : x (0), y (0), z (0) { }
+  Vec3Base () : x (0), y (0), z (0) { }
   Vec3Base (ElementType x__, ElementType y__, ElementType z__) : x (x__), y (y__), z (z__) { }
   Vec3Base (ElementType* coords__) { fromArray (coords__); }
+  void setCoordinates (ElementType x__, ElementType y__, ElementType z__)  { x = x__;  y = y__;  z = z__; }
 };
 
 template <typename ElementT>
-struct Vec4Base : public LinearVectorOperations <Vec4Base <ElementT>, ElementT>,
-                  public VectorConversations    <Vec4Base <ElementT>, ElementT> {
+struct Vec4Base : public VectorIndexingOperations <Vec4Base <ElementT>, ElementT>,
+                  public VectorLinearOperations   <Vec4Base <ElementT>, ElementT>,
+                  public VectorConversations      <Vec4Base <ElementT>, ElementT> {
   static const int DIMENSION = 4;
   typedef ElementT ElementType;
 
@@ -142,9 +249,10 @@ struct Vec4Base : public LinearVectorOperations <Vec4Base <ElementT>, ElementT>,
     ElementType coords[DIMENSION];
   };
 
-  Vec4Base() : x (0), y (0), z (0), w (0) { }
+  Vec4Base () : x (0), y (0), z (0), w (0) { }
   Vec4Base (ElementType x__, ElementType y__, ElementType z__, ElementType w__) : x (x__), y (y__), z (z__), w (w__) { }
   Vec4Base (ElementType* coords__) { fromArray (coords__); }
+  void setCoordinates (ElementType x__, ElementType y__, ElementType z__, ElementType w__)  { x = x__;  y = y__;  z = z__;  w = w__; }
 };
 
 

@@ -7,9 +7,11 @@
 #include <QKeyEvent>
 
 #include "common/utils.hpp"
+#include "common/game_parameters.hpp"
 #include "common/math_utils.hpp"
 #include "common/string_utils.hpp"
-#include "common/game_parameters.hpp"
+#include "common/linear_algebra.hpp"
+#include "common/cube_geometry.hpp"
 
 #include "client/cube_array.hpp"
 #include "client/glwidget.hpp"
@@ -378,10 +380,10 @@ GLWidget::GLWidget () :
   setMouseTracking (true);
   setCursor (Qt::BlankCursor);
 
-  isMovingForward   = false;
-  isMovingBackward  = false;
-  isMovingLeft      = false;
-  isMovingRight     = false;
+  m_isMovingForward   = false;
+  m_isMovingBackward  = false;
+  m_isMovingLeft      = false;
+  m_isMovingRight     = false;
 }
 
 GLWidget::~GLWidget () { }
@@ -411,8 +413,8 @@ void GLWidget::initializeGL () {
 
   glUnmapBuffer (GL_ARRAY_BUFFER);
 
-  time.start ();
-  fpsTime.start ();
+  m_time.start ();
+  m_fpsTime.start ();
   startTimer (1);
 }
 
@@ -463,31 +465,21 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
 
   switch (event->key ()) {
     case Qt::Key_W:
-      isMovingForward = true;
+      m_isMovingForward = true;
       break;
     case Qt::Key_S:
-      isMovingBackward = true;
+      m_isMovingBackward = true;
       break;
     case Qt::Key_A:
-      isMovingLeft = true;
+      m_isMovingLeft = true;
       break;
     case Qt::Key_D:
-      isMovingRight = true;
+      m_isMovingRight = true;
       break;
     case Qt::Key_X:
       M3DVector3f vOrigin;
       m_viewFrame.GetOrigin (vOrigin);
       summonMeteorite ((int) (vOrigin[0] + MAP_SIZE / 2.), (int) (vOrigin[1] + MAP_SIZE / 2.));
-      break;
-    case Qt::Key_B:
-      M3DVector3f lookingAt;
-      M3DVector3f forward;
-      M3DVector3i cube;
-      lookAt (lookingAt);
-      m_viewFrame.GetForwardVector (forward);
-      getCubeByPoint (cube, lookingAt, forward);
-      if (coordinatesValid (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2))
-        explosion (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2, 2);
       break;
     case Qt::Key_Escape:
       exit (0);
@@ -502,16 +494,16 @@ void GLWidget::keyReleaseEvent (QKeyEvent* event) {
 
   switch (event->key ()) {
     case Qt::Key_W:
-      isMovingForward = false;
+      m_isMovingForward = false;
       break;
     case Qt::Key_S:
-      isMovingBackward = false;
+      m_isMovingBackward = false;
       break;
     case Qt::Key_A:
-      isMovingLeft = false;
+      m_isMovingLeft = false;
       break;
     case Qt::Key_D:
-      isMovingRight = false;
+      m_isMovingRight = false;
       break;
   }
 }
@@ -530,25 +522,43 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
   updateGL ();
 }
 
+void GLWidget::mousePressEvent (QMouseEvent* event) {
+  switch (event->button ()) {
+    case Qt::LeftButton: {
+      M3DVector3f lookingAt;
+      M3DVector3f forward;
+      Vec3i cube;
+      lookAt (lookingAt);
+      m_viewFrame.GetForwardVector (forward);
+      getCubeByPoint (cube.coords, lookingAt, forward);
+      if (coordinatesValid (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2))
+        explosion (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2, 2);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 void GLWidget::timerEvent (QTimerEvent* event) {
   FIX_UNUSED (event);
 
-  double timeElasped = time.elapsed () / 1000.;
-  if (isMovingForward)
+  double timeElasped = m_time.elapsed () / 1000.;
+  if (m_isMovingForward)
     m_viewFrame.MoveForward (5. * timeElasped);
-  if (isMovingBackward)
+  if (m_isMovingBackward)
     m_viewFrame.MoveForward (-3. * timeElasped);
-  if (isMovingLeft)
+  if (m_isMovingLeft)
     m_viewFrame.MoveRight (3. * timeElasped);
-  if (isMovingRight)
+  if (m_isMovingRight)
     m_viewFrame.MoveRight (-3. * timeElasped);
-  time.restart ();
+  m_time.restart ();
 
-  double fpsTimeElapsed = fpsTime.elapsed () / 1000.;
+  double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {
     std::cout << "fps = " << m_nFramesDrawn << std::endl;
     m_nFramesDrawn = 0;
-    fpsTime.restart ();
+    m_fpsTime.restart ();
   }
   updateGL ();
 }

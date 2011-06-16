@@ -1,5 +1,3 @@
-// TODO: Do they use ``m_'' for protected members?
-
 #ifndef GLWIDGET_HPP
 #define GLWIDGET_HPP
 
@@ -56,13 +54,13 @@ protected:
 //   GLMatrixStack m_projectionMatrix;
 //   GLGeometryTransform m_transformPipeline;
 
-  bool isMovingForward;
-  bool isMovingBackward;
-  bool isMovingLeft;
-  bool isMovingRight;
+  bool m_isMovingForward;
+  bool m_isMovingBackward;
+  bool m_isMovingLeft;
+  bool m_isMovingRight;
 
-  QTime time;
-  QTime fpsTime;
+  QTime m_time;
+  QTime m_fpsTime;
 
   Visible_cube_set <GLfloat, GLfloat> m_cubeArray;
 
@@ -86,6 +84,7 @@ protected:
   void keyPressEvent (QKeyEvent* event);
   void keyReleaseEvent (QKeyEvent* event);
   void mouseMoveEvent (QMouseEvent* event);
+  void mousePressEvent (QMouseEvent* event);
   void timerEvent (QTimerEvent* event);
 };
 
