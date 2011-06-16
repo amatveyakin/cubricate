@@ -50,13 +50,13 @@ int main (int argc, char** argv) {
   glFormat.setSampleBuffers (true);
   QGLFormat::setDefaultFormat (glFormat);
   if (!QGLFormat::hasOpenGL ()) {
-    std::cout << "This system does not support OpenGL :-(" << std::endl;
+    std::cout << "Your system does not support OpenGL :-(" << std::endl;
     return 1;
   }
 
   GLWidget glWidget;
   if (!glWidget.format ().sampleBuffers ())
-    std::cout << "This system does not have sample buffer support :-(" << std::endl;
+    std::cout << "Your system does not have sample buffer support :-(" << std::endl;
 
   if (showFullscreen) {
     glWidget.showFullScreen();

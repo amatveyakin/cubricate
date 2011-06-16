@@ -4,36 +4,36 @@
 /* Copyright (c) 2007-2009, Richard S. Wright Jr.
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, 
+Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-Redistributions of source code must retain the above copyright notice, this list 
+Redistributions of source code must retain the above copyright notice, this list
 of conditions and the following disclaimer.
 
-Redistributions in binary form must reproduce the above copyright notice, this list 
-of conditions and the following disclaimer in the documentation and/or other 
+Redistributions in binary form must reproduce the above copyright notice, this list
+of conditions and the following disclaimer in the documentation and/or other
 materials provided with the distribution.
 
-Neither the name of Richard S. Wright Jr. nor the names of other contributors may be used 
-to endorse or promote products derived from this software without specific prior 
+Neither the name of Richard S. Wright Jr. nor the names of other contributors may be used
+to endorse or promote products derived from this software without specific prior
 written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
-SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
-TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR 
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// Implementation file for the Math3d library. The C-Runtime has math.h, these routines 
+// Implementation file for the Math3d library. The C-Runtime has math.h, these routines
 // are meant to suppliment math.h by adding geometry/math routines
 // useful for graphics, simulation, and physics applications (3D stuff).
 // This library is meant to be useful on Win32, Mac OS X, various Linux/Unix distros,
-// and mobile platforms. Although designed with OpenGL in mind, there are no OpenGL 
+// and mobile platforms. Although designed with OpenGL in mind, there are no OpenGL
 // dependencies. Other than standard math routines, the only other outside routine
 // used is memcpy (for faster copying of vector arrays).
 // Most of the library is inlined. Some functions however are here as I judged them
@@ -42,7 +42,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
 // Richard S. Wright Jr.
 
 // Most functions are in-lined... and are defined here
-#include <math3d.h>
+#include <client/GLTools/math3d.h>
 
 
 ////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ float m3dGetDistanceSquared3(const M3DVector3f u, const M3DVector3f v)
 	{
 	float x = u[0] - v[0];
 	x = x*x;
-	
+
 	float y = u[1] - v[1];
 	y = y*y;
 
@@ -116,7 +116,7 @@ double m3dGetDistanceSquared3(const M3DVector3d u, const M3DVector3d v)
 	{
 	double x = u[0] - v[0];
 	x = x*x;
-	
+
 	double y = u[1] - v[1];
 	y = y*y;
 
@@ -190,7 +190,7 @@ void m3dMatrixMultiply44(M3DMatrix33d product, const M3DMatrix33d a, const M3DMa
 #undef B33
 #undef P33
 
-	
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Create a projection matrix
@@ -202,8 +202,8 @@ void m3dMakePerspectiveMatrix(M3DMatrix44f mProjection, float fFov, float fAspec
     float yMax = zMin * tanf(fFov * 0.5f);
     float yMin = -yMax;
 	float xMin = yMin * fAspect;
-    float xMax = -xMin; 
-    
+    float xMax = -xMin;
+
 	mProjection[0] = (2.0f * zMin) / (xMax - xMin);
 	mProjection[5] = (2.0f * zMin) / (yMax - yMin);
 	mProjection[8] = (xMax + xMin) / (xMax - xMin);
@@ -219,7 +219,7 @@ void m3dMakePerspectiveMatrix(M3DMatrix44f mProjection, float fFov, float fAspec
 void m3dMakeOrthographicMatrix(M3DMatrix44f mProjection, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax)
 	{
 	m3dLoadIdentity44(mProjection);
-	
+
 	mProjection[0] = 2.0f / (xMax - xMin);
 	mProjection[5] = 2.0f / (yMax - yMin);
 	mProjection[10] = -2.0f / (zMax - zMin);
@@ -228,7 +228,7 @@ void m3dMakeOrthographicMatrix(M3DMatrix44f mProjection, float xMin, float xMax,
 	mProjection[14] = -((zMax + zMin)/(zMax - zMin));
 	mProjection[15] = 1.0f;
 	}
-	
+
 
 
 #define M33(row,col)  m[col*3+row]
@@ -236,7 +236,7 @@ void m3dMakeOrthographicMatrix(M3DMatrix44f mProjection, float xMin, float xMax,
 // Creates a 3x3 rotation matrix, takes radians NOT degrees
 void m3dRotationMatrix33(M3DMatrix33f m, float angle, float x, float y, float z)
 	{
-	
+
 	float mag, s, c;
 	float xx, yy, zz, xy, yz, zx, xs, ys, zs, one_c;
 
@@ -535,7 +535,7 @@ void m3dInvertMatrix44(M3DMatrix44f mInverse, const M3DMatrix44f m)
         for (j = 0; j < 4; j++)
             {
             detij = DetIJ(m, j, i);
-            mInverse[(i*4)+j] = ((i+j) & 0x1) ? (-detij * det) : (detij *det); 
+            mInverse[(i*4)+j] = ((i+j) & 0x1) ? (-detij * det) : (detij *det);
             }
         }
     }
@@ -562,7 +562,7 @@ void m3dInvertMatrix44(M3DMatrix44d mInverse, const M3DMatrix44d m)
         for (j = 0; j < 4; j++)
             {
             detij = DetIJ(m, j, i);
-            mInverse[(i*4)+j] = ((i+j) & 0x1) ? (-detij * det) : (detij *det); 
+            mInverse[(i*4)+j] = ((i+j) & 0x1) ? (-detij * det) : (detij *det);
             }
         }
     }
@@ -576,29 +576,29 @@ void m3dProjectXY(M3DVector2f vPointOut, const M3DMatrix44f mModelView, const M3
 
 	memcpy(vBack, vPointIn, sizeof(float)*3);
 	vBack[3] = 1.0f;
-    
+
     m3dTransformVector4(vForth, vBack, mModelView);
     m3dTransformVector4(vBack, vForth, mProjection);
-    
+
     if(!m3dCloseEnough(vBack[3], 0.0f, 0.000001f)) {
         float div = 1.0f / vBack[3];
         vBack[0] *= div;
         vBack[1] *= div;
-        //vBack[2] *= div; 
+        //vBack[2] *= div;
         }
 
     vPointOut[0] = float(iViewPort[0])+(1.0f+float(vBack[0]))*float(iViewPort[2])/2.0f;
     vPointOut[1] = float(iViewPort[1])+(1.0f+float(vBack[1]))*float(iViewPort[3])/2.0f;
 
-	// This was put in for Grand Tour... I think it's right. 
+	// This was put in for Grand Tour... I think it's right.
 	// .... please report any bugs
 	if(iViewPort[0] != 0)     // Cast to float is expensive... avoid if posssible
 		vPointOut[0] -= float(iViewPort[0]);
-	
-	if(iViewPort[1] != 0) 
+
+	if(iViewPort[1] != 0)
 		vPointOut[1] -= float(iViewPort[1]);
 	}
-    
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // Get window coordinates, we also want Z....
 void m3dProjectXYZ(M3DVector3f vPointOut, const M3DMatrix44f mModelView, const M3DMatrix44f mProjection, const int iViewPort[4], const M3DVector3f vPointIn)
@@ -607,15 +607,15 @@ void m3dProjectXYZ(M3DVector3f vPointOut, const M3DMatrix44f mModelView, const M
 
 	memcpy(vBack, vPointIn, sizeof(float)*3);
 	vBack[3] = 1.0f;
-    
+
     m3dTransformVector4(vForth, vBack, mModelView);
     m3dTransformVector4(vBack, vForth, mProjection);
-    
+
     if(!m3dCloseEnough(vBack[3], 0.0f, 0.000001f)) {
         float div = 1.0f / vBack[3];
         vBack[0] *= div;
         vBack[1] *= div;
-        vBack[2] *= div; 
+        vBack[2] *= div;
         }
 
     vPointOut[0] = float(iViewPort[0])+(1.0f+float(vBack[0]))*float(iViewPort[2])/2.0f;
@@ -623,8 +623,8 @@ void m3dProjectXYZ(M3DVector3f vPointOut, const M3DMatrix44f mModelView, const M
 
 	if(iViewPort[0] != 0)     // Cast to float is expensive... avoid if posssible
 		vPointOut[0] -= float(iViewPort[0]);
-	
-	if(iViewPort[1] != 0) 
+
+	if(iViewPort[1] != 0)
 		vPointOut[1] -= float(iViewPort[1]);
 
  	vPointOut[2] = vBack[2];
@@ -638,8 +638,8 @@ void m3dProjectXYZ(M3DVector3f vPointOut, const M3DMatrix44f mModelView, const M
 ///////////////////////////////////////////////////////////////////////////////
 // Calculates the normal of a triangle specified by the three points
 // p1, p2, and p3. Each pointer points to an array of three floats. The
-// triangle is assumed to be wound counter clockwise. 
-void m3dFindNormal(M3DVector3f result, const M3DVector3f point1, const M3DVector3f point2, 
+// triangle is assumed to be wound counter clockwise.
+void m3dFindNormal(M3DVector3f result, const M3DVector3f point1, const M3DVector3f point2,
 							const M3DVector3f point3)
 	{
 	M3DVector3f v1,v2;		// Temporary vectors
@@ -662,7 +662,7 @@ void m3dFindNormal(M3DVector3f result, const M3DVector3f point1, const M3DVector
 
 
 // Ditto above, but for doubles
-void m3dFindNormal(M3DVector3d result, const M3DVector3d point1, const M3DVector3d point2, 
+void m3dFindNormal(M3DVector3d result, const M3DVector3d point1, const M3DVector3d point2,
 							const M3DVector3d point3)
 	{
 	M3DVector3d v1,v2;		// Temporary vectors
@@ -745,7 +745,7 @@ void m3dCatmullRom(M3DVector3f vOut, const M3DVector3f vP0, const M3DVector3f vP
     float t2 = t * t;
     float t3 = t2 * t;
 
-    // X    
+    // X
     vOut[0] = 0.5f * ( ( 2.0f * vP1[0]) +
                        (-vP0[0] + vP2[0]) * t +
                        (2.0f * vP0[0] - 5.0f *vP1[0] + 4.0f * vP2[0] - vP3[0]) * t2 +
@@ -773,7 +773,7 @@ void m3dCatmullRom(M3DVector3d vOut, const M3DVector3d vP0, const M3DVector3d vP
     double t2 = t * t;
     double t3 = t2 * t;
 
-    // X    
+    // X
     vOut[0] = 0.5 * ( ( 2.0 * vP1[0]) +
                        (-vP0[0] + vP2[0]) * t +
                        (2.0 * vP0[0] - 5.0 *vP1[0] + 4.0 * vP2[0] - vP3[0]) * t2 +
@@ -804,22 +804,22 @@ double m3dRaySphereTest(const M3DVector3d point, const M3DVector3d ray, const M3
 	//m3dNormalizeVector(ray);	// Make sure ray is unit length
 
 	M3DVector3d rayToCenter;	// Ray to center of sphere
-	rayToCenter[0] =  sphereCenter[0] - point[0];	
+	rayToCenter[0] =  sphereCenter[0] - point[0];
 	rayToCenter[1] =  sphereCenter[1] - point[1];
 	rayToCenter[2] =  sphereCenter[2] - point[2];
-	
+
 	// Project rayToCenter on ray to test
 	double a = m3dDotProduct3(rayToCenter, ray);
-	
+
 	// Distance to center of sphere
 	double distance2 = m3dDotProduct3(rayToCenter, rayToCenter);	// Or length
 
-	
+
 	double dRet = (sphereRadius * sphereRadius) - distance2 + (a*a);
-	
+
 	if(dRet > 0.0)			// Return distance to intersection
 		dRet = a - sqrt(dRet);
-	
+
 	return dRet;
 	}
 
@@ -831,48 +831,48 @@ float m3dRaySphereTest(const M3DVector3f point, const M3DVector3f ray, const M3D
 	//m3dNormalizeVectorf(ray);	// Make sure ray is unit length
 
 	M3DVector3f rayToCenter;	// Ray to center of sphere
-	rayToCenter[0] =  sphereCenter[0] - point[0];	
+	rayToCenter[0] =  sphereCenter[0] - point[0];
 	rayToCenter[1] =  sphereCenter[1] - point[1];
 	rayToCenter[2] =  sphereCenter[2] - point[2];
-	
+
 	// Project rayToCenter on ray to test
 	float a = m3dDotProduct3(rayToCenter, ray);
-	
+
 	// Distance to center of sphere
 	float distance2 = m3dDotProduct3(rayToCenter, rayToCenter);	// Or length
-	
+
 	float dRet = (sphereRadius * sphereRadius) - distance2 + (a*a);
-	
+
 	if(dRet > 0.0)			// Return distance to intersection
 		dRet = a - sqrtf(dRet);
-	
+
 	return dRet;
 	}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculate the tangent basis for a triangle on the surface of a model
-// This vector is needed for most normal mapping shaders 
+// This vector is needed for most normal mapping shaders
 void m3dCalculateTangentBasis(M3DVector3f vTangent, const M3DVector3f vTriangle[3], const M3DVector2f vTexCoords[3], const M3DVector3f N)
 {
     M3DVector3f dv2v1, dv3v1;
     float dc2c1t, dc2c1b, dc3c1t, dc3c1b;
     float M;
-    
+
     m3dSubtractVectors3(dv2v1, vTriangle[1], vTriangle[0]);
     m3dSubtractVectors3(dv3v1, vTriangle[2], vTriangle[0]);
-    
+
     dc2c1t = vTexCoords[1][0] - vTexCoords[0][0];
     dc2c1b = vTexCoords[1][1] - vTexCoords[0][1];
     dc3c1t = vTexCoords[2][0] - vTexCoords[0][0];
     dc3c1b = vTexCoords[2][1] - vTexCoords[0][1];
-    
+
     M = (dc2c1t * dc3c1b) - (dc3c1t * dc2c1b);
     M = 1.0f / M;
-    
+
     m3dScaleVector3(dv2v1, dc3c1b);
     m3dScaleVector3(dv3v1, dc2c1b);
-    
+
     m3dSubtractVectors3(vTangent, dv2v1, dv3v1);
     m3dScaleVector3(vTangent, M);  // This potentially changes the direction of the vector
     m3dNormalizeVector3(vTangent);
@@ -882,8 +882,8 @@ void m3dCalculateTangentBasis(M3DVector3f vTangent, const M3DVector3f vTriangle[
     m3dCrossProduct3(vTangent, B, N);
     m3dNormalizeVector3(vTangent);
     }
-	
-	
+
+
 ////////////////////////////////////////////////////////////////////////////
 // Smoothly step between 0 and 1 between edge1 and edge 2
 double m3dSmoothStep(const double edge1, const double edge2, const double x)
@@ -892,10 +892,10 @@ double m3dSmoothStep(const double edge1, const double edge2, const double x)
     t = (x - edge1) / (edge2 - edge1);
     if(t > 1.0)
         t = 1.0;
-        
+
     if(t < 0.0)
         t = 0.0f;
-        
+
     return t * t * ( 3.0 - 2.0 * t);
     }
 
@@ -907,14 +907,14 @@ float m3dSmoothStep(const float edge1, const float edge2, const float x)
     t = (x - edge1) / (edge2 - edge1);
     if(t > 1.0f)
         t = 1.0f;
-        
+
     if(t < 0.0)
         t = 0.0f;
-        
+
     return t * t * ( 3.0f - 2.0f * t);
     }
-	
-	
+
+
 
 ///////////////////////////////////////////////////////////////////////////
 // Creae a projection to "squish" an object into the plane.
@@ -922,8 +922,8 @@ float m3dSmoothStep(const float edge1, const float edge2, const float x)
 // to get a plane equation.
 void m3dMakePlanarShadowMatrix(M3DMatrix44f proj, const M3DVector4f planeEq, const M3DVector3f vLightPos)
 	{
-	// These just make the code below easier to read. They will be 
-	// removed by the optimizer.	
+	// These just make the code below easier to read. They will be
+	// removed by the optimizer.
 	float a = planeEq[0];
 	float b = planeEq[1];
 	float c = planeEq[2];
@@ -955,16 +955,16 @@ void m3dMakePlanarShadowMatrix(M3DMatrix44f proj, const M3DVector4f planeEq, con
 	proj[15] = a * dx + b * dy + c * dz;
 	// Shadow matrix ready
 	}
-	
-	
+
+
 ///////////////////////////////////////////////////////////////////////////
 // Creae a projection to "squish" an object into the plane.
 // Use m3dGetPlaneEquationd(planeEq, point1, point2, point3);
 // to get a plane equation.
 void m3dMakePlanarShadowMatrix(M3DMatrix44d proj, const M3DVector4d planeEq, const M3DVector3f vLightPos)
 	{
-	// These just make the code below easier to read. They will be 
-	// removed by the optimizer.	
+	// These just make the code below easier to read. They will be
+	// removed by the optimizer.
 	double a = planeEq[0];
 	double b = planeEq[1];
 	double c = planeEq[2];
@@ -1006,35 +1006,35 @@ void m3dMakePlanarShadowMatrix(M3DMatrix44d proj, const M3DVector4d planeEq, con
 // In: vPointInSpace is the point in space
 // Out: vPointOnRay is the poing on the ray closest to vPointInSpace
 // Return: The square of the distance to the ray
-double m3dClosestPointOnRay(M3DVector3d vPointOnRay, const M3DVector3d vRayOrigin, const M3DVector3d vUnitRayDir, 
+double m3dClosestPointOnRay(M3DVector3d vPointOnRay, const M3DVector3d vRayOrigin, const M3DVector3d vUnitRayDir,
 											const M3DVector3d vPointInSpace)
 	{
 	M3DVector3d v;
 	m3dSubtractVectors3(v, vPointInSpace, vRayOrigin);
-	
+
 	double t = m3dDotProduct3(vUnitRayDir, v);
-	
+
 	// This is the point on the ray
 	vPointOnRay[0] = vRayOrigin[0] + (t * vUnitRayDir[0]);
 	vPointOnRay[1] = vRayOrigin[1] + (t * vUnitRayDir[1]);
 	vPointOnRay[2] = vRayOrigin[2] + (t * vUnitRayDir[2]);
-	
+
 	return m3dGetDistanceSquared3(vPointOnRay, vPointInSpace);
 	}
 
 // ditto above... but with floats
-float m3dClosestPointOnRay(M3DVector3f vPointOnRay, const M3DVector3f vRayOrigin, const M3DVector3f vUnitRayDir, 
+float m3dClosestPointOnRay(M3DVector3f vPointOnRay, const M3DVector3f vRayOrigin, const M3DVector3f vUnitRayDir,
 							 const M3DVector3f vPointInSpace)
 	{
 	M3DVector3f v;
 	m3dSubtractVectors3(v, vPointInSpace, vRayOrigin);
-	
+
 	float t = m3dDotProduct3(vUnitRayDir, v);
-	
+
 	// This is the point on the ray
 	vPointOnRay[0] = vRayOrigin[0] + (t * vUnitRayDir[0]);
 	vPointOnRay[1] = vRayOrigin[1] + (t * vUnitRayDir[1]);
 	vPointOnRay[2] = vRayOrigin[2] + (t * vUnitRayDir[2]);
-	
+
 	return m3dGetDistanceSquared3(vPointOnRay, vPointInSpace);
 	}

@@ -1,5 +1,7 @@
 // Fragment Shader
 
+// TODO: rewrite shaders to camelCase too
+
 #version 400
 
 uniform vec4 color;

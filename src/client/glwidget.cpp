@@ -14,13 +14,12 @@
 #include "common/cube_geometry.hpp"
 
 #include "client/cube_array.hpp"
+#include "client/client_world.hpp"
 #include "client/glwidget.hpp"
 
 
 
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
-
-const GLfloat MIN_CAMERA_DISTANCE = 0.1;
 
 const double FPS_MEASURE_INTERVAL = 1.; /* sec */
 
@@ -44,25 +43,27 @@ bool GLWidget::coordinatesValid (int x, int y, int z) {
          && (z >= 0) && (z < MAP_SIZE);
 }
 
-void GLWidget::getCubeByPoint (M3DVector3i cube, M3DVector3f point, M3DVector3f direction) {
+// bool GLWidget::coordinatesValid (Vec3i v) {
+//   return coordinatesValid (v.x, v.y, x.z);
+// }
+
+Vec3i GLWidget::getCubeByPoint (Vec3d point, Vec3d direction) {
   const float EPSILON = 0.00001;
+  Vec3i cube;
   for (int i = 0; i < 3; ++i)
     cube[i] = (int) floor (point[i] + xSgn (direction[i]) * EPSILON + 0.5);
+  return cube;
 }
 
-void GLWidget::lookAt (M3DVector3f result) {
-  M3DVector3f currentPoint;
-  M3DVector3f forwardVector;
-  M3DVector3f parameter;
-  M3DVector3f nearestInt;
+Vec3d GLWidget::lookAt () {
+  Vec3d currentPoint = player.origin ();
+  Vec3d forwardVector = player.dirForward ();
 
-  m_viewFrame.GetOrigin (currentPoint);
-  m_viewFrame.GetForwardVector (forwardVector);
-
-  M3DVector3i cube;
-  getCubeByPoint (cube, currentPoint, forwardVector);
+  Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
   while  (  coordinatesValid (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)
          && !m_cubeArray.cube_presents (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)) {
+    Vec3d parameter;
+    Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
       nearestInt[i] = (forwardVector[i] > 0) ? (floor (currentPoint[i] - 0.5) + 1.5) : (ceil (currentPoint[i] + 0.5) - 1.5);
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
@@ -74,9 +75,9 @@ void GLWidget::lookAt (M3DVector3f result) {
     for (int i = 0; i < 3; ++i)
       currentPoint[i] += forwardVector[i] * t;
 
-    getCubeByPoint (cube, currentPoint, forwardVector);
+    cube = getCubeByPoint (currentPoint, forwardVector);
   }
-  m3dCopyVector3 (result, currentPoint);
+  return currentPoint;
 }
 
 void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius) {
@@ -234,6 +235,9 @@ void GLWidget::initBuffers () {
 }
 
 void GLWidget::initTextures () {
+  const int N_TEXTURES    = 256;
+  const int TEXTURE_SIZE  = 16;
+
   glGenTextures (1, &m_squareTextureArray);
   glBindTexture (GL_TEXTURE_2D_ARRAY, m_squareTextureArray);
   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
@@ -242,62 +246,90 @@ void GLWidget::initTextures () {
   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  glTexImage3D (GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 16, 16, 256, 0,
+  glTexImage3D (GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, N_TEXTURES, 0,
                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-  for (int i = 0; i < 256; i++) {
-    char cFile[32];
-    sprintf (cFile, "resources/textures/tile_%d.tga", i);
+  for (int i = 0; i < N_TEXTURES; i++) {
+    char textureFileName[256];
+    sprintf (textureFileName, "resources/textures/tile_%d.tga", i);
 
-    GLbyte *pBits;
-    int nWidth, nHeight, nComponents;
-    GLenum eFormat;
+    QImage rawTexture (textureFileName);
+    if (rawTexture.isNull ()) {
+      std::cout << "Cannot open texture file ``" << textureFileName << "''" << std::endl;
+      exit (1);
+    }
 
-    // Read the texture bits
-    pBits = gltReadTGABits (cFile, &nWidth, &nHeight, &nComponents, &eFormat);
-    assert (pBits);
-    glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, nWidth, nHeight, 1, GL_BGRA, GL_UNSIGNED_BYTE, pBits);
+    QImage texture = convertToGLFormat (rawTexture);
+    assert (!texture.isNull ());
 
-    free (pBits);
+    glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
   }
 }
 
+// TODO: rename shader program files
 void GLWidget::initShaders () {
-  m_instancedCubeShader = gltLoadShaderPairWithAttributes ("resources/InstancedCube.vp", "resources/InstancedCube.fp", 5,
-                                                           0, "v_vertex",
-                                                           1, "v_normal",
-                                                           2, "v_tex_coord",
-                                                           3, "v_pos_and_size",
-                                                           4, "v_type");
+  if (!QGLShaderProgram::hasOpenGLShaderPrograms()) {
+    std::cout << "Your system does not support OpenGL custom shader programs :-(" << std::endl;
+    exit (1);
+  }
 
-  glLinkProgram (m_instancedCubeShader);
+//   QGLShader vertexShader   (QGLShader::Vertex);
+//   QGLShader fragmentShader (QGLShader::Fragment);
+//
+//   bool result;
+//
+//   result = vertexShader.compileSourceFile ("resources/InstancedCube.vp");
+//   if (!result) {
+//     std::cout << "Unable to compile vertex shader:" << std::endl
+//               << vertexShader.log ().toStdString () << std::endl;
+//     exit (1);
+//   }
+//
+//   result = fragmentShader.compileSourceFile ("resources/InstancedCube.fp");
+//   if (!result) {
+//     std::cout << "Unable to compile fragment shader:" << std::endl
+//               << fragmentShader.log ().toStdString () << std::endl;
+//     exit (1);
+//   }
+
+  bool result;
+
+  result = m_shaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/InstancedCube.vp");
+  if (!result) {
+    std::cout << "Unable to compile vertex shader:" << std::endl
+              << m_shaderProgram.log ().toStdString () << std::endl;
+    exit (1);
+  }
+
+  result = m_shaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/InstancedCube.fp");
+  if (!result) {
+    std::cout << "Unable to compile fragment shader:" << std::endl
+              << m_shaderProgram.log ().toStdString () << std::endl;
+    exit (1);
+  }
+
+  result = m_shaderProgram.link ();
+  if (!result) {
+    std::cout << "Unable to link shaders:" << std::endl
+              << m_shaderProgram.log ().toStdString () << std::endl;
+    exit (1);
+  }
+
+  m_shaderProgram.bindAttributeLocation ("v_vertex", 0);
+  m_shaderProgram.bindAttributeLocation ("v_normal", 1);
+  m_shaderProgram.bindAttributeLocation ("v_tex_coord", 2);
+  m_shaderProgram.bindAttributeLocation ("v_pos_and_size", 3);
+  m_shaderProgram.bindAttributeLocation ("v_type", 4);
+
+  m_instancedCubeShader = m_shaderProgram.programId ();
+//   glLinkProgram (m_instancedCubeShader);
   glUseProgram (m_instancedCubeShader);
-  m_locMvp      = glGetUniformLocation (m_instancedCubeShader, "mvp_matrix");
-  m_locColor    = glGetUniformLocation (m_instancedCubeShader, "color");
-  //m_locTexture  = glGetUniformLocation (m_instancedCubeShader, "colorMap");
-  m_locMapSize = glGetUniformLocation (m_instancedCubeShader, "MAP_SIZE");
-  m_locSquareTexture = glGetUniformLocation (m_instancedCubeShader, "squareTexture");
+  m_locMvp            = glGetUniformLocation (m_instancedCubeShader, "mvp_matrix");
+  m_locColor          = glGetUniformLocation (m_instancedCubeShader, "color");
+  m_locMapSize        = glGetUniformLocation (m_instancedCubeShader, "MAP_SIZE");
+  m_locSquareTexture  = glGetUniformLocation (m_instancedCubeShader, "squareTexture");
 
   glUniform1i (m_locMapSize, MAP_SIZE);
-}
-
-void GLWidget::updateCamera () {
-  M3DVector3f cameraPosition, cameraUp;
-
-  cameraPosition[0] = m_cameraDistance * cos (m_cameraBeta) * sin (m_cameraAlpha);
-  cameraPosition[1] = m_cameraDistance * cos (m_cameraBeta) * cos (m_cameraAlpha);
-  cameraPosition[2] = m_cameraDistance * sin (m_cameraBeta);
-
-  cameraUp[0] = -sin (m_cameraBeta) * sin (m_cameraAlpha);
-  cameraUp[1] = -sin (m_cameraBeta) * cos (m_cameraAlpha);
-  cameraUp[2] =  cos (m_cameraBeta);
-
-  m_viewFrame.SetOrigin   (cameraPosition);
-  m_viewFrame.SetUpVector (cameraUp);
-
-  m3dNormalizeVector3 (cameraPosition);
-  m3dScaleVector3 (cameraPosition, -1);
-  m_viewFrame.SetForwardVector (cameraPosition);
 }
 
 void GLWidget::setupRenderContext () {
@@ -306,8 +338,6 @@ void GLWidget::setupRenderContext () {
   initShaders ();
   initBuffers ();
   initTextures ();
-  updateCamera ();
-
 }
 
 // TODO: Where should we call it?
@@ -391,16 +421,6 @@ GLWidget::~GLWidget () { }
 void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
 
-  m_cameraAlpha = 0.;
-  m_cameraBeta = 0.;
-  m_cameraDistance = MIN_CAMERA_DISTANCE;
-
-  GLenum err = glewInit ();
-  if (GLEW_OK != err) {
-    std::cout << "GLEW Error: " << glewGetErrorString (err) << std::endl;
-    exit (1);
-  }
-
   setupRenderContext ();
 
 
@@ -425,15 +445,15 @@ void GLWidget::paintGL () {
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_MULTISAMPLE);
 
-  glUseProgram  (m_instancedCubeShader);
+  glUseProgram (m_instancedCubeShader);
   glBindVertexArray (m_cubesVao);
 
-  GLfloat m_rotate_cameraAlpha[16], m_rotate_cameraBeta[16];
-  m3dRotationMatrix44 (m_rotate_cameraAlpha, m_cameraAlpha, 1., 0., 0.);
-  m3dRotationMatrix44 (m_rotate_cameraBeta,  m_cameraBeta,  0., 1., 0.);
+//   GLfloat m_rotate_cameraAlpha[16], m_rotate_cameraBeta[16];
+//   m3dRotationMatrix44 (m_rotate_cameraAlpha, m_cameraAlpha, 1., 0., 0.);
+//   m3dRotationMatrix44 (m_rotate_cameraBeta,  m_cameraBeta,  0., 1., 0.);
   M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP;
   m3dTranslationMatrix44 (mat_World, -MAP_SIZE / 2., -MAP_SIZE / 2., -MAP_SIZE / 2.);
-  m_viewFrame.GetCameraMatrix (mat_View, false);
+  player.getCameraMatrix (mat_View, false);
   m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
   m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
   glUniformMatrix4fv (m_locMvp, 1, GL_FALSE, mat_WVP);
@@ -476,11 +496,11 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
     case Qt::Key_D:
       m_isMovingRight = true;
       break;
-    case Qt::Key_X:
-      M3DVector3f vOrigin;
-      m_viewFrame.GetOrigin (vOrigin);
+    case Qt::Key_X: {
+      Vec3d vOrigin = player.origin ();
       summonMeteorite ((int) (vOrigin[0] + MAP_SIZE / 2.), (int) (vOrigin[1] + MAP_SIZE / 2.));
       break;
+    }
     case Qt::Key_Escape:
       exit (0);
       break;
@@ -515,8 +535,8 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
   isLocked = true;
   int centerX = width ()  / 2;
   int centerY = height () / 2;
-  m_viewFrame.RotateWorld (-(event->x () - centerX) / 100., 0., 0., 1.);
-  m_viewFrame.RotateLocalX ((event->y () - centerY) / 100.);
+  player.RotateWorld (-(event->x () - centerX) / 100., 0., 0., 1.);
+  player.RotateLocalX ((event->y () - centerY) / 100.);
   cursor ().setPos (mapToGlobal (QPoint (centerX, centerY)));
   isLocked = false;
   updateGL ();
@@ -525,12 +545,9 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
 void GLWidget::mousePressEvent (QMouseEvent* event) {
   switch (event->button ()) {
     case Qt::LeftButton: {
-      M3DVector3f lookingAt;
-      M3DVector3f forward;
-      Vec3i cube;
-      lookAt (lookingAt);
-      m_viewFrame.GetForwardVector (forward);
-      getCubeByPoint (cube.coords, lookingAt, forward);
+      Vec3d lookingAt = lookAt ();
+      Vec3d forward = player.dirForward ();
+      Vec3i cube = getCubeByPoint (lookingAt, forward);
       if (coordinatesValid (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2))
         explosion (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2, 2);
       break;
@@ -545,13 +562,13 @@ void GLWidget::timerEvent (QTimerEvent* event) {
 
   double timeElasped = m_time.elapsed () / 1000.;
   if (m_isMovingForward)
-    m_viewFrame.MoveForward (5. * timeElasped);
+    player.moveForward (5. * timeElasped);
   if (m_isMovingBackward)
-    m_viewFrame.MoveForward (-3. * timeElasped);
+    player.moveForward (-3. * timeElasped);
   if (m_isMovingLeft)
-    m_viewFrame.MoveRight (3. * timeElasped);
+    player.moveRight (3. * timeElasped);
   if (m_isMovingRight)
-    m_viewFrame.MoveRight (-3. * timeElasped);
+    player.moveRight (-3. * timeElasped);
   m_time.restart ();
 
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;

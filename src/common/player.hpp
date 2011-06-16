@@ -2,13 +2,13 @@
 #define PLAYER_HPP
 
 
-#include "linear_algebra.hpp"
-
+#include "common/linear_algebra.hpp"
 
 // TODO: delete
-#include "client/GLTools/include/math3d.h"
+#include "client/GLTools/math3d.h"
 
 
+// TODO: move large methods to .cpp file
 // TODO: orientation --- ?
 class ViewFrame {
 public:
@@ -53,7 +53,7 @@ public:
 
 
   // TODO: rewrite
-  void getCameraMatrix (M3DMatrix44f result /*, bool rotationOnly = false*/) {
+  void getCameraMatrix (M3DMatrix44f result, bool rotationOnly = false) {
     Vec3d z = -m_dirForward;
     Vec3d x = crossProduct (m_dirUp, z);
 
@@ -78,17 +78,16 @@ public:
     M (3, 3) = 1.0;
 #undef M
 
-//     if (rotationOnly)
-//       return;
-//
-//     // Apply translation too
-//     M3DMatrix44f trans, M;
-//     m3dTranslationMatrix44 (trans, -vOrigin[0], -vOrigin[1], -vOrigin[2]);
-//
-//     m3dMatrixMultiply44 (M, m, trans);
-//
-//     // Copy result back into m
-//     memcpy (m, M, sizeof (float) *16);
+    if (rotationOnly)
+      return;
+
+    // Apply translation too
+    M3DMatrix44f trans, M;
+    m3dTranslationMatrix44 (trans, -m_origin[0], -m_origin[1], -m_origin[2]);
+
+    m3dMatrixMultiply44 (M, result, trans);
+
+    memcpy (result, M, sizeof (float) * 16);
   }
 
 
@@ -156,27 +155,26 @@ public:
 //   }
 
 
-//   void RotateWorld (float fAngle, float x, float y, float z) {
-//     M3DMatrix44f rotMat;
-//
-//     // Create the Rotation matrix
-//     m3dRotationMatrix44 (rotMat, fAngle, x, y, z);
-//
-//     M3DVector3f newVect;
-//
-//     // Transform the up axis (inlined 3x3 rotation)
-//     newVect[0] = rotMat[0] * vUp[0] + rotMat[4] * vUp[1] + rotMat[8] *  vUp[2];
-//     newVect[1] = rotMat[1] * vUp[0] + rotMat[5] * vUp[1] + rotMat[9] *  vUp[2];
-//     newVect[2] = rotMat[2] * vUp[0] + rotMat[6] * vUp[1] + rotMat[10] * vUp[2];
-//     m3dCopyVector3 (vUp, newVect);
-//
-//     // Transform the forward axis
-//     newVect[0] = rotMat[0] * vForward[0] + rotMat[4] * vForward[1] + rotMat[8] *  vForward[2];
-//     newVect[1] = rotMat[1] * vForward[0] + rotMat[5] * vForward[1] + rotMat[9] *  vForward[2];
-//     newVect[2] = rotMat[2] * vForward[0] + rotMat[6] * vForward[1] + rotMat[10] * vForward[2];
-//     m3dCopyVector3 (vForward, newVect);
-//   }
-//
+  void RotateWorld (double angle, double x, double y, double z) {
+    M3DMatrix44d rotMat;
+
+    m3dRotationMatrix44 (rotMat, angle, x, y, z);
+
+    Vec3d newVect;
+
+    // Transform the up axis (inlined 3x3 rotation)
+    newVect[0] = rotMat[0] * m_dirUp[0] + rotMat[4] * m_dirUp[1] + rotMat[8] *  m_dirUp[2];
+    newVect[1] = rotMat[1] * m_dirUp[0] + rotMat[5] * m_dirUp[1] + rotMat[9] *  m_dirUp[2];
+    newVect[2] = rotMat[2] * m_dirUp[0] + rotMat[6] * m_dirUp[1] + rotMat[10] * m_dirUp[2];
+    m_dirUp = newVect;
+
+    // Transform the forward axis
+    newVect[0] = rotMat[0] * m_dirForward[0] + rotMat[4] * m_dirForward[1] + rotMat[8] *  m_dirForward[2];
+    newVect[1] = rotMat[1] * m_dirForward[0] + rotMat[5] * m_dirForward[1] + rotMat[9] *  m_dirForward[2];
+    newVect[2] = rotMat[2] * m_dirForward[0] + rotMat[6] * m_dirForward[1] + rotMat[10] * m_dirForward[2];
+    m_dirForward = newVect;
+  }
+
 //   void RotateLocal (float fAngle, float x, float y, float z) {
 //     M3DVector3f vWorldVect;
 //     M3DVector3f vLocalVect;

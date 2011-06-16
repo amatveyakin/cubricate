@@ -2,25 +2,17 @@
 #define GLWIDGET_HPP
 
 
-// #define GL_GLEXT_PROTOTYPES
-// #include <GL/gl.h>
-// #include <GL/glext.h>
-
-#include <GLTools.h>            // OpenGL toolkit
-// #include <GLShaderManager.h>    // Shader Manager Class
-// #include <math3d.h>
-// #include <GL/glew.h>
-
-#include <GLFrame.h>
-#include <GLFrustum.h>
-// #include <GLMatrixStack.h>
-// #include <GLGeometryTransform.h>
-
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glext.h>
 
 #include <QTime>
 #include <QGLWidget>
+#include <QGLShaderProgram>
 
+#include "common/linear_algebra.hpp"
 #include "client/cube_array.hpp"
+#include "client/GLTools/GLFrustum.h"
 
 
 
@@ -39,20 +31,15 @@ protected:
 
   int m_CUBES_INFORMATION_OFFSET;
 
+  QGLShaderProgram m_shaderProgram;
+
   GLint   m_instancedCubeShader;
   GLuint  m_cubesVao;
   GLuint  m_cubeVbo;
   GLuint  m_locMvp, m_locMapSize, m_locColor, m_locSquareTexture;
   GLuint  m_squareTextureArray;
-  GLfloat m_cameraAlpha, m_cameraBeta, m_cameraDistance;
 
-//   GLShaderManager shader_manager;
-
-  GLFrame       m_viewFrame;
   GLFrustum     m_viewFrustum;
-//   GLMatrixStack m_modelViewMatix;
-//   GLMatrixStack m_projectionMatrix;
-//   GLGeometryTransform m_transformPipeline;
 
   bool m_isMovingForward;
   bool m_isMovingBackward;
@@ -69,8 +56,8 @@ protected:
   void lockCubes ();
   void unlockCubes ();
   bool coordinatesValid (int x, int y, int z);
-  void getCubeByPoint (M3DVector3i cube, M3DVector3f point, M3DVector3f direction);
-  void lookAt (M3DVector3f result);
+  Vec3i getCubeByPoint (Vec3d point, Vec3d direction);
+  Vec3d lookAt ();
   void explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius);
   void summonMeteorite (int meteoriteX, int meteoriteY);
   bool loadTGATexture (const char *szFileName, GLenum minFilter, GLenum magFilter, GLenum wrapMode);

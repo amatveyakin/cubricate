@@ -39,11 +39,6 @@ public:
 template <typename VectorT, typename ElementT>
 class CommonVectorLinearOperations {
 public:
-  static VectorT zeroVector () {
-    return VectorT ();
-  }
-
-
   // in-place operators
 
   VectorT& operator+= (VectorT a) {
@@ -80,7 +75,7 @@ public:
   // unary operators
 
   VectorT operator- () const {
-    return zeroVector () - derived ();
+    return VectorT::zeroVector () - derived ();
   }
 
 
@@ -212,7 +207,11 @@ struct Vec2Base : public VectorIndexingOperations <Vec2Base <ElementT>, ElementT
   Vec2Base () : x (0), y (0) { }
   Vec2Base (ElementType x__, ElementType y__) : x (x__), y (y__) { }
   Vec2Base (ElementType* coords__) { fromArray (coords__); }
+
   void setCoordinates (ElementType x__, ElementType y__)  { x = x__;  y = y__; }
+
+  static Vec2Base replicatedValuesVector (ElementType value)  { return Vec2Base (value, value); }     // TODO: rename (?)
+  static Vec2Base zeroVector ()                               { return Vec2Base (0, 0); }
 };
 
 template <typename ElementT>
@@ -232,7 +231,11 @@ struct Vec3Base : public VectorIndexingOperations <Vec3Base <ElementT>, ElementT
   Vec3Base () : x (0), y (0), z (0) { }
   Vec3Base (ElementType x__, ElementType y__, ElementType z__) : x (x__), y (y__), z (z__) { }
   Vec3Base (ElementType* coords__) { fromArray (coords__); }
+
   void setCoordinates (ElementType x__, ElementType y__, ElementType z__)  { x = x__;  y = y__;  z = z__; }
+
+  static Vec3Base replicatedValuesVector (ElementType value)  { return Vec3Base (value, value, value); }     // TODO: rename (?)
+  static Vec3Base zeroVector ()                               { return Vec3Base (0, 0, 0); }
 };
 
 template <typename ElementT>
@@ -252,7 +255,11 @@ struct Vec4Base : public VectorIndexingOperations <Vec4Base <ElementT>, ElementT
   Vec4Base () : x (0), y (0), z (0), w (0) { }
   Vec4Base (ElementType x__, ElementType y__, ElementType z__, ElementType w__) : x (x__), y (y__), z (z__), w (w__) { }
   Vec4Base (ElementType* coords__) { fromArray (coords__); }
+
   void setCoordinates (ElementType x__, ElementType y__, ElementType z__, ElementType w__)  { x = x__;  y = y__;  z = z__;  w = w__; }
+
+  static Vec4Base replicatedValuesVector (ElementType value)  { return Vec4Base (value, value, value, value); }     // TODO: rename (?)
+  static Vec4Base zeroVector ()                               { return Vec4Base (0, 0, 0, 0); }
 };
 
 
@@ -275,6 +282,7 @@ Vec3Base <ElementT> crossProduct (Vec3Base <ElementT> a, Vec3Base <ElementT> b) 
   return Vec3Base <ElementT> (a.y*b.z - a.z*b.y,  a.z*b.x - a.x*b.z,  a.x*b.y - a.y*b.x);
 }
 
+// TODO: may be, create L1, L2, Linf namespaces for norms?
 template <typename VectorT>
 typename VectorT::ElementType euclideanNormSqr (VectorT a) {
   return scalarProduct (a, a);
@@ -282,7 +290,7 @@ typename VectorT::ElementType euclideanNormSqr (VectorT a) {
 
 template <typename VectorT>
 typename VectorT::ElementType euclideanNorm (VectorT a) {
-  return std::sqrt (euclideanNorm (a));
+  return std::sqrt (euclideanNormSqr (a));
 }
 
 template <typename VectorT>
@@ -296,7 +304,12 @@ typename VectorT::ElementType euclideanDistanceSqr (VectorT a, VectorT b) {
 
 template <typename VectorT>
 typename VectorT::ElementType euclideanDistance (VectorT a, VectorT b) {
-  return std::sqrt (euclideanDistance (a, b));
+  return std::sqrt (euclideanDistanceSqr (a, b));
+}
+
+template <typename VectorT>
+VectorT euclideanNormalize (VectorT a) {    // TODO: rename (?)
+  return a / euclideanNorm (a);
 }
 
 
