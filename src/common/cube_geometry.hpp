@@ -102,15 +102,27 @@ enum class Direction {
   UP,
   LEFT,
   BACK,
-  DOWN
+  DOWN,
+  INVALID
 };
 
 const int N_DIRECTIONS = 6;
 
+static inline bool directionIsValid (int dir) {
+  return dir >= 0 && dir < N_DIRECTIONS;
+}
+
+static inline bool directionIsValid (Direction dir) {
+  return directionIsValid (int (dir));
+}
+
 
 struct CubeWithFace : Vec3i {
+  CubeWithFace (Vec3i cube__, Direction face__) : Vec3i (cube__), face (face__) { }
+
   const Vec3i& cube () const  { return static_cast <const Vec3i&> (*this); }
   Vec3i& cube ()              { return static_cast <Vec3i&> (*this); }
+
   Direction face;
 };
 
@@ -135,6 +147,8 @@ static inline void getUnifiedCube (/* i/o */ int& x, int& y, int& z, Direction& 
       z--;
       face = Direction::UP;
       return;
+    case Direction::INVALID:
+      break;
   }
   throw std::invalid_argument ("Bad face type: " + toStr (int (face)));
 }
@@ -165,13 +179,46 @@ static inline void getAdjacentCube (/* i/o */ int& x, int& y, int& z, Direction&
       z--;
       face = Direction::UP;
       return;
+    case Direction::INVALID:
+      break;
   }
   throw std::invalid_argument ("Bad face type: " + toStr (int (face)));
 }
 
+static inline Vec3i getAdjacentCube (Vec3i cube, Direction face) {
+  getAdjacentCube (XYZ_LIST (cube), face);
+  return cube;
+}
+
+static inline CubeWithFace getAdjacentCube (CubeWithFace cubeWithFace) {
+  getAdjacentCube (XYZ_LIST (cubeWithFace.cube ()), cubeWithFace.face);
+  return cubeWithFace;
+}
+
+static inline Direction getAdjacentFace (Vec3i cube, Vec3i neighbour) {
+  Vec3i direction = neighbour - cube;
+  if (L1::norm (direction) != 1)
+    return Direction::INVALID;
+
+  if      (direction.x == 1)
+    return Direction::RIGHT;
+  else if (direction.y == 1)
+    return Direction::FRONT;
+  else if (direction.z == 1)
+    return Direction::UP;
+  else if (direction.x == -1)
+    return Direction::LEFT;
+  else if (direction.y == -1)
+    return Direction::BACK;
+  else if (direction.z == -1)
+    return Direction::DOWN;
+
+  return Direction::INVALID;
+}
+
 
 static inline Vec3i worldToCube (Vec3d pos) {
-  return Vec3i::fromVectorConverted (pos + Vec3d (0.5, 0.5, 0.5));
+  return Vec3i::fromVectorConverted (floor (pos + Vec3d (0.5, 0.5, 0.5)));
 }
 
 static inline Vec3i cubeToChunk (Vec3i cube) {
@@ -192,5 +239,17 @@ static inline void worldToChunk (/* in */ Vec3d pos, /* out */ Vec3i& chunk, Vec
   Vec3i cube = worldToCube (pos);
   cubeToChunk (cube, chunk, cubeInChunk);
 }
+
+
+static inline bool cubeValid (int x, int y, int z) {
+  return    (x >= 0) && (x < MAP_SIZE)
+         && (y >= 0) && (y < MAP_SIZE)
+         && (z >= 0) && (z < MAP_SIZE);
+}
+
+static inline bool cubeValid (Vec3i v) {
+  return cubeValid (v.x, v.y, v.z);
+}
+
 
 #endif

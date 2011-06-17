@@ -3,6 +3,7 @@
 
 
 #include "common/linear_algebra.hpp"
+#include "common/cube_geometry.hpp"
 
 // TODO: delete
 #include "client/GLTools/math3d.h"
@@ -245,6 +246,8 @@ class Player : public ViewFrame {
 public:
 //   Vec3d pos () const                    { return m_pos; }
 //   void setPos (Vec3d newPos)            { m_pos = newPos; }
+
+  CubeWithFace getHeadOnCube ();
 
 protected:
 //   Vec3d m_pos;

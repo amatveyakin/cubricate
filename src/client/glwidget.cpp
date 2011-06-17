@@ -30,54 +30,11 @@ void GLWidget::lockCubes () {
                                                       N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
                                                       GL_MAP_WRITE_BIT);
   GLfloat* buffer_type = (GLfloat *) (buffer_pos + 4 * N_MAX_BLOCKS_DRAWN);
-  m_cubeArray.set_pointers (buffer_pos, buffer_type);
+  cubeArray.set_pointers (buffer_pos, buffer_type);
 }
 
 void GLWidget::unlockCubes () {
   glUnmapBuffer (GL_ARRAY_BUFFER);
-}
-
-bool GLWidget::coordinatesValid (int x, int y, int z) {
-  return    (x >= 0) && (x < MAP_SIZE)
-         && (y >= 0) && (y < MAP_SIZE)
-         && (z >= 0) && (z < MAP_SIZE);
-}
-
-// bool GLWidget::coordinatesValid (Vec3i v) {
-//   return coordinatesValid (v.x, v.y, x.z);
-// }
-
-Vec3i GLWidget::getCubeByPoint (Vec3d point, Vec3d direction) {
-  const float EPSILON = 0.00001;
-  Vec3i cube;
-  for (int i = 0; i < 3; ++i)
-    cube[i] = (int) floor (point[i] + xSgn (direction[i]) * EPSILON + 0.5);
-  return cube;
-}
-
-Vec3d GLWidget::lookAt () {
-  Vec3d currentPoint = player.origin ();
-  Vec3d forwardVector = player.dirForward ();
-
-  Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
-  while  (  coordinatesValid (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)
-         && !m_cubeArray.cube_presents (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2)) {
-    Vec3d parameter;
-    Vec3d nearestInt;
-    for (int i = 0; i < 3; ++i) {
-      nearestInt[i] = (forwardVector[i] > 0) ? (floor (currentPoint[i] - 0.5) + 1.5) : (ceil (currentPoint[i] + 0.5) - 1.5);
-      parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
-      assert (parameter[i] >= 0);
-    }
-    float t = xMin (parameter[0], parameter[1], parameter[2]);
-    assert (t >= 0);
-
-    for (int i = 0; i < 3; ++i)
-      currentPoint[i] += forwardVector[i] * t;
-
-    cube = getCubeByPoint (currentPoint, forwardVector);
-  }
-  return currentPoint;
 }
 
 void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius) {
@@ -87,11 +44,11 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
     for  (int y = std::max (explosionY - explosionRadius, 0); y <= std::min (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
       for  (int z = std::max (explosionZ - explosionRadius, 0); z <= std::min (explosionZ + explosionRadius, MAP_SIZE - 1); ++z) {
         if  (xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius)) {
-          m_cubeArray.remove_cube (x, y, z);
+          cubeArray.remove_cube (x, y, z);
         }
-        else if  (   m_cubeArray.cube_presents (x, y, z)
+        else if  (   cubeArray.cube_presents (x, y, z)
                   && xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius + 1)) {
-          m_cubeArray.add_cube (x, y, z, 239);
+          cubeArray.add_cube (x, y, z, 239);
         }
       }
 
@@ -101,44 +58,10 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
 void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
   const int METEORITE_RADIUS = 10;
   int meteoriteZ = MAP_SIZE - 1;
-  while  (meteoriteZ > 0 && !m_cubeArray.cube_presents (meteoriteX, meteoriteY, meteoriteZ))
+  while  (meteoriteZ > 0 && !cubeArray.cube_presents (meteoriteX, meteoriteY, meteoriteZ))
     meteoriteZ--;
   explosion (meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
 }
-
-/*
-bool GLWidget::loadTGATexture (const char *szFileName, GLenum minFilter, GLenum magFilter, GLenum wrapMode)
-{
-  GLbyte *pBits;
-  int nWidth, nHeight, nComponents;
-  GLenum eFormat;
-
-  // Read the texture bits
-  pBits = gltReadTGABits (szFileName, &nWidth, &nHeight, &nComponents, &eFormat);
-  if (!pBits)
-    return false;
-
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
-
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-
-  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-  glTexImage2D (GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
-                eFormat, GL_UNSIGNED_BYTE, pBits);
-
-  free (pBits);
-
-  if (minFilter == GL_LINEAR_MIPMAP_LINEAR ||
-      minFilter == GL_LINEAR_MIPMAP_NEAREST ||
-      minFilter == GL_NEAREST_MIPMAP_LINEAR ||
-      minFilter == GL_NEAREST_MIPMAP_NEAREST)
-    glGenerateMipmap (GL_TEXTURE_2D);
-
-  return true;
-}
-*/
 
 //           up
 //                  front
@@ -340,7 +263,6 @@ void GLWidget::setupRenderContext () {
   initTextures ();
 }
 
-// TODO: Where should we call it?
 void GLWidget::shutdownRenderContext () {
   glDeleteProgram (m_instancedCubeShader);
   glDeleteBuffers (1, &m_cubeVbo);
@@ -404,9 +326,7 @@ int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
 
 
 
-GLWidget::GLWidget () :
-  m_cubeArray (MAP_SIZE, MAP_SIZE, MAP_SIZE)
-{
+GLWidget::GLWidget () {
   setMouseTracking (true);
   setCursor (Qt::BlankCursor);
 
@@ -416,7 +336,10 @@ GLWidget::GLWidget () :
   m_isMovingRight     = false;
 }
 
-GLWidget::~GLWidget () { }
+GLWidget::~GLWidget () {
+  // TODO: Is it the right place to call it?
+  shutdownRenderContext ();
+}
 
 void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
@@ -428,8 +351,8 @@ void GLWidget::initializeGL () {
                                                       GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
   GLfloat* buffer_type = (GLfloat *) (buffer_pos + 4 * N_MAX_BLOCKS_DRAWN);
 
-  m_cubeArray.set_pointers (buffer_pos, buffer_type);
-  loadGameMap (m_cubeArray);
+  cubeArray.set_pointers (buffer_pos, buffer_type);
+  loadGameMap (cubeArray);
 
   glUnmapBuffer (GL_ARRAY_BUFFER);
 
@@ -462,7 +385,7 @@ void GLWidget::paintGL () {
   glUniform1i (m_locSquareTexture, 0);
   GLfloat color[] = {1.0f, 1.0f, 0.0f, 0.0f};
   glUniform4fv (m_locColor, 1, color);
-  glDrawArraysInstancedARB (GL_QUADS, 0, 24, m_cubeArray.n_cubes ());
+  glDrawArraysInstancedARB (GL_QUADS, 0, 24, cubeArray.n_cubes ());
 
   glBindVertexArray (0);
 
@@ -545,11 +468,26 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
 void GLWidget::mousePressEvent (QMouseEvent* event) {
   switch (event->button ()) {
     case Qt::LeftButton: {
-      Vec3d lookingAt = lookAt ();
-      Vec3d forward = player.dirForward ();
-      Vec3i cube = getCubeByPoint (lookingAt, forward);
-      if (coordinatesValid (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2))
-        explosion (cube[0] + MAP_SIZE / 2, cube[1] + MAP_SIZE / 2, cube[2] + MAP_SIZE / 2, 2);
+      Vec3i headOnCube = player.getHeadOnCube ().cube () + Vec3i::replicatedValuesVector (MAP_SIZE / 2);
+      if (!cubeValid (headOnCube))
+        break;
+//       explosion (XYZ_LIST (cube), 2);
+      lockCubes ();
+      cubeArray.remove_cube (XYZ_LIST (headOnCube));
+      unlockCubes ();
+      break;
+    }
+    case Qt::RightButton: {
+      CubeWithFace headOnCube = player.getHeadOnCube ();
+      if (!directionIsValid (headOnCube.face))
+        break;
+      headOnCube.cube () += Vec3i::replicatedValuesVector (MAP_SIZE / 2);
+      Vec3i newCube = getAdjacentCube (headOnCube).cube ();
+      if (!cubeValid (newCube))
+        break;
+      lockCubes ();
+      cubeArray.add_cube (XYZ_LIST (newCube), 7);
+      unlockCubes ();
       break;
     }
     default:

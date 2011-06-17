@@ -5,9 +5,16 @@
 #include "common/world_map.hpp"
 #include "common/player.hpp"
 
+// TODO: delete
+#include "cube_array.hpp"
+
+
 
 extern  WorldMap  worldMap;
 extern  Player    player;
+
+// TODO: delete
+extern  Visible_cube_set <float, float> cubeArray;
 
 
 #endif

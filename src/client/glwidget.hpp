@@ -49,15 +49,11 @@ protected:
   QTime m_time;
   QTime m_fpsTime;
 
-  Visible_cube_set <GLfloat, GLfloat> m_cubeArray;
-
 
   // TODO: add ``m_'' to function too
   void lockCubes ();
   void unlockCubes ();
-  bool coordinatesValid (int x, int y, int z);
   Vec3i getCubeByPoint (Vec3d point, Vec3d direction);
-  Vec3d lookAt ();
   void explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius);
   void summonMeteorite (int meteoriteX, int meteoriteY);
   bool loadTGATexture (const char *szFileName, GLenum minFilter, GLenum magFilter, GLenum wrapMode);

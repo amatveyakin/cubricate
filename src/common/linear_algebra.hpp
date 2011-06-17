@@ -264,6 +264,22 @@ struct Vec4Base : public VectorIndexingOperations <Vec4Base <ElementT>, ElementT
 
 
 
+// TODO: delete
+#define XY_LIST(vec__)    (vec__).x, (vec__).y
+#define XYZ_LIST(vec__)   (vec__).x, (vec__).y, (vec__).z
+#define XYZW_LIST(vec__)  (vec__).x, (vec__).y, (vec__).z, (vec__).w
+
+
+
+template <typename VectorT>
+VectorT floor (VectorT a) {
+  static_assert (!std::numeric_limits <typename VectorT::ElementType>::is_integer, "Are you sure your want to apply floor function to an integer type?");
+  for (int i = 0; i < VectorT::DIMENSION; ++i)
+    a.coords[i] = floor (a.coords[i]);
+  return a;
+}
+
+
 template <typename VectorT>
 typename VectorT::ElementType scalarProduct (VectorT a, VectorT b) {
   typename VectorT::ElementType sum = 0;
@@ -282,7 +298,7 @@ Vec3Base <ElementT> crossProduct (Vec3Base <ElementT> a, Vec3Base <ElementT> b) 
   return Vec3Base <ElementT> (a.y*b.z - a.z*b.y,  a.z*b.x - a.x*b.z,  a.x*b.y - a.y*b.x);
 }
 
-// TODO: may be, create L1, L2, Linf namespaces for norms?
+/*
 template <typename VectorT>
 typename VectorT::ElementType euclideanNormSqr (VectorT a) {
   return scalarProduct (a, a);
@@ -311,6 +327,85 @@ template <typename VectorT>
 VectorT euclideanNormalize (VectorT a) {    // TODO: rename (?)
   return a / euclideanNorm (a);
 }
+*/
+
+namespace L1 {
+  template <typename VectorT>
+  typename VectorT::ElementType norm (VectorT a) {
+    typename VectorT::ElementType sum = 0;
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      sum += xAbs (a.coords[i]);
+    return sum;
+  }
+
+  template <typename VectorT>
+  typename VectorT::ElementType distance (VectorT a, VectorT b) {
+    typename VectorT::ElementType sum = 0;
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      sum += xAbs (a.coords[i] - b.coords[i]);
+    return sum;
+  }
+
+  template <typename VectorT>
+  VectorT normalize (VectorT a) {
+    return a / norm (a);
+  }
+}
+
+namespace L2 {
+  template <typename VectorT>
+  typename VectorT::ElementType normSqr (VectorT a) {
+    return scalarProduct (a, a);
+  }
+
+  template <typename VectorT>
+  typename VectorT::ElementType norm (VectorT a) {
+    return std::sqrt (normSqr (a));
+  }
+
+  template <typename VectorT>
+  typename VectorT::ElementType distanceSqr (VectorT a, VectorT b) {
+  //   return euclideanNormSqr (a - b);
+    typename VectorT::ElementType sum = 0;
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      sum += xSqr (a.coords[i] - b.coords[i]);
+    return sum;
+  }
+
+  template <typename VectorT>
+  typename VectorT::ElementType distance (VectorT a, VectorT b) {
+    return std::sqrt (distanceSqr (a, b));
+  }
+
+  template <typename VectorT>
+  VectorT normalize (VectorT a) {
+    return a / norm (a);
+  }
+}
+
+namespace Linf {
+  template <typename VectorT>
+  typename VectorT::ElementType norm (VectorT a) {
+    typename VectorT::ElementType max = 0;
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      max = xMax (max, xAbs (a.coords[i]));
+    return max;
+  }
+
+  template <typename VectorT>
+  typename VectorT::ElementType distance (VectorT a, VectorT b) {
+    typename VectorT::ElementType max = 0;
+    for (int i = 0; i < VectorT::DIMENSION; ++i)
+      max = xMax (max, xAbs (a.coords[i] - b.coords[i]));
+    return max;
+  }
+
+  template <typename VectorT>
+  VectorT normalize (VectorT a) {
+    return a / norm (a);
+  }
+}
+
 
 
 template <typename VectorT, typename ElementT>
@@ -326,6 +421,7 @@ struct LexicographicCompareVectors {
     return false;
   }
 };
+
 
 
 typedef Vec2Base <int>    Vec2i;

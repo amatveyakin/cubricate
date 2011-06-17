@@ -16,7 +16,7 @@ WorldMap::~WorldMap() {
 
 
 ChunkNecessity WorldMap::chunkNecessityForPlayer (Vec2i playerChunk, Vec2i targetChunk) {
-  int distSqr = euclideanDistanceSqr (playerChunk, targetChunk);
+  int distSqr = L2::distanceSqr (playerChunk, targetChunk);
   if (distSqr <= CHUNK_USE_RADIUS)
     return ChunkNecessity::USE;
   else if (distSqr <= CHUNK_KEEP_RADIUS)
