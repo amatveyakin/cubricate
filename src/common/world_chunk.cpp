@@ -35,6 +35,11 @@ ChunkState WorldChunk::state () const {
 }
 
 
+BlockType WorldChunk::cube (Vec3i cubePos) const {
+  // ...
+}
+
+
 void WorldChunk::onPlayerMove (int playerId, Vec3d oldPos, Vec3d newPos) {
   FIX_UNUSED (oldPos);
   playersUsingChunk.erase   (playerId);

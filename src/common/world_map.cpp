@@ -16,10 +16,11 @@ BlockType WorldMap::cube (Vec3i cubePos) const {
   Vec3i cubeInChunk;
   cubeToChunk (cubePos, chunk, cubeInChunk);
   auto it = m_chunks.find (chunk);
+  const WorldChunk& chunkRef = it->second;
   if (   it == m_chunks.end ()
-      || it->second.state () != ChunkState::ACTIVE)
+      || chunkRef.state () != ChunkState::ACTIVE)
     return BlockType::EMPTY;
-  return it->second.cube (cubeInChunk);
+  return chunkRef.cube (cubeInChunk);
 }
 
 
