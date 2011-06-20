@@ -9,6 +9,15 @@
 #include "common/player.hpp"
 
 
+
+Player::Player () {
+  m_pos = m_viewFrame.origin ();
+}
+
+Player::~Player () {
+
+}
+
 #ifdef CLIENT_APP  // TODO: delete
 // static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
 //   const float EPSILON = 0.00001;
@@ -24,8 +33,8 @@ static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
 
 
 CubeWithFace Player::getHeadOnCube() {
-  Vec3d currentPoint = origin ();
-  Vec3d forwardVector = dirForward ();
+  Vec3d currentPoint = m_viewFrame.origin ();
+  Vec3d forwardVector = m_viewFrame.dirForward ();
   Vec3i mapCenter = Vec3i::replicatedValuesVector (MAP_SIZE / 2);
 
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);

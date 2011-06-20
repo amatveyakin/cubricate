@@ -11,6 +11,7 @@
 #include <QGLShaderProgram>
 
 #include "common/linear_algebra.hpp"
+
 #include "client/cube_array.hpp"
 #include "client/GLTools/GLFrustum.h"
 

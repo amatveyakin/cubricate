@@ -376,7 +376,7 @@ void GLWidget::paintGL () {
 //   m3dRotationMatrix44 (m_rotate_cameraBeta,  m_cameraBeta,  0., 1., 0.);
   M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP;
   m3dTranslationMatrix44 (mat_World, -MAP_SIZE / 2., -MAP_SIZE / 2., -MAP_SIZE / 2.);
-  player.getCameraMatrix (mat_View, false);
+  player.viewFrame ().getCameraMatrix (mat_View, false);
   m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
   m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
   glUniformMatrix4fv (m_locMvp, 1, GL_FALSE, mat_WVP);
@@ -420,8 +420,8 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
       m_isMovingRight = true;
       break;
     case Qt::Key_X: {
-      Vec3d vOrigin = player.origin ();
-      summonMeteorite ((int) (vOrigin[0] + MAP_SIZE / 2.), (int) (vOrigin[1] + MAP_SIZE / 2.));
+      Vec3d playerPos = player.pos ();
+      summonMeteorite ((int) (playerPos[0] + MAP_SIZE / 2.), (int) (playerPos[1] + MAP_SIZE / 2.));
       break;
     }
     case Qt::Key_Escape:
@@ -458,8 +458,8 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
   isLocked = true;
   int centerX = width ()  / 2;
   int centerY = height () / 2;
-  player.RotateWorld (-(event->x () - centerX) / 100., 0., 0., 1.);
-  player.RotateLocalX ((event->y () - centerY) / 100.);
+  player.viewFrame ().RotateWorld (-(event->x () - centerX) / 100., 0., 0., 1.);
+  player.viewFrame ().RotateLocalX ((event->y () - centerY) / 100.);
   cursor ().setPos (mapToGlobal (QPoint (centerX, centerY)));
   isLocked = false;
   updateGL ();
@@ -468,7 +468,7 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
 void GLWidget::mousePressEvent (QMouseEvent* event) {
   switch (event->button ()) {
     case Qt::LeftButton: {
-      Vec3i headOnCube = player.getHeadOnCube ().cube () + Vec3i::replicatedValuesVector (MAP_SIZE / 2);
+      Vec3i headOnCube = player.getHeadOnCube ().cube + Vec3i::replicatedValuesVector (MAP_SIZE / 2);
       if (!cubeValid (headOnCube))
         break;
 //       explosion (XYZ_LIST (cube), 2);
@@ -481,8 +481,8 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       CubeWithFace headOnCube = player.getHeadOnCube ();
       if (!directionIsValid (headOnCube.face))
         break;
-      headOnCube.cube () += Vec3i::replicatedValuesVector (MAP_SIZE / 2);
-      Vec3i newCube = getAdjacentCube (headOnCube).cube ();
+      headOnCube.cube += Vec3i::replicatedValuesVector (MAP_SIZE / 2);
+      Vec3i newCube = getAdjacentCube (headOnCube).cube;
       if (!cubeValid (newCube))
         break;
       lockCubes ();

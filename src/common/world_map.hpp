@@ -8,19 +8,14 @@
 #include "common/linear_algebra.hpp"
 
 
-enum class ChunkNecessity {
-  USE,
-  KEEP,
-  UNLOAD
-};
-
-
 class WorldMap {
 public:
   WorldMap();
   ~WorldMap();
 
-  static ChunkNecessity chunkNecessityForPlayer (Vec2i playerChunk, Vec2i targetChunk);
+  BlockType cube (Vec3i cubePos) const;
+
+  void onPlayerMove (int playerId, Vec3d oldPos, Vec3d newPos);
 
 protected:
   std::map <Vec2i, WorldChunk, LexicographicCompareVec2i> m_chunks;

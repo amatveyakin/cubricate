@@ -241,16 +241,26 @@ protected:
 
 
 
-// TODO: instead of inheriting ViewFrame, create a protected member ``ViewFrame viewFrame''
-class Player : public ViewFrame {
+class Player {
 public:
-//   Vec3d pos () const                    { return m_pos; }
-//   void setPos (Vec3d newPos)            { m_pos = newPos; }
+  Player ();
+  ~Player ();
+
+  Vec3d pos () const                    { return m_pos; }
+  void setPos (Vec3d newPos)            { m_viewFrame.setOrigin (newPos);     m_pos = m_viewFrame.origin (); }
+  void moveForward (double moveBy)      { m_viewFrame.moveForward (moveBy);   m_pos = m_viewFrame.origin (); }
+  void moveUp (double moveBy)           { m_viewFrame.moveUp (moveBy);        m_pos = m_viewFrame.origin (); }
+  void moveRight (double moveBy)        { m_viewFrame.moveRight (moveBy);     m_pos = m_viewFrame.origin (); }
+
+  ViewFrame& viewFrame ()               { return m_viewFrame; }
+  const ViewFrame& viewFrame () const   { return m_viewFrame; }
 
   CubeWithFace getHeadOnCube ();
 
 protected:
-//   Vec3d m_pos;
+  Vec3d m_pos;
+
+  ViewFrame m_viewFrame;
 };
 
 

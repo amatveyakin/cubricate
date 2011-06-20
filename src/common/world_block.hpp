@@ -3,7 +3,7 @@
 
 
 enum class BlockType : unsigned char {
-  AIR = 0,
+  EMPTY = 0,
   DIRT,
   SNOW,
   LAVA

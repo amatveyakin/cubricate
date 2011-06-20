@@ -120,6 +120,8 @@ class VectorLinearOperations : public CommonVectorLinearOperations <VectorT, Ele
 template <typename VectorT>
 class VectorLinearOperations <VectorT, int> : public CommonVectorLinearOperations <VectorT, int> {
 public:
+  // TODO: implement a combined divModFloored function
+
   // in-place operators
 
   VectorT& applyDivFloored (int q) {
@@ -236,6 +238,9 @@ struct Vec3Base : public VectorIndexingOperations <Vec3Base <ElementT>, ElementT
 
   static Vec3Base replicatedValuesVector (ElementType value)  { return Vec3Base (value, value, value); }     // TODO: rename (?)
   static Vec3Base zeroVector ()                               { return Vec3Base (0, 0, 0); }
+
+  // TODO: generate other subsets and permutations
+  Vec2Base <ElementT> xy () const   { return Vec2Base <ElementT> (x, y); }
 };
 
 template <typename ElementT>
@@ -260,6 +265,8 @@ struct Vec4Base : public VectorIndexingOperations <Vec4Base <ElementT>, ElementT
 
   static Vec4Base replicatedValuesVector (ElementType value)  { return Vec4Base (value, value, value, value); }     // TODO: rename (?)
   static Vec4Base zeroVector ()                               { return Vec4Base (0, 0, 0, 0); }
+
+  Vec3Base <ElementT> xyz () const  { return Vec3Base <ElementT> (x, y, z); }
 };
 
 
@@ -411,7 +418,7 @@ namespace Linf {
 template <typename VectorT, typename ElementT>
 struct LexicographicCompareVectors {
   static_assert (std::numeric_limits <ElementT>::is_integer, "Using floating-point values as keys for a set or a map is almost certainly a bad idea.");
-  bool operator() (VectorT a, VectorT b) {
+  bool operator() (VectorT a, VectorT b) const {
     for (int i = 0; i < VectorT::DIMENSION; ++i) {
       if (a.coords[i] < b.coords[i])
         return true;

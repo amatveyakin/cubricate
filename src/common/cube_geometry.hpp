@@ -116,16 +116,24 @@ static inline bool directionIsValid (Direction dir) {
   return directionIsValid (int (dir));
 }
 
+// struct CubeWithFace : Vec3i {
+//   CubeWithFace (Vec3i cube__, Direction face__) : Vec3i (cube__), face (face__) { }
+//
+//   const Vec3i& cube () const  { return static_cast <const Vec3i&> (*this); }
+//   Vec3i& cube ()              { return static_cast <Vec3i&> (*this); }
+//
+//   Direction face;
+// };
 
-struct CubeWithFace : Vec3i {
-  CubeWithFace (Vec3i cube__, Direction face__) : Vec3i (cube__), face (face__) { }
-
-  const Vec3i& cube () const  { return static_cast <const Vec3i&> (*this); }
-  Vec3i& cube ()              { return static_cast <Vec3i&> (*this); }
-
+struct CubeWithFace {
+  Vec3i cube;
   Direction face;
+
+  CubeWithFace (Vec3i cube__, Direction face__) : cube (cube__), face (face__) { }
 };
 
+
+// TODO: rename ``cube'' -> ``block'' (?)
 
 // TODO: write other variants for these functions
 
@@ -152,6 +160,12 @@ static inline void getUnifiedCube (/* i/o */ int& x, int& y, int& z, Direction& 
   }
   throw std::invalid_argument ("Bad face type: " + toStr (int (face)));
 }
+
+static inline CubeWithFace getUnifiedCube (CubeWithFace cubeWithFace) {
+  getUnifiedCube (cubeWithFace.cube.x, cubeWithFace.cube.y, cubeWithFace.cube.z, cubeWithFace.face);
+  return cubeWithFace;
+}
+
 
 static inline void getAdjacentCube (/* i/o */ int& x, int& y, int& z, Direction& face) {
   switch (face) {
@@ -191,7 +205,7 @@ static inline Vec3i getAdjacentCube (Vec3i cube, Direction face) {
 }
 
 static inline CubeWithFace getAdjacentCube (CubeWithFace cubeWithFace) {
-  getAdjacentCube (XYZ_LIST (cubeWithFace.cube ()), cubeWithFace.face);
+  getAdjacentCube (XYZ_LIST (cubeWithFace.cube), cubeWithFace.face);
   return cubeWithFace;
 }
 
@@ -217,28 +231,29 @@ static inline Direction getAdjacentFace (Vec3i cube, Vec3i neighbour) {
 }
 
 
+
 static inline Vec3i worldToCube (Vec3d pos) {
   return Vec3i::fromVectorConverted (floor (pos + Vec3d (0.5, 0.5, 0.5)));
 }
 
-static inline Vec3i cubeToChunk (Vec3i cube) {
-  return cube.divFloored (CHUNK_SIZE);
+static inline Vec2i cubeToChunk (Vec3i cube) {
+  return cube.xy ().divFloored (CHUNK_SIZE);
 }
 
-static inline void cubeToChunk (/* in */ Vec3i cube, /* out */ Vec3i& chunk, Vec3i& cubeInChunk) {
-  // TODO: implement a combined divModFloored function
-  chunk       = cube.divFloored (CHUNK_SIZE);
-  cubeInChunk = cube.modFloored (CHUNK_SIZE);
+static inline void cubeToChunk (/* in */ Vec3i cube, /* out */ Vec2i& chunk, Vec3i& cubeInChunk) {
+  chunk       = cube.xy ().divFloored (CHUNK_SIZE);
+  cubeInChunk = Vec3i (intModFloored (cube.x, CHUNK_SIZE), intModFloored (cube.y, CHUNK_SIZE), cube.z);
 }
 
-static inline Vec3i worldToChunk (Vec3d pos) {
+static inline Vec2i worldToChunk (Vec3d pos) {
   return cubeToChunk (worldToCube (pos));
 }
 
-static inline void worldToChunk (/* in */ Vec3d pos, /* out */ Vec3i& chunk, Vec3i& cubeInChunk) {
+static inline void worldToChunk (/* in */ Vec3d pos, /* out */ Vec2i& chunk, Vec3i& cubeInChunk) {
   Vec3i cube = worldToCube (pos);
   cubeToChunk (cube, chunk, cubeInChunk);
 }
+
 
 
 static inline bool cubeValid (int x, int y, int z) {
