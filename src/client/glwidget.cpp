@@ -26,11 +26,11 @@ const double FPS_MEASURE_INTERVAL = 1.; /* sec */
 
 
 void GLWidget::lockCubes () {
-  GLfloat* buffer_pos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
+  GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
                                                       N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
                                                       GL_MAP_WRITE_BIT);
-  GLfloat* buffer_type = (GLfloat *) (buffer_pos + 4 * N_MAX_BLOCKS_DRAWN);
-  cubeArray.set_pointers (buffer_pos, buffer_type);
+  GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
+  cubeArray.setPointers (bufferPos, bufferType);
 }
 
 void GLWidget::unlockCubes () {
@@ -44,11 +44,11 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
     for  (int y = std::max (explosionY - explosionRadius, 0); y <= std::min (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
       for  (int z = std::max (explosionZ - explosionRadius, 0); z <= std::min (explosionZ + explosionRadius, MAP_SIZE - 1); ++z) {
         if  (xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius)) {
-          cubeArray.remove_cube (x, y, z);
+          cubeArray.removeCube (x, y, z);
         }
-        else if  (   cubeArray.cube_presents (x, y, z)
+        else if  (   cubeArray.cubePresents (x, y, z)
                   && xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius + 1)) {
-          cubeArray.add_cube (x, y, z, 239);
+          cubeArray.addCube (x, y, z, 239);
         }
       }
 
@@ -58,7 +58,7 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
 void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
   const int METEORITE_RADIUS = 10;
   int meteoriteZ = MAP_SIZE - 1;
-  while  (meteoriteZ > 0 && !cubeArray.cube_presents (meteoriteX, meteoriteY, meteoriteZ))
+  while  (meteoriteZ > 0 && !cubeArray.cubePresents (meteoriteX, meteoriteY, meteoriteZ))
     meteoriteZ--;
   explosion (meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
 }
@@ -94,26 +94,26 @@ void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
 // 7:    1.,  1.,  1.
 
 void GLWidget::initBuffers () {
-  GLfloat cube_vertices[] = { -1., -1.,  1.,    1., -1.,  1.,    1.,  1.,  1.,   -1.,  1.,  1.,    // up
-                               1., -1., -1.,    1.,  1., -1.,    1.,  1.,  1.,    1., -1.,  1.,    // right
-                              -1.,  1., -1.,   -1., -1., -1.,   -1., -1.,  1.,   -1.,  1.,  1.,    // left
-                              -1., -1., -1.,    1., -1., -1.,    1., -1.,  1.,   -1., -1.,  1.,    // front
-                               1.,  1., -1.,   -1.,  1., -1.,   -1.,  1.,  1.,    1.,  1.,  1.,    // back
-                              -1., -1., -1.,   -1.,  1., -1.,    1.,  1., -1.,    1., -1., -1.  }; // down
+  GLfloat cubeVertices[] = { -1., -1.,  1.,    1., -1.,  1.,    1.,  1.,  1.,   -1.,  1.,  1.,    // up
+                              1., -1., -1.,    1.,  1., -1.,    1.,  1.,  1.,    1., -1.,  1.,    // right
+                             -1.,  1., -1.,   -1., -1., -1.,   -1., -1.,  1.,   -1.,  1.,  1.,    // left
+                             -1., -1., -1.,    1., -1., -1.,    1., -1.,  1.,   -1., -1.,  1.,    // front
+                              1.,  1., -1.,   -1.,  1., -1.,   -1.,  1.,  1.,    1.,  1.,  1.,    // back
+                             -1., -1., -1.,   -1.,  1., -1.,    1.,  1., -1.,    1., -1., -1.  }; // down
 
-  GLfloat cube_normals[] =  {  0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,
-                               1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,
-                              -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,
-                               0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,
-                               0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,
-                               0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.  };
+  GLfloat cubeNormals[] =  {  0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,
+                              1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,
+                             -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,
+                              0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,
+                              0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,
+                              0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.  };
 
-  GLfloat cube_tex_coords[] = {  0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                                 0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                                 0., 0.,   1., 0.,   1., 1.,   0., 1.  };
+  GLfloat cubeTexCoords[] = {  0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
+                               0., 0.,   1., 0.,   1., 1.,   0., 1.  };
 
   glGenVertexArrays (1, &m_cubesVao);
   glBindVertexArray (m_cubesVao);
@@ -121,23 +121,23 @@ void GLWidget::initBuffers () {
   glGenBuffers (1, &m_cubeVbo);
   glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
   glBufferData (GL_ARRAY_BUFFER,
-                sizeof (cube_vertices) + sizeof (cube_normals) + sizeof (cube_tex_coords) + N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
+                sizeof (cubeVertices) + sizeof (cubeNormals) + sizeof (cubeTexCoords) + N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
                 nullptr,
                 GL_DYNAMIC_DRAW);
 
 
   GLint offset = 0;
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cube_vertices),   cube_vertices);
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cubeVertices),   cubeVertices);
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof (cube_vertices);
+  offset += sizeof (cubeVertices);
 
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cube_normals),    cube_normals);
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cubeNormals),    cubeNormals);
   glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof (cube_normals);
+  offset += sizeof (cubeNormals);
 
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cube_tex_coords), cube_tex_coords);
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cubeTexCoords), cubeTexCoords);
   glVertexAttribPointer (2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof (cube_tex_coords);
+  offset += sizeof (cubeTexCoords);
 
   m_CUBES_INFORMATION_OFFSET = offset;
   // TODO: It's probably better to pack each cube's data instead of doing a shift
@@ -276,32 +276,32 @@ void GLWidget::shutdownRenderContext () {
 
 
 // 0 means success
-int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
-  std::ifstream height_map ("resources/height_map" + toStr (TREE_HEIGHT) + ".txt");
-  if (!height_map.is_open ()) {
+int loadGameMap (VisibleCubeSet <GLfloat, GLfloat>& cubeArray) {
+  std::ifstream heightMap ("resources/height_map" + toStr (TREE_HEIGHT) + ".txt");
+  if (!heightMap.is_open ()) {
     std::cout << "Unable to open height map!\n";
     return 1;
   }
   for (int x = 0; x < MAP_SIZE; ++x) {
     for (int y = 0; y < MAP_SIZE; ++y) {
       int height;
-      height_map >> height;
+      heightMap >> height;
       if (height > MAP_SIZE / 2) {
-        cubeArray.add_cube (x, y, height - 1, 66);
+        cubeArray.addCube (x, y, height - 1, 66);
         height--;
       }
       for (int z = 0; z < height; ++z) {
-        cubeArray.add_cube (x, y, z, 2);
+        cubeArray.addCube (x, y, z, 2);
       }
     }
   }
-  std::cout << "n_cubes = " << cubeArray.n_cubes () << std::endl;
+  std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
   return 0;
 }
 
 /*
 // 0 means success
-int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
+int loadGameMap (VisibleCubeSet <GLfloat, GLfloat>& cubeArray) {
   std::ifstream map ("resources/World1.schematic");
   if (!map.is_open ()) {
     std::cout << "Unable to open map!\n";
@@ -310,15 +310,15 @@ int loadGameMap (Visible_cube_set <GLfloat, GLfloat>& cubeArray) {
   for (int z = 0; z < 128; ++z) {
     for (int y = 0; y < 80; ++y) {
       for (int x = 0; x < 80; ++x) {
-        char cur_block;
-        map >> cur_block;
-        map >> cur_block;
+        char curBlock;
+        map >> curBlock;
+        map >> curBlock;
         if (x < MAP_SIZE && y < MAP_SIZE && z < MAP_SIZE)
-          cubeArray.add_cube (x, y, z, cur_block);
+          cubeArray.addCube (x, y, z, curBlock);
       }
     }
   }
-  std::cout << "n_cubes = " << cubeArray.n_cubes () << std::endl;
+  std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
   return 0;
 }
 */
@@ -347,11 +347,11 @@ void GLWidget::initializeGL () {
   setupRenderContext ();
 
 
-  GLfloat* buffer_pos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
-                                                      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
-  GLfloat* buffer_type = (GLfloat *) (buffer_pos + 4 * N_MAX_BLOCKS_DRAWN);
+  GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
+                                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
+  GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
 
-  cubeArray.set_pointers (buffer_pos, buffer_type);
+  cubeArray.setPointers (bufferPos, bufferType);
   loadGameMap (cubeArray);
 
   glUnmapBuffer (GL_ARRAY_BUFFER);
@@ -371,9 +371,9 @@ void GLWidget::paintGL () {
   glUseProgram (m_instancedCubeShader);
   glBindVertexArray (m_cubesVao);
 
-//   GLfloat m_rotate_cameraAlpha[16], m_rotate_cameraBeta[16];
-//   m3dRotationMatrix44 (m_rotate_cameraAlpha, m_cameraAlpha, 1., 0., 0.);
-//   m3dRotationMatrix44 (m_rotate_cameraBeta,  m_cameraBeta,  0., 1., 0.);
+//   GLfloat m_rotateCameraAlpha[16], m_rotateCameraBeta[16];
+//   m3dRotationMatrix44 (m_rotateCameraAlpha, m_cameraAlpha, 1., 0., 0.);
+//   m3dRotationMatrix44 (m_rotateCameraBeta,  m_cameraBeta,  0., 1., 0.);
   M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP;
   m3dTranslationMatrix44 (mat_World, -MAP_SIZE / 2., -MAP_SIZE / 2., -MAP_SIZE / 2.);
   player.viewFrame ().getCameraMatrix (mat_View, false);
@@ -385,7 +385,7 @@ void GLWidget::paintGL () {
   glUniform1i (m_locSquareTexture, 0);
   GLfloat color[] = {1.0f, 1.0f, 0.0f, 0.0f};
   glUniform4fv (m_locColor, 1, color);
-  glDrawArraysInstancedARB (GL_QUADS, 0, 24, cubeArray.n_cubes ());
+  glDrawArraysInstancedARB (GL_QUADS, 0, 24, cubeArray.nCubes ());
 
   glBindVertexArray (0);
 
@@ -473,7 +473,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
         break;
 //       explosion (XYZ_LIST (cube), 2);
       lockCubes ();
-      cubeArray.remove_cube (XYZ_LIST (headOnCube));
+      cubeArray.removeCube (XYZ_LIST (headOnCube));
       unlockCubes ();
       break;
     }
@@ -486,7 +486,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       if (!cubeValid (newCube))
         break;
       lockCubes ();
-      cubeArray.add_cube (XYZ_LIST (newCube), 7);
+      cubeArray.addCube (XYZ_LIST (newCube), 7);
       unlockCubes ();
       break;
     }

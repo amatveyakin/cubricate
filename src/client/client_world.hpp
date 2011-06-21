@@ -14,7 +14,7 @@ extern  WorldMap  worldMap;
 extern  Player    player;
 
 // TODO: delete
-extern  Visible_cube_set <float, float> cubeArray;
+extern  VisibleCubeSet <float, float> cubeArray;
 
 
 #endif

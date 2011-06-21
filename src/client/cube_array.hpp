@@ -8,226 +8,226 @@
 #include <vector>
 
 
-template< typename Cube_position_t, typename Cube_type_t >
-class Cube_array {
+template <typename CubePositionT, typename CubeTypeT>
+class CubeArray {
 public:
-  Cube_array( int size_x, int size_y, int size_z ) :
-    m_size_x( size_x ),
-    m_size_y( size_y ),
-    m_size_z( size_z ),
-    m_max_cubes( size_x * size_y * size_z ),
-    m_n_cubes( 0 ),
+  CubeArray (int sizeX, int sizeY, int sizeZ) :
+    m_sizeX (sizeX),
+    m_sizeY (sizeY),
+    m_sizeZ (sizeZ),
+    m_maxCubes (sizeX * sizeY * sizeZ),
+    m_nCubes (0),
 
-    m_cube_position_array( 0 ),
-    m_cube_types_array( 0 ),
-    m_map_position_to_cube_index( m_max_cubes, -1 )
+    m_cubePositionArray (0),
+    m_cubeTypesArray (0),
+    m_mapPositionToCubeIndex (m_maxCubes, -1)
   {
   }
 
-  ~Cube_array() { }
+  ~CubeArray() { }
 
-  int         size_x() const            { return m_size_x; }
-  int         size_y() const            { return m_size_y; }
-  int         size_z() const            { return m_size_z; }
-  int         max_cubes() const         { return m_max_cubes; }
-  int         n_cubes() const           { return m_n_cubes; }
+  int         sizeX () const            { return m_sizeX; }
+  int         sizeY () const            { return m_sizeY; }
+  int         sizeZ () const            { return m_sizeZ; }
+  int         maxCubes () const         { return m_maxCubes; }
+  int         nCubes () const           { return m_nCubes; }
 
-  const Cube_position_t*  cube_positions() const  { return m_cube_position_array; }
-  const Cube_type_t*      cube_types() const      { return m_cube_types_array; }
+  const CubePositionT*  cubePositions () const { return m_cubePositionArray; }
+  const CubeTypeT*      cubeTypes () const     { return m_cubeTypesArray; }
 
-  void set_pointers( Cube_position_t* cube_positions, Cube_type_t* cube_types ) {
-    m_cube_position_array  = cube_positions;
-    m_cube_types_array      = cube_types;
+  void setPointers (CubePositionT* cubePositions, CubeTypeT* cubeTypes) {
+    m_cubePositionArray = cubePositions;
+    m_cubeTypesArray    = cubeTypes;
   }
 
-  void add_cube( int x, int y, int z, int type ) {
-    if ( is_empty( type ) )
-      return remove_cube( x, y, z );
-    check_coordinates( x, y, z );
-    int position = xyz_to_position( x, y, z );
-    int index = m_map_position_to_cube_index[ position ];
-    if ( index >= 0 ) {
-      m_cube_types_array[ index ] = type;
+  void addCube (int x, int y, int z, int type) {
+    if (isEmpty (type))
+      return removeCube (x, y, z);
+    checkCoordinates (x, y, z);
+    int position = xyzToPosition (x, y, z);
+    int index = m_mapPositionToCubeIndex [position];
+    if (index >= 0) {
+      m_cubeTypesArray [index] = type;
       return;
     }
-    m_map_position_to_cube_index[ position ] = m_n_cubes;
-    m_cube_position_array[ m_n_cubes * 4     ] = x;
-    m_cube_position_array[ m_n_cubes * 4 + 1 ] = y;
-    m_cube_position_array[ m_n_cubes * 4 + 2 ] = z;
-    m_cube_position_array[ m_n_cubes * 4 + 3 ] = 0.5;
-    m_cube_types_array[ m_n_cubes ] = type;
-    m_n_cubes++;
+    m_mapPositionToCubeIndex [position] = m_nCubes;
+    m_cubePositionArray [m_nCubes * 4    ] = x;
+    m_cubePositionArray [m_nCubes * 4 + 1] = y;
+    m_cubePositionArray [m_nCubes * 4 + 2] = z;
+    m_cubePositionArray [m_nCubes * 4 + 3] = 0.5;
+    m_cubeTypesArray [m_nCubes] = type;
+    m_nCubes++;
   }
 
-  void remove_cube( int x, int y, int z ) {
-    check_coordinates( x, y, z );
-    int position = xyz_to_position( x, y, z );
-    int index = m_map_position_to_cube_index[ position ];
-    if ( index < 0 )
+  void removeCube (int x, int y, int z) {
+    checkCoordinates (x, y, z);
+    int position = xyzToPosition (x, y, z);
+    int index = m_mapPositionToCubeIndex [position];
+    if (index < 0)
       return;
-    m_n_cubes--;
-    int last_cube_position = xyz_to_position( m_cube_position_array[ m_n_cubes * 4 ], m_cube_position_array[ m_n_cubes * 4 + 1 ], m_cube_position_array[ m_n_cubes * 4 + 2 ] );
-    m_map_position_to_cube_index[ last_cube_position ] = index;
-    m_map_position_to_cube_index[ position ] = -1;
-    std::copy( m_cube_position_array + m_n_cubes * 4, m_cube_position_array + ( m_n_cubes + 1 ) * 4, m_cube_position_array + index * 4 );
-    m_cube_types_array[ index ] = m_cube_types_array[ m_n_cubes ];
+    m_nCubes--;
+    int lastCubePosition = xyzToPosition (m_cubePositionArray [m_nCubes * 4], m_cubePositionArray [m_nCubes * 4 + 1], m_cubePositionArray [m_nCubes * 4 + 2]);
+    m_mapPositionToCubeIndex [lastCubePosition] = index;
+    m_mapPositionToCubeIndex [position] = -1;
+    std::copy (m_cubePositionArray + m_nCubes * 4, m_cubePositionArray + (m_nCubes + 1) * 4, m_cubePositionArray + index * 4);
+    m_cubeTypesArray [index] = m_cubeTypesArray [m_nCubes];
   }
 
 protected:
-  int   m_size_x;
-  int   m_size_y;
-  int   m_size_z;
-  int   m_max_cubes;
-  int   m_n_cubes;
+  int   m_sizeX;
+  int   m_sizeY;
+  int   m_sizeZ;
+  int   m_maxCubes;
+  int   m_nCubes;
 
-  Cube_position_t*    m_cube_position_array;
-  Cube_type_t*        m_cube_types_array;
-  std::vector< int >  m_map_position_to_cube_index;
+  CubePositionT*    m_cubePositionArray;
+  CubeTypeT*        m_cubeTypesArray;
+  std::vector< int >  m_mapPositionToCubeIndex;
 
-  void check_coordinates( int x, int y, int z ) const {
-    assert( x >= 0 );
-    assert( y >= 0 );
-    assert( z >= 0 );
-    assert( x < m_size_x );
-    assert( y < m_size_y );
-    assert( z < m_size_z );
+  void checkCoordinates (int x, int y, int z) const {
+    assert (x >= 0);
+    assert (y >= 0);
+    assert (z >= 0);
+    assert (x < m_sizeX);
+    assert (y < m_sizeY);
+    assert (z < m_sizeZ);
   }
 
-  int xyz_to_position( int x, int y, int z ) const {
-    return  x * m_size_y * m_size_z  +  y * m_size_z  +  z;
+  int xyzToPosition (int x, int y, int z) const {
+    return  x * m_sizeY * m_sizeZ  +  y * m_sizeZ  +  z;
   }
 
-  static Cube_type_t empty_cube()                           { return Cube_type_t(); }
-  static Cube_type_t is_empty( Cube_type_t cube_type )      { return cube_type == empty_cube(); }
+  static CubeTypeT emptyCube ()                   { return CubeTypeT(); }
+  static CubeTypeT isEmpty (CubeTypeT cubeType)   { return cubeType == emptyCube(); }
 };
 
 
 // TODO: rename (?)
-template< typename Cube_position_t, typename Cube_type_t >
-class Visible_cube_set : public Cube_array< Cube_position_t, Cube_type_t > {
+template <typename CubePositionT, typename CubeTypeT>
+class VisibleCubeSet : public CubeArray <CubePositionT, CubeTypeT> {
 private:
-  typedef Cube_array< Cube_position_t, Cube_type_t > Parent;
+  typedef CubeArray <CubePositionT, CubeTypeT> Parent;
 
 public:
-  Visible_cube_set( int size_x, int size_y, int size_z ) :
-    Parent( size_x, size_y, size_z ),
-    m_map_cube_types( Parent::m_max_cubes ),
-    m_map_n_cube_neighbours( Parent::m_max_cubes, 0 )
+  VisibleCubeSet (int sizeX, int sizeY, int sizeZ) :
+    Parent (sizeX, sizeY, sizeZ),
+    m_mapCubeTypes (Parent::m_maxCubes),
+    m_mapNCubeNeighbours (Parent::m_maxCubes, 0)
   {
-    for ( int x = 0; x < size_x; ++x )
-      for ( int y = 0; y < size_y; ++y ) {
-        m_map_n_cube_neighbours[ Parent::xyz_to_position( x, y, 0 ) ]++;
-        m_map_n_cube_neighbours[ Parent::xyz_to_position( x, y, size_z - 1 ) ]++;
+    for (int x = 0; x < sizeX; ++x)
+      for (int y = 0; y < sizeY; ++y) {
+        m_mapNCubeNeighbours [Parent::xyzToPosition (x, y, 0)]++;
+        m_mapNCubeNeighbours [Parent::xyzToPosition (x, y, sizeZ - 1)]++;
       }
 
-    for ( int y = 0; y < size_y; ++y )
-      for ( int z = 0; z < size_z; ++z ) {
-        m_map_n_cube_neighbours[ Parent::xyz_to_position( 0, y, z ) ]++;
-        m_map_n_cube_neighbours[ Parent::xyz_to_position( size_x - 1, y, z ) ]++;
+    for (int y = 0; y < sizeY; ++y)
+      for (int z = 0; z < sizeZ; ++z) {
+        m_mapNCubeNeighbours [Parent::xyzToPosition (0, y, z)]++;
+        m_mapNCubeNeighbours [Parent::xyzToPosition (sizeX - 1, y, z)]++;
       }
 
-    for ( int x = 0; x < size_x; ++x )
-      for ( int z = 0; z < size_z; ++z ) {
-        m_map_n_cube_neighbours[ Parent::xyz_to_position( x, 0, z ) ]++;
-        m_map_n_cube_neighbours[ Parent::xyz_to_position( x, size_y - 1, z ) ]++;
+    for (int x = 0; x < sizeX; ++x)
+      for (int z = 0; z < sizeZ; ++z) {
+        m_mapNCubeNeighbours [Parent::xyzToPosition (x, 0, z)]++;
+        m_mapNCubeNeighbours [Parent::xyzToPosition (x, sizeY - 1, z)]++;
       }
   }
 
-  ~Visible_cube_set() { }
+  ~VisibleCubeSet() { }
 
-  void add_cube( int x, int y, int z, int type ) {
-    Parent::check_coordinates( x, y, z );
-    int position = Parent::xyz_to_position( x, y, z );
+  void addCube (int x, int y, int z, int type) {
+    Parent::checkCoordinates (x, y, z);
+    int position = Parent::xyzToPosition (x, y, z);
 
-    if ( m_map_cube_types[ position ] == type )
+    if (m_mapCubeTypes [position] == type)
       return;
 
-    if ( Parent::is_empty( type ) )
-      return remove_cube( x, y, z );
+    if (Parent::isEmpty (type))
+      return removeCube (x, y, z);
 
-    Cube_type_t old_type = m_map_cube_types[ position ];
-    m_map_cube_types[ position ] = type;
-    if ( m_map_n_cube_neighbours[ position ] < 6 )
-      Parent::add_cube( x, y, z, type );
+    CubeTypeT oldType = m_mapCubeTypes [position];
+    m_mapCubeTypes [position] = type;
+    if (m_mapNCubeNeighbours [position] < 6)
+      Parent::addCube (x, y, z, type);
 
-    if ( !Parent::is_empty( old_type ) )
+    if (!Parent::isEmpty (oldType))
       return;
 
-    int i_min, j_min, k_min, i_max, j_max, k_max;
-    get_neighbour_limits( x, y, z, i_min, j_min, k_min, i_max, j_max, k_max );
+    int iMin, jMin, kMin, iMax, jMax, kMax;
+    getNeighbourLimits (x, y, z, iMin, jMin, kMin, iMax, jMax, kMax);
 
-    for ( int i = i_min; i <= i_max; i += 2 )
-      add_neighbour( i, y, z );
-    for ( int j = j_min; j <= j_max; j += 2 )
-      add_neighbour( x, j, z );
-    for ( int k = k_min; k <= k_max; k += 2 )
-      add_neighbour( x, y, k );
+    for (int i = iMin; i <= iMax; i += 2)
+      addNeighbour (i, y, z);
+    for (int j = jMin; j <= jMax; j += 2)
+      addNeighbour (x, j, z);
+    for (int k = kMin; k <= kMax; k += 2)
+      addNeighbour (x, y, k);
   }
 
-  void remove_cube( int x, int y, int z ) {
-    Parent::check_coordinates( x, y, z );
-    int position = Parent::xyz_to_position( x, y, z );
-    if ( Parent::is_empty( m_map_cube_types[ position ] ) )
+  void removeCube (int x, int y, int z) {
+    Parent::checkCoordinates (x, y, z);
+    int position = Parent::xyzToPosition (x, y, z);
+    if (Parent::isEmpty (m_mapCubeTypes [position]))
       return;
 
-    m_map_cube_types[ position ] = Parent::empty_cube();
-    Parent::remove_cube( x, y, z );
+    m_mapCubeTypes [position] = Parent::emptyCube();
+    Parent::removeCube (x, y, z);
 
-    int i_min, j_min, k_min, i_max, j_max, k_max;
-    get_neighbour_limits( x, y, z, i_min, j_min, k_min, i_max, j_max, k_max );
+    int iMin, jMin, kMin, iMax, jMax, kMax;
+    getNeighbourLimits (x, y, z, iMin, jMin, kMin, iMax, jMax, kMax);
 
-    for ( int i = i_min; i <= i_max; i += 2 )
-      remove_neighbour( i, y, z );
-    for ( int j = j_min; j <= j_max; j += 2 )
-      remove_neighbour( x, j, z );
-    for ( int k = k_min; k <= k_max; k += 2 )
-      remove_neighbour( x, y, k );
+    for (int i = iMin; i <= iMax; i += 2)
+      removeNeighbour (i, y, z);
+    for (int j = jMin; j <= jMax; j += 2)
+      removeNeighbour (x, j, z);
+    for (int k = kMin; k <= kMax; k += 2)
+      removeNeighbour (x, y, k);
   }
 
-  Cube_type_t cube_type( int x, int y, int z ) const {
-    Parent::check_coordinates( x, y, z );
-    int position = Parent::xyz_to_position( x, y, z );
-    return m_map_cube_types[ position ];
+  CubeTypeT cubeType (int x, int y, int z) const {
+    Parent::checkCoordinates (x, y, z);
+    int position = Parent::xyzToPosition (x, y, z);
+    return m_mapCubeTypes [position];
   }
 
-  bool cube_presents( int x, int y, int z ) const {
-    return !Parent::is_empty( cube_type( x, y, z ) );
+  bool cubePresents (int x, int y, int z) const {
+    return !Parent::isEmpty (cubeType (x, y, z));
   }
 
 protected:
-  std::vector< Cube_type_t > m_map_cube_types;
-  std::vector< Cube_type_t > m_map_n_cube_neighbours;
+  std::vector <CubeTypeT> m_mapCubeTypes;
+  std::vector <CubeTypeT> m_mapNCubeNeighbours;
 
-  void get_neighbour_limits( int x, int y, int z, int& x_min, int& y_min, int& z_min, int& x_max, int& y_max, int& z_max ) {
-    x_min = x - 1;
-    y_min = y - 1;
-    z_min = z - 1;
-    if ( x_min < 0 )  x_min += 2;
-    if ( y_min < 0 )  y_min += 2;
-    if ( z_min < 0 )  z_min += 2;
+  void getNeighbourLimits (int x, int y, int z, int& xMin, int& yMin, int& zMin, int& xMax, int& yMax, int& zMax) {
+    xMin = x - 1;
+    yMin = y - 1;
+    zMin = z - 1;
+    if (xMin < 0)  xMin += 2;
+    if (yMin < 0)  yMin += 2;
+    if (zMin < 0)  zMin += 2;
 
-    x_max = x + 1;
-    y_max = y + 1;
-    z_max = z + 1;
-    if ( x_max > Parent::m_size_x - 1 )  x_max -= 2;
-    if ( y_max > Parent::m_size_y - 1 )  y_max -= 2;
-    if ( z_max > Parent::m_size_z - 1 )  z_max -= 2;
+    xMax = x + 1;
+    yMax = y + 1;
+    zMax = z + 1;
+    if (xMax > Parent::m_sizeX - 1)  xMax -= 2;
+    if (yMax > Parent::m_sizeY - 1)  yMax -= 2;
+    if (zMax > Parent::m_sizeZ - 1)  zMax -= 2;
   }
 
-  void remove_neighbour( int x, int y, int z ) {
-    int position = Parent::xyz_to_position( x, y, z );
-    if ( m_map_n_cube_neighbours[ position ] == 6 )
-      Parent::add_cube( x, y, z, m_map_cube_types[ position ] );
-    assert( m_map_n_cube_neighbours[ position ] > 0 );
-    m_map_n_cube_neighbours[ position ]--;
+  void removeNeighbour (int x, int y, int z) {
+    int position = Parent::xyzToPosition (x, y, z);
+    if (m_mapNCubeNeighbours [position] == 6)
+      Parent::addCube (x, y, z, m_mapCubeTypes [position]);
+    assert (m_mapNCubeNeighbours [position] > 0);
+    m_mapNCubeNeighbours [position]--;
   }
 
-  void add_neighbour( int x, int y, int z ) {
-    int position = Parent::xyz_to_position( x, y, z );
-    assert( m_map_n_cube_neighbours[ position ] < 6 );
-    m_map_n_cube_neighbours[ position ]++;
-    if ( m_map_n_cube_neighbours[ position ] == 6 )
-      Parent::remove_cube( x, y, z );
+  void addNeighbour (int x, int y, int z) {
+    int position = Parent::xyzToPosition (x, y, z);
+    assert (m_mapNCubeNeighbours [position] < 6);
+    m_mapNCubeNeighbours [position]++;
+    if (m_mapNCubeNeighbours [position] == 6)
+      Parent::removeCube (x, y, z);
   }
 };
 
