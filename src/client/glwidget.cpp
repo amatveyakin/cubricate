@@ -468,7 +468,7 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
 void GLWidget::mousePressEvent (QMouseEvent* event) {
   switch (event->button ()) {
     case Qt::LeftButton: {
-      Vec3i headOnCube = player.getHeadOnCube ().cube + Vec3i::replicatedValuesVector (MAP_SIZE / 2);
+      Vec3i headOnCube = player.getHeadOnCube ().cube + Vec3i::replicated (MAP_SIZE / 2);
       if (!cubeValid (headOnCube))
         break;
 //       explosion (XYZ_LIST (cube), 2);
@@ -481,7 +481,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       CubeWithFace headOnCube = player.getHeadOnCube ();
       if (!directionIsValid (headOnCube.face))
         break;
-      headOnCube.cube += Vec3i::replicatedValuesVector (MAP_SIZE / 2);
+      headOnCube.cube += Vec3i::replicated (MAP_SIZE / 2);
       Vec3i newCube = getAdjacentCube (headOnCube).cube;
       if (!cubeValid (newCube))
         break;

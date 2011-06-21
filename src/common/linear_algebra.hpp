@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 #include "common/math_utils.hpp"
 
@@ -90,7 +91,7 @@ public:
   // unary operators
 
   VectorType operator- () const {
-    return VectorType::zeroVector () - derived ();
+    return VectorType::zero () - derived ();
   }
 
 
@@ -234,8 +235,10 @@ public:
 
   void setCoordinates (ElementType x__, ElementType y__)  { x = x__;  y = y__; }
 
-  static Vector replicatedValuesVector (ElementType value)  { return Vector (value, value); }     // TODO: rename (?)
-  static Vector zeroVector ()                               { return Vector (0, 0); }
+  static Vector replicated (ElementType value)  { return Vector (value, value); }
+  static Vector zero ()                         { return Vector (0, 0); }
+  static Vector e1 ()                           { return Vector (1, 0); }
+  static Vector e2 ()                           { return Vector (0, 1); }
 };
 
 template <typename ElementT>
@@ -259,8 +262,11 @@ public:
 
   void setCoordinates (ElementType x__, ElementType y__, ElementType z__)  { x = x__;  y = y__;  z = z__; }
 
-  static Vector replicatedValuesVector (ElementType value)  { return Vector (value, value, value); }     // TODO: rename (?)
-  static Vector zeroVector ()                               { return Vector (0, 0, 0); }
+  static Vector replicated (ElementType value)  { return Vector (value, value, value); }
+  static Vector zero ()                         { return Vector (0, 0, 0); }
+  static Vector e1 ()                           { return Vector (1, 0, 0); }
+  static Vector e2 ()                           { return Vector (0, 1, 0); }
+  static Vector e3 ()                           { return Vector (0, 0, 1); }
 
   // TODO: generate other subsets and permutations
   Vector <2, ElementT> xy () const   { return Vector <2, ElementT> (x, y); }
@@ -287,8 +293,12 @@ public:
 
   void setCoordinates (ElementType x__, ElementType y__, ElementType z__, ElementType w__)  { x = x__;  y = y__;  z = z__;  w = w__; }
 
-  static Vector replicatedValuesVector (ElementType value)  { return Vector (value, value, value, value); }     // TODO: rename (?)
-  static Vector zeroVector ()                               { return Vector (0, 0, 0, 0); }
+  static Vector replicated (ElementType value)  { return Vector (value, value, value, value); }
+  static Vector zero ()                         { return Vector (0, 0, 0, 0); }
+  static Vector e1 ()                           { return Vector (1, 0, 0, 0); }
+  static Vector e2 ()                           { return Vector (0, 1, 0, 0); }
+  static Vector e3 ()                           { return Vector (0, 0, 1, 0); }
+  static Vector e4 ()                           { return Vector (0, 0, 0, 1); }
 };
 
 
@@ -452,28 +462,62 @@ struct LexicographicCompareVec4i : LexicographicCompareVectors <4, int> { };
 // A column-major order matrix
 template <int N_ROWS, int N_COLS, typename ElementT>
 class MatrixBase {
-public:
+private:
   static const int N_ELEMENTS = N_ROWS * N_COLS;
 
-  const ElementT* elements() const               { return m_elements; }
-  ElementT* elements()                           { return m_elements; }
+public:
+  const ElementT* elements () const             { return m_elements; }
+  ElementT* elements ()                         { return m_elements; }
 
-  ElementT operator() (int row, int col) const   { return m_elements [col * N_ROWS + row]; }
-  ElementT& operator() (int row, int col)        { return m_elements [col * N_ROWS + row]; }
+  ElementT operator() (int row, int col) const  { return m_elements [col * N_ROWS + row]; }
+  ElementT& operator() (int row, int col)       { return m_elements [col * N_ROWS + row]; }
+  ElementT at (int row, int col) const          { return m_elements [col * N_ROWS + row]; }
+  ElementT& at (int row, int col)               { return m_elements [col * N_ROWS + row]; }
 
-private:
+protected:
   ElementT m_elements [N_ELEMENTS];
 };
 
 
 
 template <int N_ROWS, int N_COLS, typename ElementT>
-class Matrix : public MatrixBase <N_ROWS, N_COLS, ElementT> { };
+class Matrix : public MatrixBase <N_ROWS, N_COLS, ElementT> {
+  static Matrix zeroMatrix () {
+    Matrix result;
+    std::fill (result.m_elements, result.m_elements + N_ELEMENTS, 0);
+    return result;
+  }
+
+private:
+  static const int N_ELEMENTS = N_ROWS * N_COLS;
+};
 
 // Square matrix
 template <int SIZE, typename ElementT>
 class Matrix <SIZE, SIZE, ElementT> : public MatrixBase <SIZE, SIZE, ElementT> {
-  // ...
+public:
+  static Matrix zeroMatrix () {
+    Matrix result;
+    std::fill (result.m_elements, result.m_elements + N_ELEMENTS, 0);
+    return result;
+  }
+
+  static Matrix identityMatrix () {
+    Matrix result = Matrix::zeroMatrix ();
+    for (int i = 0; i < SIZE; ++i)
+      result (i, i) = 1;
+    return result;
+  }
+
+  static Matrix translationMatrix (Vector <SIZE - 1, ElementT> shift) {
+    Matrix result = Matrix::identityMatrix ();
+    for (int i = 0; i < SIZE - 1; ++i)
+      result (i, SIZE - 1) = shift[i];
+    return result;
+  }
+
+private:
+  static const int N_ELEMENTS = SIZE * SIZE;
 };
 
 
@@ -488,6 +532,22 @@ Vector <DIMENSION_OUT, ElementT> applyTransformation (Matrix <DIMENSION_OUT, DIM
     for (int col = 0; col < DIMENSION_IN; ++col)
       sum += matrix (row, col) * vector (col);
     result [row] = sum;
+  }
+}
+
+// TODO: rename (?)
+template <int LHS_ROWS, int COMMON_SIZE, int RHS_COLS, typename ElementT>
+Matrix <LHS_ROWS, RHS_COLS, ElementT> multMatrices (Matrix <LHS_ROWS, COMMON_SIZE, ElementT> lhs,
+                                                    Matrix <COMMON_SIZE, RHS_COLS, ElementT> rhs)
+{
+  Matrix <LHS_ROWS, RHS_COLS, ElementT> result;
+  for (int row = 0; row < LHS_ROWS; ++row) {
+    for (int col = 0; col < RHS_COLS; ++col) {
+      ElementT sum = 0;
+      for (int i = 0; i < COMMON_SIZE; ++i)
+        sum += lhs (row, i) * rhs (i, col);
+      result (row, col) = sum;
+    }
   }
 }
 
