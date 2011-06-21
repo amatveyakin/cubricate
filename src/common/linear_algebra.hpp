@@ -14,6 +14,10 @@
 
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Vectors
+
+
 template <int DIMENSION, typename ElementT>
 class Vector {
 public:
@@ -221,7 +225,7 @@ public:
     struct {
       ElementType x, y;
     };
-    ElementType coords[DIMENSION];
+    ElementType coords [DIMENSION];
   };
 
   Vector () : x (0), y (0) { }
@@ -246,7 +250,7 @@ public:
     struct {
       ElementType x, y, z;
     };
-    ElementType coords[DIMENSION];
+    ElementType coords [DIMENSION];
   };
 
   Vector () : x (0), y (0), z (0) { }
@@ -274,7 +278,7 @@ public:
     struct {
       ElementType x, y, z, w;
     };
-    ElementType coords[DIMENSION];
+    ElementType coords [DIMENSION];
   };
 
   Vector () : x (0), y (0), z (0), w (0) { }
@@ -298,7 +302,8 @@ public:
 
 template <int DIMENSION, typename ElementT>
 Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
-  static_assert (!std::numeric_limits <ElementT>::is_integer, "Are you sure your want to apply floor function to an integer type?");
+  static_assert (!std::numeric_limits <ElementT>::is_integer,
+                 "Are you sure your want to apply floor function to an integer type?");
   for (int i = 0; i < DIMENSION; ++i)
     a.coords[i] = floor (a.coords[i]);
   return a;
@@ -306,7 +311,7 @@ Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
 
 
 template <int DIMENSION, typename ElementT>
-ElementT scalarProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   ElementT sum = 0;
   for (int i = 0; i < DIMENSION; ++i)
     sum += a.coords[i] * b.coords[i];
@@ -405,7 +410,8 @@ namespace Linf {
 
 template <int DIMENSION, typename ElementT>
 struct LexicographicCompareVectors {
-  static_assert (std::numeric_limits <ElementT>::is_integer, "Using floating-point values as keys for a set or a map is almost certainly a bad idea.");
+  static_assert (std::numeric_limits <ElementT>::is_integer,
+                 "Using floating-point values as keys for a set or a map is almost certainly a bad idea.");
   bool operator() (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) const {
     for (int i = 0; i < DIMENSION; ++i) {
       if (a.coords[i] < b.coords[i])
@@ -435,6 +441,65 @@ typedef Vector <4, double>  Vec4d;
 struct LexicographicCompareVec2i : LexicographicCompareVectors <2, int> { };
 struct LexicographicCompareVec3i : LexicographicCompareVectors <3, int> { };
 struct LexicographicCompareVec4i : LexicographicCompareVectors <4, int> { };
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Matrices
+
+
+// A column-major order matrix
+template <int N_ROWS, int N_COLS, typename ElementT>
+class MatrixBase {
+public:
+  static const int N_ELEMENTS = N_ROWS * N_COLS;
+
+  const ElementT* elements() const               { return m_elements; }
+  ElementT* elements()                           { return m_elements; }
+
+  ElementT operator() (int row, int col) const   { return m_elements [col * N_ROWS + row]; }
+  ElementT& operator() (int row, int col)        { return m_elements [col * N_ROWS + row]; }
+
+private:
+  ElementT m_elements [N_ELEMENTS];
+};
+
+
+
+template <int N_ROWS, int N_COLS, typename ElementT>
+class Matrix : public MatrixBase <N_ROWS, N_COLS, ElementT> { };
+
+// Square matrix
+template <int SIZE, typename ElementT>
+class Matrix <SIZE, SIZE, ElementT> : public MatrixBase <SIZE, SIZE, ElementT> {
+  // ...
+};
+
+
+// TODO: rename (?)
+template <int DIMENSION_IN, int DIMENSION_OUT, typename ElementT>
+Vector <DIMENSION_OUT, ElementT> applyTransformation (Matrix <DIMENSION_OUT, DIMENSION_IN, ElementT> matrix,
+                                                      Vector <DIMENSION_IN, ElementT> vector)
+{
+  Vector <DIMENSION_OUT, ElementT> result;
+  for (int row = 0; row < DIMENSION_OUT; ++row) {
+    ElementT sum = 0;
+    for (int col = 0; col < DIMENSION_IN; ++col)
+      sum += matrix (row, col) * vector (col);
+    result [row] = sum;
+  }
+}
+
+
+
+// TODO: add more typedef's
+typedef Matrix <3, 3, float>  Mat3x3f;
+typedef Matrix <4, 4, float>  Mat4x4f;
+
+typedef Matrix <3, 3, double> Mat3x3d;
+typedef Matrix <4, 4, double> Mat4x4d;
+
 
 
 #endif
