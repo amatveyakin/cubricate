@@ -67,8 +67,8 @@ public:
       return;
     m_n_cubes--;
     int last_cube_position = xyz_to_position( m_cube_position_array[ m_n_cubes * 4 ], m_cube_position_array[ m_n_cubes * 4 + 1 ], m_cube_position_array[ m_n_cubes * 4 + 2 ] );
-    m_map_position_to_cube_index[ position ] = -1;
     m_map_position_to_cube_index[ last_cube_position ] = index;
+    m_map_position_to_cube_index[ position ] = -1;
     std::copy( m_cube_position_array + m_n_cubes * 4, m_cube_position_array + ( m_n_cubes + 1 ) * 4, m_cube_position_array + index * 4 );
     m_cube_types_array[ index ] = m_cube_types_array[ m_n_cubes ];
   }
@@ -171,8 +171,7 @@ public:
       return;
 
     m_map_cube_types[ position ] = Parent::empty_cube();
-//     Parent::remove_cube( x, y, z );
-    Parent::add_cube( x, y, z, Parent::empty_cube() );
+    Parent::remove_cube( x, y, z );
 
     int i_min, j_min, k_min, i_max, j_max, k_max;
     get_neighbour_limits( x, y, z, i_min, j_min, k_min, i_max, j_max, k_max );
