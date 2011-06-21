@@ -1,8 +1,4 @@
-// Fragment Shader
-
-// TODO: rewrite shaders to camelCase too
-
-#version 400
+#version 130
 
 uniform vec4 color;
 uniform sampler2DArray squareTexture;

@@ -232,12 +232,7 @@ void GLWidget::initShaders () {
     exit (1);
   }
 
-  result = m_shaderProgram.link ();
-  if (!result) {
-    std::cout << "Unable to link shaders:" << std::endl
-              << m_shaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
+
 
   m_shaderProgram.bindAttributeLocation ("v_vertex", 0);
   m_shaderProgram.bindAttributeLocation ("v_normal", 1);
@@ -245,6 +240,13 @@ void GLWidget::initShaders () {
   m_shaderProgram.bindAttributeLocation ("v_pos_and_size", 3);
   m_shaderProgram.bindAttributeLocation ("v_type", 4);
 
+  result = m_shaderProgram.link ();
+  if (!result) {
+    std::cout << "Unable to link shaders:" << std::endl
+              << m_shaderProgram.log ().toStdString () << std::endl;
+    exit (1);
+  }
+  
   m_instancedCubeShader = m_shaderProgram.programId ();
 //   glLinkProgram (m_instancedCubeShader);
   glUseProgram (m_instancedCubeShader);
