@@ -9,8 +9,9 @@
 #include "client/GLTools/math3d.h"
 
 
-// TODO: move large methods to .cpp file
-// TODO: orientation --- ?
+// TODO: move this class to another file (?)
+// TODO: move large methods to the source file
+// TODO: orientation (Oy, Oz axes) --- ?
 class ViewFrame {
 public:
   // Default position and orientation. At the origin, looking

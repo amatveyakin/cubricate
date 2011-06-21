@@ -26,11 +26,11 @@ BlockType WorldMap::cube (Vec3i cubePos) const {
 
 void WorldMap::onPlayerMove (int playerId, Vec3d oldPos, Vec3d newPos) {
   for (auto it = m_chunks.begin (); it != m_chunks.end (); ) {
-    WorldChunk& curChunk = it->second;
+    WorldChunk& chunkRef = it->second;
     ++it;  // We can now remove current object from the set
-    curChunk.onPlayerMove (playerId, oldPos, newPos);
-    if (curChunk.state () == ChunkState::REDUNDANT) {
-      curChunk.saveToDisk ();
+    chunkRef.onPlayerMove (playerId, oldPos, newPos);
+    if (chunkRef.state () == ChunkState::REDUNDANT) {
+      chunkRef.saveToDisk ();
       m_chunks.erase (it);
     }
   }
