@@ -84,7 +84,7 @@ static std::string coordinateToFileNamePart (int coord) {
 }
 
 std::string WorldChunk::correspondingFileName () {
-  return coordinateToFileNamePart (m_pos.x) + '-' + coordinateToFileNamePart (m_pos.y);
+  return coordinateToFileNamePart (m_pos.x ()) + '-' + coordinateToFileNamePart (m_pos.y ());
 }
 
 

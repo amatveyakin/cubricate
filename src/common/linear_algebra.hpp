@@ -15,298 +15,306 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Vectors
 
 
-template <int DIMENSION, typename ElementT>
-class Vector {
-public:
-  Vector () = delete;
-};
 
-
-
-#define DECLARE_DERIVED(VECTOR_DIMENSION__, ElementT__) \
+// TODO: delete
+#define DECLARE_DERIVED(Type__) \
   private: \
-    const Vector <VECTOR_DIMENSION__, ElementT__>& derived () const    { return static_cast <const Vector <VECTOR_DIMENSION__, ElementT__>&> (*this); } \
-    Vector <VECTOR_DIMENSION__, ElementT__>& derived ()                { return static_cast <Vector <VECTOR_DIMENSION__, ElementT__>&> (*this); }
+    const Type__& derived () const    { return static_cast <const Type__&> (*this); } \
+    Type__& derived ()                { return static_cast <Type__&> (*this); }
 
 
 
 template <int DIMENSION, typename ElementT>
-class VectorIndexingOperations {
+class VectorBase {
 public:
-  ElementT operator[] (size_t index) const {
-    return derived ().coords [index];
-  }
+  ElementT at (size_t index) const          { return m_elements [index]; }
+  ElementT& at (size_t index)               { return m_elements [index]; }
+  ElementT operator[] (size_t index) const  { return m_elements [index]; }
+  ElementT& operator[] (size_t index)       { return m_elements [index]; }
 
-  ElementT& operator[] (size_t index) {
-    return derived ().coords [index];
-  }
+  const ElementT* data () const             { return m_elements; }
+  ElementT* data ()                         { return m_elements; }
 
-  DECLARE_DERIVED (DIMENSION, ElementT)
+protected:
+  ElementT m_elements [DIMENSION];
+
+  template <int, typename, typename>
+  friend class CommonVectorLinearOperations;
 };
 
 
-template <int DIMENSION, typename ElementT>
+template <int DIMENSION, typename VectorT, typename ElementT>
 class CommonVectorLinearOperations {
-private:
-  typedef Vector <DIMENSION, ElementT> VectorType;
-
 public:
   // in-place operators
 
-  VectorType& operator+= (VectorType a) {
+  VectorT& operator+= (VectorT a) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] += a.coords[i];
+      derived ().m_elements[i] += a.m_elements[i];
     return derived ();
   }
 
-  VectorType& operator-= (VectorType a) {
+  VectorT& operator-= (VectorT a) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] -= a.coords[i];
+      derived ().m_elements[i] -= a.m_elements[i];
     return derived ();
   }
 
-  VectorType& operator*= (ElementT q) {
-    for (int i = 0; i <VectorType:: DIMENSION; ++i)
-      derived ().coords[i] *= q;
+  VectorT& operator*= (ElementT q) {
+    for (int i = 0; i < DIMENSION; ++i)
+      derived ().m_elements[i] *= q;
     return derived ();
   }
 
-  VectorType& operator/= (ElementT q) {
+  VectorT& operator/= (ElementT q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] /= q;
+      derived ().m_elements[i] /= q;
     return derived ();
   }
 
-  VectorType& operator%= (ElementT q) {
+  VectorT& operator%= (ElementT q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] %= q;
+      derived ().m_elements[i] %= q;
     return derived ();
   }
 
 
   // unary operators
 
-  VectorType operator- () const {
-    return VectorType::zero () - derived ();
+  VectorT operator- () const {
+    return VectorT::zero () - derived ();
   }
 
 
   // binary operators
 
-  VectorType operator+ (VectorType a) const {
-    VectorType result (derived ());
+  VectorT operator+ (VectorT a) const {
+    VectorT result (derived ());
     result += a;
     return result;
   }
 
-  VectorType operator- (VectorType a) const {
-    VectorType result (derived ());
+  VectorT operator- (VectorT a) const {
+    VectorT result (derived ());
     result -= a;
     return result;
   }
 
-  VectorType operator* (ElementT q) const {
-    VectorType result (derived ());
+  VectorT operator* (ElementT q) const {
+    VectorT result (derived ());
     result *= q;
     return result;
   }
 
-  VectorType operator/ (ElementT q) const {
-    VectorType result (derived ());
+  VectorT operator/ (ElementT q) const {
+    VectorT result (derived ());
     result /= q;
     return result;
   }
 
-  VectorType operator% (ElementT q) const {
-    VectorType result (derived ());
+  VectorT operator% (ElementT q) const {
+    VectorT result (derived ());
     result %= q;
     return result;
   }
 
-  DECLARE_DERIVED (DIMENSION, ElementT)
+  friend VectorT operator* (ElementT q, VectorT a) {
+    return a * q;
+  }
+
+  DECLARE_DERIVED (VectorT)
 };
 
-template <int DIMENSION, typename ElementT>
-class VectorLinearOperations : public CommonVectorLinearOperations <DIMENSION, ElementT> { };
+template <int DIMENSION, typename VectorT, typename ElementT>
+class VectorLinearOperations : public CommonVectorLinearOperations <DIMENSION, VectorT, ElementT> { };
 
-template <int DIMENSION>
-class VectorLinearOperations <DIMENSION, int> : public CommonVectorLinearOperations <DIMENSION, int> {
-private:
-  typedef Vector <DIMENSION, int> VectorType;
-
+template <int DIMENSION, typename VectorT>
+class VectorLinearOperations <DIMENSION, VectorT, int> : public CommonVectorLinearOperations <DIMENSION, VectorT, int> {
 public:
   // TODO: implement a combined divModFloored function
 
   // in-place operators
 
-  VectorType& applyDivFloored (int q) {
+  VectorT& applyDivFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] = intDivFloored (derived ().coords[i], q);
+      derived ().at (i) = intDivFloored (derived ().at (i), q);
     return derived ();
   }
 
-  VectorType& applyModFloored (int q) {
+  VectorT& applyModFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] = intModFloored (derived ().coords[i], q);
+      derived ().at (i) = intModFloored (derived ().at (i), q);
     return derived ();
   }
 
 
   // binary operators
 
-  VectorType divFloored (int q) const {
-    VectorType result (derived ());
+  VectorT divFloored (int q) const {
+    VectorT result (derived ());
     result.applyDivFloored (q);
     return result;
   }
 
-  VectorType modFloored (int q) const {
-    VectorType result (derived ());
+  VectorT modFloored (int q) const {
+    VectorT result (derived ());
     result.applyModFloored (q);
     return result;
   }
 
-  DECLARE_DERIVED (DIMENSION, int)
+  DECLARE_DERIVED (VectorT)
 };
 
 
-template <int DIMENSION, typename ElementT>
+template <int DIMENSION, typename VectorT, typename ElementT>
 class VectorConversations {
-private:
-  typedef Vector <DIMENSION, ElementT> VectorType;
-
 public:
-  void copyFromArray (const ElementT* coords__) {
+  void copyFromArray (const ElementT* elements) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] = coords__[i];
+      derived ().at (i) = elements[i];
   }
 
   template <typename OtherElementT>
-  void copyFromArrayConverted (const OtherElementT* coords__) {
+  void copyFromArrayConverted (const OtherElementT* elements) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().coords[i] = coords__[i];
+      derived ().at (i) = elements[i];
   }
 
   template <typename OtherVectorT>
   void copyFromVectorConverted (OtherVectorT source) {
-    copyFromArrayConverted (source.coords);
+    copyFromArrayConverted (source.data ());
   }
 
-  void copyToArray (ElementT* coords__) const {
+  void copyToArray (ElementT* elements) const {
     for (int i = 0; i < DIMENSION; ++i)
-      coords__[i] = derived ().coords[i];
+      elements[i] = derived ().at (i);
   }
 
 
   template <typename OtherVectorT>
-  static VectorType fromVectorConverted (OtherVectorT source) {
-    VectorType result;
+  static VectorT fromVectorConverted (OtherVectorT source) {
+    VectorT result;
     result.copyFromVectorConverted (source);
     return result;
   }
 
-  DECLARE_DERIVED (DIMENSION, ElementT)
+  DECLARE_DERIVED (VectorT)
 };
 
 
 
-template <typename ElementT>
-class Vector <2, ElementT> : public VectorIndexingOperations <2, ElementT>,
-                             public VectorLinearOperations   <2, ElementT>,
-                             public VectorConversations      <2, ElementT> {
-public:
-  static const int DIMENSION = 2;
-  typedef ElementT ElementType;
 
-  union {
-    struct {
-      ElementType x, y;
-    };
-    ElementType coords [DIMENSION];
-  };
 
-  Vector () : x (0), y (0) { }
-  Vector (ElementType x__, ElementType y__) : x (x__), y (y__) { }
-  Vector (ElementType* coords__) { fromArray (coords__); }
-
-  void setCoordinates (ElementType x__, ElementType y__)  { x = x__;  y = y__; }
-
-  static Vector replicated (ElementType value)  { return Vector (value, value); }
-  static Vector zero ()                         { return Vector (0, 0); }
-  static Vector e1 ()                           { return Vector (1, 0); }
-  static Vector e2 ()                           { return Vector (0, 1); }
+template <int VECTOR_DIMENSION, typename ElementT>
+class Vector {
+  Vector () = delete;
 };
 
+
 template <typename ElementT>
-class Vector <3, ElementT> : public VectorIndexingOperations <3, ElementT>,
-                             public VectorLinearOperations   <3, ElementT>,
-                             public VectorConversations      <3, ElementT> {
+class Vector <2, ElementT> : public VectorBase              <2, ElementT>,
+                             public VectorLinearOperations  <2, Vector <2, ElementT>, ElementT>,
+                             public VectorConversations     <2, Vector <2, ElementT>, ElementT>
+{
+private:
+  typedef VectorBase <2, ElementT> Parent;
+
 public:
-  static const int DIMENSION = 3;
-  typedef ElementT ElementType;
+  Vector ()                                 { }
+  Vector (ElementT x__, ElementT y__)       { setCoordinates (x__, y__); }
+  Vector (ElementT* coords__)               { fromArray (coords__); }
 
-  union {
-    struct {
-      ElementType x, y, z;
-    };
-    ElementType coords [DIMENSION];
-  };
+  ElementT x () const                       { return Parent::at (0); }
+  ElementT& x ()                            { return Parent::at (0); }
+  ElementT y () const                       { return Parent::at (1); }
+  ElementT& y ()                            { return Parent::at (1); }
 
-  Vector () : x (0), y (0), z (0) { }
-  Vector (ElementType x__, ElementType y__, ElementType z__) : x (x__), y (y__), z (z__) { }
-  Vector (ElementType* coords__) { fromArray (coords__); }
+  void setCoordinates (ElementT x__, ElementT y__)  { x () = x__;  y () = y__; }
 
-  void setCoordinates (ElementType x__, ElementType y__, ElementType z__)  { x = x__;  y = y__;  z = z__; }
+  static Vector zero ()                     { return Vector (0, 0); }
+  static Vector replicated (ElementT value) { return Vector (value, value); }
+  static Vector e1 ()                       { return Vector (1, 0); }
+  static Vector e2 ()                       { return Vector (0, 1); }
+};
 
-  static Vector replicated (ElementType value)  { return Vector (value, value, value); }
-  static Vector zero ()                         { return Vector (0, 0, 0); }
-  static Vector e1 ()                           { return Vector (1, 0, 0); }
-  static Vector e2 ()                           { return Vector (0, 1, 0); }
-  static Vector e3 ()                           { return Vector (0, 0, 1); }
+
+template <typename ElementT>
+class Vector <3, ElementT> : public VectorBase              <3, ElementT>,
+                             public VectorLinearOperations  <3, Vector <3, ElementT>, ElementT>,
+                             public VectorConversations     <3, Vector <3, ElementT>, ElementT>
+{
+private:
+  typedef VectorBase <3, ElementT> Parent;
+
+public:
+  Vector ()                                           { }
+  Vector (ElementT x__, ElementT y__, ElementT z__)   { setCoordinates (x__, y__, z__); }
+  Vector (ElementT* coords__)                         { fromArray (coords__); }
+
+  ElementT x () const                       { return Parent::at (0); }
+  ElementT& x ()                            { return Parent::at (0); }
+  ElementT y () const                       { return Parent::at (1); }
+  ElementT& y ()                            { return Parent::at (1); }
+  ElementT z () const                       { return Parent::at (2); }
+  ElementT& z ()                            { return Parent::at (2); }
+
+  void setCoordinates (ElementT x__, ElementT y__, ElementT z__)  { x () = x__;  y () = y__;  z () = z__; }
 
   // TODO: generate other subsets and permutations
-  Vector <2, ElementT> xy () const   { return Vector <2, ElementT> (x, y); }
+  Vector <2, ElementT> xy () const          { return Vector <2, ElementT> (x (), y ()); }
+
+  static Vector zero ()                     { return Vector (0, 0, 0); }
+  static Vector replicated (ElementT value) { return Vector (value, value, value); }
+  static Vector e1 ()                       { return Vector (1, 0, 0); }
+  static Vector e2 ()                       { return Vector (0, 1, 0); }
+  static Vector e3 ()                       { return Vector (0, 0, 1); }
 };
+
 
 template <typename ElementT>
-class Vector <4, ElementT> : public VectorIndexingOperations <4, ElementT>,
-                             public VectorLinearOperations   <4, ElementT>,
-                             public VectorConversations      <4, ElementT> {
+class Vector <4, ElementT> : public VectorBase              <4, ElementT>,
+                             public VectorLinearOperations  <4, Vector <4, ElementT>, ElementT>,
+                             public VectorConversations     <4, Vector <4, ElementT>, ElementT>
+{
+private:
+  typedef VectorBase <4, ElementT> Parent;
+
 public:
-  static const int DIMENSION = 4;
-  typedef ElementT ElementType;
+  Vector ()                                                         { }
+  Vector (ElementT x__, ElementT y__, ElementT z__, ElementT w__)   { setCoordinates (x__, y__, z__, w__); }
+  Vector (ElementT* coords__)                                       { fromArray (coords__); }
 
-  union {
-    struct {
-      ElementType x, y, z, w;
-    };
-    ElementType coords [DIMENSION];
-  };
+  ElementT x () const                       { return Parent::at (0); }
+  ElementT& x ()                            { return Parent::at (0); }
+  ElementT y () const                       { return Parent::at (1); }
+  ElementT& y ()                            { return Parent::at (1); }
+  ElementT z () const                       { return Parent::at (2); }
+  ElementT& z ()                            { return Parent::at (2); }
+  ElementT w () const                       { return Parent::at (3); }
+  ElementT& w ()                            { return Parent::at (3); }
 
-  Vector () : x (0), y (0), z (0), w (0) { }
-  Vector (ElementType x__, ElementType y__, ElementType z__, ElementType w__) : x (x__), y (y__), z (z__), w (w__) { }
-  Vector (ElementType* coords__) { fromArray (coords__); }
+  void setCoordinates (ElementT x__, ElementT y__, ElementT z__, ElementT w__)  { x () = x__;  y () = y__;  z () = z__;  w () = w__; }
 
-  void setCoordinates (ElementType x__, ElementType y__, ElementType z__, ElementType w__)  { x = x__;  y = y__;  z = z__;  w = w__; }
-
-  static Vector replicated (ElementType value)  { return Vector (value, value, value, value); }
-  static Vector zero ()                         { return Vector (0, 0, 0, 0); }
-  static Vector e1 ()                           { return Vector (1, 0, 0, 0); }
-  static Vector e2 ()                           { return Vector (0, 1, 0, 0); }
-  static Vector e3 ()                           { return Vector (0, 0, 1, 0); }
-  static Vector e4 ()                           { return Vector (0, 0, 0, 1); }
+  static Vector zero ()                     { return Vector (0, 0, 0, 0); }
+  static Vector replicated (ElementT value) { return Vector (value, value, value, value); }
+  static Vector e1 ()                       { return Vector (1, 0, 0, 0); }
+  static Vector e2 ()                       { return Vector (0, 1, 0, 0); }
+  static Vector e3 ()                       { return Vector (0, 0, 1, 0); }
+  static Vector e4 ()                       { return Vector (0, 0, 0, 1); }
 };
+
+
 
 
 
 // TODO: delete
-#define XY_LIST(vec__)    (vec__).x, (vec__).y
-#define XYZ_LIST(vec__)   (vec__).x, (vec__).y, (vec__).z
-#define XYZW_LIST(vec__)  (vec__).x, (vec__).y, (vec__).z, (vec__).w
+#define XY_LIST(vec__)    (vec__).x (), (vec__).y ()
+#define XYZ_LIST(vec__)   (vec__).x (), (vec__).y (), (vec__).z ()
+#define XYZW_LIST(vec__)  (vec__).x (), (vec__).y (), (vec__).z (), (vec__).w ()
 
 
 
@@ -315,7 +323,7 @@ Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
   static_assert (!std::numeric_limits <ElementT>::is_integer,
                  "Are you sure your want to apply floor function to an integer type?");
   for (int i = 0; i < DIMENSION; ++i)
-    a.coords[i] = floor (a.coords[i]);
+    a.at (i) = floor (a.at (i));
   return a;
 }
 
@@ -324,7 +332,7 @@ template <int DIMENSION, typename ElementT>
 ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   ElementT sum = 0;
   for (int i = 0; i < DIMENSION; ++i)
-    sum += a.coords[i] * b.coords[i];
+    sum += a.at (i) * b.at (i);
   return sum;
 }
 
@@ -335,7 +343,7 @@ ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT
 
 template <typename ElementT>
 Vector <3, ElementT> crossProduct (Vector <3, ElementT> a, Vector <3, ElementT> b) {
-  return Vector <3, ElementT> (a.y*b.z - a.z*b.y,  a.z*b.x - a.x*b.z,  a.x*b.y - a.y*b.x);
+  return Vector <3, ElementT> (a.y() * b.z() - a.z() * b.y(),  a.z() * b.x() - a.x() * b.z(),  a.x() * b.y() - a.y() * b.x());
 }
 
 
@@ -344,7 +352,7 @@ namespace L1 {
   ElementT norm (Vector <DIMENSION, ElementT> a) {
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      sum += xAbs (a.coords[i]);
+      sum += xAbs (a.at (i));
     return sum;
   }
 
@@ -352,7 +360,7 @@ namespace L1 {
   ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      sum += xAbs (a.coords[i] - b.coords[i]);
+      sum += xAbs (a.at (i) - b.at (i));
     return sum;
   }
 
@@ -378,7 +386,7 @@ namespace L2 {
   //   return euclideanNormSqr (a - b);
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      sum += xSqr (a.coords[i] - b.coords[i]);
+      sum += xSqr (a.at (i) - b.at (i));
     return sum;
   }
 
@@ -398,7 +406,7 @@ namespace Linf {
   ElementT norm (Vector <DIMENSION, ElementT> a) {
     ElementT max = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      max = xMax (max, xAbs (a.coords[i]));
+      max = xMax (max, xAbs (a.at (i)));
     return max;
   }
 
@@ -406,7 +414,7 @@ namespace Linf {
   ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
     ElementT max = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      max = xMax (max, xAbs (a.coords[i] - b.coords[i]));
+      max = xMax (max, xAbs (a.at (i) - b.at (i)));
     return max;
   }
 
@@ -424,9 +432,9 @@ struct LexicographicCompareVectors {
                  "Using floating-point values as keys for a set or a map is almost certainly a bad idea.");
   bool operator() (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) const {
     for (int i = 0; i < DIMENSION; ++i) {
-      if (a.coords[i] < b.coords[i])
+      if (a.at (i) < b.at (i))
         return true;
-      else if (a.coords[i] > b.coords[i])
+      else if (a.at (i) > b.at (i))
         return false;
     }
     return false;
@@ -455,7 +463,7 @@ struct LexicographicCompareVec4i : LexicographicCompareVectors <4, int> { };
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Matrices
 
 
@@ -476,12 +484,19 @@ public:
 
 protected:
   ElementT m_elements [N_ELEMENTS];
+
+  template <int, typename, typename>
+  friend class CommonVectorLinearOperations;
 };
 
 
 
+// Rectangle matrix
 template <int N_ROWS, int N_COLS, typename ElementT>
-class Matrix : public MatrixBase <N_ROWS, N_COLS, ElementT> {
+class Matrix : public MatrixBase <N_ROWS, N_COLS, ElementT>,
+               public VectorLinearOperations <N_ROWS * N_COLS, Matrix <N_ROWS, N_COLS, ElementT>, ElementT>
+{
+public:
   static Matrix zeroMatrix () {
     Matrix result;
     std::fill (result.m_elements, result.m_elements + N_ELEMENTS, 0);
@@ -494,7 +509,9 @@ private:
 
 // Square matrix
 template <int SIZE, typename ElementT>
-class Matrix <SIZE, SIZE, ElementT> : public MatrixBase <SIZE, SIZE, ElementT> {
+class Matrix <SIZE, SIZE, ElementT> : public MatrixBase <SIZE, SIZE, ElementT>,
+                                      public VectorLinearOperations <SIZE * SIZE, Matrix <SIZE, SIZE, ElementT>, ElementT>
+{
 public:
   static Matrix zeroMatrix () {
     Matrix result;

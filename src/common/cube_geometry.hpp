@@ -162,7 +162,7 @@ static inline void getUnifiedCube (/* i/o */ int& x, int& y, int& z, Direction& 
 }
 
 static inline CubeWithFace getUnifiedCube (CubeWithFace cubeWithFace) {
-  getUnifiedCube (cubeWithFace.cube.x, cubeWithFace.cube.y, cubeWithFace.cube.z, cubeWithFace.face);
+  getUnifiedCube (cubeWithFace.cube.x (), cubeWithFace.cube.y (), cubeWithFace.cube.z (), cubeWithFace.face);
   return cubeWithFace;
 }
 
@@ -214,17 +214,17 @@ static inline Direction getAdjacentFace (Vec3i cube, Vec3i neighbour) {
   if (L1::norm (direction) != 1)
     return Direction::INVALID;
 
-  if      (direction.x == 1)
+  if      (direction.x () == 1)
     return Direction::RIGHT;
-  else if (direction.y == 1)
+  else if (direction.y () == 1)
     return Direction::FRONT;
-  else if (direction.z == 1)
+  else if (direction.z () == 1)
     return Direction::UP;
-  else if (direction.x == -1)
+  else if (direction.x () == -1)
     return Direction::LEFT;
-  else if (direction.y == -1)
+  else if (direction.y () == -1)
     return Direction::BACK;
-  else if (direction.z == -1)
+  else if (direction.z () == -1)
     return Direction::DOWN;
 
   return Direction::INVALID;
@@ -242,7 +242,7 @@ static inline Vec2i cubeToChunk (Vec3i cube) {
 
 static inline void cubeToChunk (/* in */ Vec3i cube, /* out */ Vec2i& chunk, Vec3i& cubeInChunk) {
   chunk       = cube.xy ().divFloored (CHUNK_SIZE);
-  cubeInChunk = Vec3i (intModFloored (cube.x, CHUNK_SIZE), intModFloored (cube.y, CHUNK_SIZE), cube.z);
+  cubeInChunk = Vec3i (intModFloored (cube.x (), CHUNK_SIZE), intModFloored (cube.y (), CHUNK_SIZE), cube.z ());
 }
 
 static inline Vec2i worldToChunk (Vec3d pos) {
@@ -263,7 +263,7 @@ static inline bool cubeValid (int x, int y, int z) {
 }
 
 static inline bool cubeValid (Vec3i v) {
-  return cubeValid (v.x, v.y, v.z);
+  return cubeValid (v.x (), v.y (), v.z ());
 }
 
 

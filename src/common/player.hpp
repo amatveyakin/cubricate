@@ -56,6 +56,7 @@ public:
 
   // TODO: rewrite
   void getCameraMatrix (M3DMatrix44f result, bool rotationOnly = false) {
+    Vec3d a = Vec3d::zero ();
     Vec3d z = -m_dirForward;
     Vec3d x = crossProduct (m_dirUp, z);
 
@@ -103,11 +104,11 @@ public:
     m3dRotationMatrix33 (rotMat, angle, localX[0], localX[1], localX[2]);
 
     // Rotate Y, and Z
-    m3dRotateVector (rotVec.coords, m_dirUp.coords, rotMat);
-    m3dCopyVector3 (m_dirUp.coords, rotVec.coords);
+    m3dRotateVector (rotVec.data (), m_dirUp.data (), rotMat);
+    m3dCopyVector3 (m_dirUp.data (), rotVec.data ());
 
-    m3dRotateVector (rotVec.coords, m_dirForward.coords, rotMat);
-    m3dCopyVector3 (m_dirForward.coords, rotVec.coords);
+    m3dRotateVector (rotVec.data (), m_dirForward.data (), rotMat);
+    m3dCopyVector3 (m_dirForward.data (), rotVec.data ());
   }
 
 //   // Rotate around local Y
