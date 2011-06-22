@@ -27,8 +27,8 @@ const double FPS_MEASURE_INTERVAL = 1.; /* sec */
 
 void GLWidget::lockCubes () {
   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
-                                                      N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
-                                                      GL_MAP_WRITE_BIT);
+                                                     N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
+                                                     GL_MAP_WRITE_BIT);
   GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
   cubeArray.setPointers (bufferPos, bufferType);
 }

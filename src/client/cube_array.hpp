@@ -1,5 +1,3 @@
-// TODO refactor variableNames and (brackets)
-
 #ifndef CUBE_ARRAY_HPP
 #define CUBE_ARRAY_HPP
 

@@ -1,2 +1,3 @@
 * Project name --- ?
 * Exclude GLTools from project (?)
+* Find or write a logging system (with message ranking: information, warning, error, etc.)

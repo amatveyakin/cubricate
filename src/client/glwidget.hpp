@@ -51,7 +51,6 @@ protected:
   QTime m_fpsTime;
 
 
-  // TODO: add ``m_'' to function too
   void lockCubes ();
   void unlockCubes ();
   Vec3i getCubeByPoint (Vec3d point, Vec3d direction);
