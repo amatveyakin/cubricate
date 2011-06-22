@@ -32,11 +32,14 @@ protected:
   int m_CUBES_INFORMATION_OFFSET;
 
   QGLShaderProgram m_shaderProgram;
+  QGLShaderProgram m_basicShaderProgram;
 
   GLint   m_instancedCubeShader;
-  GLuint  m_cubesVao;
-  GLuint  m_cubeVbo;
-  GLuint  m_locMvp, m_locMapSize, m_locColor, m_locSquareTexture;
+  GLint   m_basicShader;
+  GLuint  m_cubesVao, m_selectingBoxVao;
+  GLuint  m_cubeVbo,  m_selectingBoxVbo;
+  GLuint  m_locInstancedCubeMvp, m_locInstancedCubeMapSize, m_locColor, m_locInstancedCubeSquareTexture;
+  GLuint  m_locBasicShaderWVP, m_locBasicShaderColor;
   GLuint  m_squareTextureArray;
 
   GLFrustum     m_viewFrustum;

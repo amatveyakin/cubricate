@@ -1,6 +1,5 @@
 #version 130
 
-uniform vec4 color;
 uniform sampler2DArray squareTexture;
 
 in vec4 f_normal;

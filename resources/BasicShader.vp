@@ -1,0 +1,14 @@
+#version 130
+
+uniform mat4 wvpMatrix;
+
+in  vec3 vPosition;
+
+//out vec4 fColor;
+
+
+void main(void)
+{
+  gl_Position    =  wvpMatrix * vec4 (vPosition, 10.0f);
+  //fColor = vColor;
+}

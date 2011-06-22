@@ -27,8 +27,4 @@ void main(void)
   f_tex_coord   = v_tex_coord;
   f_type        = int (v_type);
   gl_Position   = f_position;
-  vec3 v_shift  = vec3 ( (gl_InstanceID / (MAP_SIZE * MAP_SIZE)) % MAP_SIZE - MAP_SIZE / 2,
-                         (gl_InstanceID /  MAP_SIZE ) % MAP_SIZE - MAP_SIZE / 2,
-                         gl_InstanceID  % MAP_SIZE - MAP_SIZE / 2 )
-                  * 2.;
 }

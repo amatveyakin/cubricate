@@ -156,6 +156,17 @@ void GLWidget::initBuffers () {
   glVertexAttribDivisorARB (3, 1);
   glVertexAttribDivisorARB (4, 1);
   glBindVertexArray (0);
+  
+  
+  glGenVertexArrays (1, &m_selectingBoxVao);
+  glBindVertexArray (m_selectingBoxVao);
+  glGenBuffers (1, &m_selectingBoxVbo);
+  glBindBuffer (GL_ARRAY_BUFFER, m_selectingBoxVbo);
+  glBufferData (GL_ARRAY_BUFFER, sizeof (cube_vertices), cube_vertices, GL_STATIC_DRAW);
+  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0);
+  glEnableVertexAttribArray (0);
+  glBindVertexArray (0);
+
 }
 
 void GLWidget::initTextures () {
@@ -248,14 +259,46 @@ void GLWidget::initShaders () {
   }
   
   m_instancedCubeShader = m_shaderProgram.programId ();
-//   glLinkProgram (m_instancedCubeShader);
+  glLinkProgram (m_instancedCubeShader);
   glUseProgram (m_instancedCubeShader);
-  m_locMvp            = glGetUniformLocation (m_instancedCubeShader, "mvp_matrix");
-  m_locColor          = glGetUniformLocation (m_instancedCubeShader, "color");
-  m_locMapSize        = glGetUniformLocation (m_instancedCubeShader, "MAP_SIZE");
-  m_locSquareTexture  = glGetUniformLocation (m_instancedCubeShader, "squareTexture");
+  m_locInstancedCubeMvp            = glGetUniformLocation (m_instancedCubeShader, "mvp_matrix");
+  m_locInstancedCubeMapSize        = glGetUniformLocation (m_instancedCubeShader, "MAP_SIZE");
+  m_locInstancedCubeSquareTexture  = glGetUniformLocation (m_instancedCubeShader, "squareTexture");
 
-  glUniform1i (m_locMapSize, MAP_SIZE);
+  glUniform1i (m_locInstancedCubeMapSize, MAP_SIZE);
+  
+ 
+  result = m_basicShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/BasicShader.vp");
+  if (!result) {
+    std::cout << "Unable to compile vertex shader:" << std::endl
+              << m_basicShaderProgram.log ().toStdString () << std::endl;
+    exit (1);
+  }
+
+  result = m_basicShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/BasicShader.fp");
+  if (!result) {
+    std::cout << "Unable to compile fragment shader:" << std::endl
+              << m_basicShaderProgram.log ().toStdString () << std::endl;
+    exit (1);
+  }
+
+  m_basicShaderProgram.bindAttributeLocation ("vPosition", 0);
+  //m_basicShaderProgram.bindAttributeLocation ("vColor", 1);
+
+  result = m_basicShaderProgram.link ();
+  if (!result) {
+    std::cout << "Unable to link shaders:" << std::endl
+              << m_basicShaderProgram.log ().toStdString () << std::endl;
+    exit (1);
+  }
+  m_locBasicShaderWVP = 0;
+  m_basicShader = m_basicShaderProgram.programId ();
+  glLinkProgram (m_basicShader);
+  glUseProgram (m_basicShader);
+  m_locBasicShaderWVP   = glGetUniformLocation (m_basicShader, "wvpMatrix");
+  GLint abcdef   = glGetUniformLocation (m_basicShader, "color");
+  GLint a = 5;
+  //m_locBasicShaderColor = glGetUniformLocation (m_basicShader, "color");
 }
 
 void GLWidget::setupRenderContext () {
@@ -349,7 +392,7 @@ void GLWidget::initializeGL () {
 
   setupRenderContext ();
 
-
+  glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
                                                      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
   GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
@@ -371,27 +414,61 @@ void GLWidget::paintGL () {
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_MULTISAMPLE);
 
+  M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP, currentTransform, currentResult;
+  player.viewFrame ().getCameraMatrix (mat_View, false);
+  m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
+    
   glUseProgram (m_instancedCubeShader);
   glBindVertexArray (m_cubesVao);
-
+  
 //   GLfloat m_rotateCameraAlpha[16], m_rotateCameraBeta[16];
 //   m3dRotationMatrix44 (m_rotateCameraAlpha, m_cameraAlpha, 1., 0., 0.);
 //   m3dRotationMatrix44 (m_rotateCameraBeta,  m_cameraBeta,  0., 1., 0.);
-  M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP;
   m3dTranslationMatrix44 (mat_World, -MAP_SIZE / 2., -MAP_SIZE / 2., -MAP_SIZE / 2.);
-  player.viewFrame ().getCameraMatrix (mat_View, false);
-  m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
   m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
-  glUniformMatrix4fv (m_locMvp, 1, GL_FALSE, mat_WVP);
+  glUniformMatrix4fv (m_locInstancedCubeMvp, 1, GL_FALSE, mat_WVP);
 
   glBindTexture (GL_TEXTURE_2D, m_squareTextureArray);
-  glUniform1i (m_locSquareTexture, 0);
-  GLfloat color[] = {1.0f, 1.0f, 0.0f, 0.0f};
-  glUniform4fv (m_locColor, 1, color);
+  glUniform1i (m_locInstancedCubeSquareTexture, 0);
   glDrawArraysInstancedARB (GL_QUADS, 0, 24, cubeArray.nCubes ());
 
   glBindVertexArray (0);
+  
+  //are we need some useless checks?
+  //yes we fucking are =(
+  CubeWithFace headOnCube = player.getHeadOnCube();
+  float distance = L2::distance(player.pos(), Vec3d::fromVectorConverted (headOnCube.cube));
+  if ( directionIsValid (headOnCube.face) ) {
+    
+    const float   SELECTING_BOX_THICKNESS = 0.125;
+    const GLfloat SELECTING_BOX_COLOR[]   = {0.0f, 0.0f, 0.0f, 1.0f};   
+    Vec3f selectedCube = Vec3f::fromVectorConverted (getAdjacentCube (headOnCube).cube);
+    Vec3f direction    = selectedCube - Vec3f::fromVectorConverted (headOnCube.cube);
+    
+    m3dScaleMatrix44 (mat_World, 5 * (1 - xAbs(direction.x) * (1 - SELECTING_BOX_THICKNESS)),
+                                 5 * (1 - xAbs(direction.y) * (1 - SELECTING_BOX_THICKNESS)),
+                                 5 * (1 - xAbs(direction.z) * (1 - SELECTING_BOX_THICKNESS))); //some shitty magic
+    Vec3f pos = selectedCube - direction * ((1 - SELECTING_BOX_THICKNESS) / 2.);
+    m3dTranslationMatrix44 (currentTransform, pos.x, pos.y, pos.z);
+    m3dMatrixMultiply44 (currentResult, currentTransform, mat_World);
+    m3dCopyMatrix44(mat_World, currentResult);
+    //m3dScaleMatrix44(mat_World, 1, 1, 1);                                   
+    m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
 
+    glUseProgram (m_basicShader);
+    glBindVertexArray (m_selectingBoxVao);
+    glDisable(GL_CULL_FACE);
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(6. / distance);
+
+    glUniform4fv (m_locBasicShaderColor, 1, SELECTING_BOX_COLOR);
+    glUniformMatrix4fv (m_locBasicShaderWVP, 1, GL_FALSE, mat_WVP);
+
+    glDrawArrays(GL_QUADS, 0, 24);
+
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL);
+    glBindVertexArray (0);
+  }
   m_nFramesDrawn++;
 }
 

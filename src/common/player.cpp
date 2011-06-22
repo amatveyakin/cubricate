@@ -44,9 +44,15 @@ CubeWithFace Player::getHeadOnCube() {
     Vec3d parameter;
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
-      nearestInt[i] = (forwardVector[i] > 0) ? (floor (currentPoint[i] - 0.5) + 1.5) : (ceil (currentPoint[i] + 0.5) - 1.5);
+      if (forwardVector[i] > 0) 
+        nearestInt[i] = floor (currentPoint[i] - 0.5) + 1.5;
+      else
+      if (forwardVector[i] < 0) 
+        nearestInt[i] = ceil  (currentPoint[i] + 0.5) - 1.5;
+      else 
+        nearestInt[i] = 1;
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
-      assert (parameter[i] >= 0);
+      assert (parameter[i] >= 0); 
     }
     float t = xMin (parameter[0], parameter[1], parameter[2]);
     assert (t >= 0);
