@@ -13,7 +13,7 @@ public:
   WorldMap();
   ~WorldMap();
 
-  BlockType cube (Vec3i cubePos) const;
+  WorldBlock cube (Vec3i cubePos) const;
 
   void onPlayerMove (int playerId, Vec3d oldPos, Vec3d newPos);
 

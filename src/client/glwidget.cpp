@@ -13,7 +13,7 @@
 #include "common/linear_algebra.hpp"
 #include "common/cube_geometry.hpp"
 
-#include "client/cube_array.hpp"
+#include "client/visible_cube_set.hpp"
 #include "client/client_world.hpp"
 #include "client/glwidget.hpp"
 
@@ -21,7 +21,7 @@
 
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
-const double FPS_MEASURE_INTERVAL = 1.; /* sec */
+const double FPS_MEASURE_INTERVAL = 1.; // sec
 
 
 
@@ -276,7 +276,7 @@ void GLWidget::shutdownRenderContext () {
 
 
 // 0 means success
-int loadGameMap (VisibleCubeSet <GLfloat, GLfloat>& cubeArray) {
+int loadGameMap (VisibleCubeSet& cubeArray) {
   std::ifstream heightMap ("resources/height_map" + toStr (TREE_HEIGHT) + ".txt");
   if (!heightMap.is_open ()) {
     std::cout << "Unable to open height map!\n";

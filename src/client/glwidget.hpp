@@ -4,7 +4,6 @@
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glext.h>
 
 #include <QTime>
 #include <QGLWidget>
@@ -12,7 +11,7 @@
 
 #include "common/linear_algebra.hpp"
 
-#include "client/cube_array.hpp"
+// #include "client/visible_cube_set.hpp"
 #include "client/GLTools/GLFrustum.h"
 
 

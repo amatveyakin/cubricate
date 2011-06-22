@@ -6,7 +6,7 @@
 #include "common/player.hpp"
 
 // TODO: delete
-#include "cube_array.hpp"
+#include "client/visible_cube_set.hpp"
 
 
 
@@ -14,7 +14,7 @@ extern  WorldMap  worldMap;
 extern  Player    player;
 
 // TODO: delete
-extern  VisibleCubeSet <float, float> cubeArray;
+extern  VisibleCubeSet cubeArray;
 
 
 #endif

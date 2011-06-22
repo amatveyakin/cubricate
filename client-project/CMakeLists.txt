@@ -7,9 +7,10 @@ set (src_dir ../src)
 include_directories (${QT_INCLUDES} ${src_dir})
 add_definitions (-DCLIENT_APP)
 
-set (Cubricate_client_SRCS ${src_dir}/client/main.cpp ${src_dir}/client/client_world.cpp ${src_dir}/client/glwidget.cpp
+set (Cubricate_client_SRCS ${src_dir}/client/main.cpp ${src_dir}/client/client_world.cpp
+     ${src_dir}/client/visible_cube_set.cpp ${src_dir}/client/glwidget.cpp
      ${src_dir}/common/world_chunk.cpp ${src_dir}/common/world_map.cpp ${src_dir}/common/player.cpp
-    ${src_dir}/client/GLTools/math3d.cpp)
+     ${src_dir}/client/GLTools/math3d.cpp)
 qt4_automoc (${Cubricate_client_SRCS})
 add_executable (cubricate_client ${Cubricate_client_SRCS})
 target_link_libraries (cubricate_client ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTOPENGL_LIBRARY})

@@ -15,42 +15,47 @@ const int CHUNK_PRESERVE_RADIUS_SQR = xSqr (CHUNK_PRESERVE_RADIUS);
 
 
 
-WorldChunk::WorldChunk () {
-  // ...
+WorldChunk::WorldChunk (Vec2i pos) :
+  m_pos (pos),
+  m_cubes (CHUNK_SIZE, CHUNK_SIZE, MAP_HEIGHT)
+{
 }
 
-WorldChunk::~WorldChunk () {
-  // ...
-}
+WorldChunk::~WorldChunk () { }
 
 
 // TODO: precompute state and return it immediately
 ChunkState WorldChunk::state () const {
-  if (!playersUsingChunk.empty ())
+  if (!m_chunkIsActiveFor.empty ())
     return ChunkState::ACTIVE;
-  else if (!playersKeepingChunk.empty ())
+  else if (!m_chunkIsReservedFor.empty ())
     return ChunkState::PRESERVED;
   else
     return ChunkState::REDUNDANT;
 }
 
 
-BlockType WorldChunk::cube (Vec3i cubePos) const {
-  // ...
+WorldBlock WorldChunk::cube (Vec3i cubePos) const {
+  return m_cubes (cubePos);
 }
+
+void WorldChunk::setCube (Vec3i cubePos, WorldBlock newBlock) {
+  m_cubes (cubePos) = newBlock;
+}
+
 
 
 void WorldChunk::onPlayerMove (int playerId, Vec3d oldPos, Vec3d newPos) {
   FIX_UNUSED (oldPos);
-  playersUsingChunk.erase   (playerId);
-  playersKeepingChunk.erase (playerId);
+  m_chunkIsActiveFor.erase (playerId);
+  m_chunkIsReservedFor.erase (playerId);
   ChunkState necessity = necessityForPlayer (Vec2i::fromVectorConverted (newPos.xy ()), m_pos);
   switch (necessity) {
     case ChunkState::ACTIVE:
-      playersUsingChunk.insert   (playerId);
+      m_chunkIsActiveFor.insert (playerId);
       break;
     case ChunkState::PRESERVED:
-      playersKeepingChunk.insert (playerId);
+      m_chunkIsReservedFor.insert (playerId);
       break;
     case ChunkState::REDUNDANT:
       break;

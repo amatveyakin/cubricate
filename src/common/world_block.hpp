@@ -18,6 +18,12 @@ struct WorldBlock {
     };
     unsigned char parameters;
   };
+
+  WorldBlock () = default;
+  WorldBlock (BlockType type__) {
+    type = type__;
+    parameters = 0;
+  }
 };
 
 

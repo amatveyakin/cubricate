@@ -11,7 +11,7 @@ WorldMap::~WorldMap() {
 }
 
 
-BlockType WorldMap::cube (Vec3i cubePos) const {
+WorldBlock WorldMap::cube (Vec3i cubePos) const {
   Vec2i chunk;
   Vec3i cubeInChunk;
   cubeToChunk (cubePos, chunk, cubeInChunk);

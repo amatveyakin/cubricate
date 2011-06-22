@@ -4,4 +4,4 @@
 
 WorldMap  worldMap;
 Player    player;
-VisibleCubeSet <float, float> cubeArray (MAP_SIZE, MAP_SIZE, MAP_SIZE);
+VisibleCubeSet cubeArray (MAP_SIZE, MAP_SIZE, MAP_SIZE);
