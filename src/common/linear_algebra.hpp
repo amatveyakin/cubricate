@@ -141,13 +141,13 @@ public:
 
   VectorT& applyDivFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().at (i) = intDivFloored (derived ().at (i), q);
+      derived ().at (i) = ::divFloored (derived ().at (i), q);
     return derived ();
   }
 
   VectorT& applyModFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().at (i) = intModFloored (derived ().at (i), q);
+      derived ().at (i) = ::modFloored (derived ().at (i), q);
     return derived ();
   }
 

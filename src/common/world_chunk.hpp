@@ -6,11 +6,14 @@
 #include <set>
 #include <string>
 
+#include "common/utils.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/multidim_array.hpp"
 #include "common/world_block.hpp"
 
+
 class DataBuffer;
+class ChunksForRender;
 
 
 enum class ChunkState {
@@ -27,8 +30,8 @@ public:
 
   ChunkState state () const;
 
-  WorldBlock cube (Vec3i cubePos) const;
-  void setCube (Vec3i cubePos, WorldBlock newBlock);
+  WorldBlock cube (Vec3i cubeInChunk) const;
+  void setCube (Vec3i cubeInChunk, WorldBlock newBlock);
 
   void onPlayerMove (int playerId, Vec3d oldPos, Vec3d newPos);
 
@@ -41,11 +44,12 @@ public:
   std::string correspondingFileName ();
 
 protected:
-  Vec2i m_pos;
+  Vec2i           m_pos;
 
-  std::set <int> m_chunkIsActiveFor;
-  std::set <int> m_chunkIsReservedFor;
-  Array3D <WorldBlock> m_cubes;
+  std::set <int>  m_chunkIsActiveFor;
+  std::set <int>  m_chunkIsReservedFor;
+
+  Array3D <WorldBlock>  m_cubes;
 
   ChunkState necessityForPlayer (Vec2i playerChunk, Vec2i targetChunk);
 };

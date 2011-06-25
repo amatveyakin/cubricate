@@ -140,6 +140,7 @@ void GLWidget::initBuffers () {
   offset += sizeof (cubeTexCoords);
 
   m_CUBES_INFORMATION_OFFSET = offset;
+  chunksForRender.init (offset);
   // TODO: It's probably better to pack each cube's data instead of doing a shift
   glVertexAttribPointer (3, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
   offset += N_MAX_BLOCKS_DRAWN * 4 * sizeof (GLfloat);

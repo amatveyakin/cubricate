@@ -9,6 +9,10 @@ enum class BlockType : unsigned char {
   LAVA
 };
 
+static inline bool blockIsVisible (BlockType type) {
+  return type == BlockType::EMPTY;
+}
+
 
 struct WorldBlock {
   BlockType type;

@@ -31,15 +31,15 @@ static inline void FREE_ARRAY (T*& pointer) {
 
 
 #ifdef CLIENT_APP
-  #define CLIENT_PART(code__) code__
+  #define CLIENT_STATEMENT(code__)  code__
 #else
-  #define CLIENT_PART(code__)
+  #define CLIENT_STATEMENT(code__)  do { } while (0)
 #endif
 
 #ifdef SERVER_APP
-  #define SERVER_PART(code__) code__
+  #define SERVER_STATEMENT(code__)  code__
 #else
-  #define SERVER_PART(code__)
+  #define SERVER_STATEMENT(code__)  do { } while (0)
 #endif
 
 

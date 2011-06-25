@@ -2,6 +2,8 @@
 #include "client/client_world.hpp"
 
 
-WorldMap  worldMap;
-Player    player;
+WorldMap        worldMap;
+ChunksForRender chunksForRender;
+Player          player;
+
 VisibleCubeSet cubeArray (MAP_SIZE, MAP_SIZE, MAP_SIZE);

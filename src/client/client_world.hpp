@@ -10,8 +10,9 @@
 
 
 
-extern  WorldMap  worldMap;
-extern  Player    player;
+extern  WorldMap        worldMap;
+extern  ChunksForRender chunksForRender;
+extern  Player          player;
 
 // TODO: delete
 extern  VisibleCubeSet cubeArray;

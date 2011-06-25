@@ -242,7 +242,7 @@ static inline Vec2i cubeToChunk (Vec3i cube) {
 
 static inline void cubeToChunk (/* in */ Vec3i cube, /* out */ Vec2i& chunk, Vec3i& cubeInChunk) {
   chunk       = cube.xy ().divFloored (CHUNK_SIZE);
-  cubeInChunk = Vec3i (intModFloored (cube.x (), CHUNK_SIZE), intModFloored (cube.y (), CHUNK_SIZE), cube.z ());
+  cubeInChunk = Vec3i (modFloored (cube.x (), CHUNK_SIZE), modFloored (cube.y (), CHUNK_SIZE), cube.z ());
 }
 
 static inline Vec2i worldToChunk (Vec3d pos) {

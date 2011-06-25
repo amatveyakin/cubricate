@@ -1,8 +1,15 @@
+#include <cassert>
+
 #include "common/utils.hpp"
 #include "common/game_parameters.hpp"
 #include "common/math_utils.hpp"
 #include "common/string_utils.hpp"
 #include "common/world_chunk.hpp"
+
+#ifdef CLIENT_APP
+  #include "client/visible_cube_set.hpp"
+  #include "client/client_world.hpp"
+#endif // CLIENT_APP
 
 
 const int MAX_CHUNK_COORDINATE_STRING_LENGTH = 8;
@@ -35,12 +42,18 @@ ChunkState WorldChunk::state () const {
 }
 
 
-WorldBlock WorldChunk::cube (Vec3i cubePos) const {
-  return m_cubes (cubePos);
+WorldBlock WorldChunk::cube (Vec3i cubeInChunk) const {
+  return m_cubes (cubeInChunk);
 }
 
-void WorldChunk::setCube (Vec3i cubePos, WorldBlock newBlock) {
-  m_cubes (cubePos) = newBlock;
+void WorldChunk::setCube (Vec3i cubeInChunk, WorldBlock newBlock) {
+  m_cubes (cubeInChunk) = newBlock;
+
+#ifdef CLIENT_APP
+  Vec3i renderChunk (m_pos.x (), m_pos.y (), divFloored (cubeInChunk.z (), CHUNK_SIZE));
+  Vec3i cubeInRenderChunk (cubeInChunk.x (), cubeInChunk.y (), modFloored (cubeInChunk.z (), CHUNK_SIZE));
+  chunksForRender.setCube (renderChunk, cubeInRenderChunk, newBlock.type);
+#endif // CLIENT_APP
 }
 
 
