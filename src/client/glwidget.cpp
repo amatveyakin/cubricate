@@ -156,13 +156,13 @@ void GLWidget::initBuffers () {
   glVertexAttribDivisorARB (3, 1);
   glVertexAttribDivisorARB (4, 1);
   glBindVertexArray (0);
-  
-  
+
+
   glGenVertexArrays (1, &m_selectingBoxVao);
   glBindVertexArray (m_selectingBoxVao);
   glGenBuffers (1, &m_selectingBoxVbo);
   glBindBuffer (GL_ARRAY_BUFFER, m_selectingBoxVbo);
-  glBufferData (GL_ARRAY_BUFFER, sizeof (cube_vertices), cube_vertices, GL_STATIC_DRAW);
+  glBufferData (GL_ARRAY_BUFFER, sizeof (cubeVertices), cubeVertices, GL_STATIC_DRAW);
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0);
   glEnableVertexAttribArray (0);
   glBindVertexArray (0);
@@ -257,7 +257,7 @@ void GLWidget::initShaders () {
               << m_shaderProgram.log ().toStdString () << std::endl;
     exit (1);
   }
-  
+
   m_instancedCubeShader = m_shaderProgram.programId ();
   glLinkProgram (m_instancedCubeShader);
   glUseProgram (m_instancedCubeShader);
@@ -266,8 +266,8 @@ void GLWidget::initShaders () {
   m_locInstancedCubeSquareTexture  = glGetUniformLocation (m_instancedCubeShader, "squareTexture");
 
   glUniform1i (m_locInstancedCubeMapSize, MAP_SIZE);
-  
- 
+
+
   result = m_basicShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/BasicShader.vp");
   if (!result) {
     std::cout << "Unable to compile vertex shader:" << std::endl
@@ -417,10 +417,10 @@ void GLWidget::paintGL () {
   M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP, currentTransform, currentResult;
   player.viewFrame ().getCameraMatrix (mat_View, false);
   m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
-    
+
   glUseProgram (m_instancedCubeShader);
   glBindVertexArray (m_cubesVao);
-  
+
 //   GLfloat m_rotateCameraAlpha[16], m_rotateCameraBeta[16];
 //   m3dRotationMatrix44 (m_rotateCameraAlpha, m_cameraAlpha, 1., 0., 0.);
 //   m3dRotationMatrix44 (m_rotateCameraBeta,  m_cameraBeta,  0., 1., 0.);
@@ -433,26 +433,26 @@ void GLWidget::paintGL () {
   glDrawArraysInstancedARB (GL_QUADS, 0, 24, cubeArray.nCubes ());
 
   glBindVertexArray (0);
-  
+
   //are we need some useless checks?
   //yes we fucking are =(
   CubeWithFace headOnCube = player.getHeadOnCube();
   float distance = L2::distance(player.pos(), Vec3d::fromVectorConverted (headOnCube.cube));
   if ( directionIsValid (headOnCube.face) ) {
-    
+
     const float   SELECTING_BOX_THICKNESS = 0.125;
-    const GLfloat SELECTING_BOX_COLOR[]   = {0.0f, 0.0f, 0.0f, 1.0f};   
+    const GLfloat SELECTING_BOX_COLOR[]   = {0.0f, 0.0f, 0.0f, 1.0f};
     Vec3f selectedCube = Vec3f::fromVectorConverted (getAdjacentCube (headOnCube).cube);
     Vec3f direction    = selectedCube - Vec3f::fromVectorConverted (headOnCube.cube);
-    
-    m3dScaleMatrix44 (mat_World, 5 * (1 - xAbs(direction.x) * (1 - SELECTING_BOX_THICKNESS)),
-                                 5 * (1 - xAbs(direction.y) * (1 - SELECTING_BOX_THICKNESS)),
-                                 5 * (1 - xAbs(direction.z) * (1 - SELECTING_BOX_THICKNESS))); //some shitty magic
+
+    m3dScaleMatrix44 (mat_World, 5 * (1 - xAbs(direction.x ()) * (1 - SELECTING_BOX_THICKNESS)),
+                                 5 * (1 - xAbs(direction.y ()) * (1 - SELECTING_BOX_THICKNESS)),
+                                 5 * (1 - xAbs(direction.z ()) * (1 - SELECTING_BOX_THICKNESS))); //some shitty magic
     Vec3f pos = selectedCube - direction * ((1 - SELECTING_BOX_THICKNESS) / 2.);
-    m3dTranslationMatrix44 (currentTransform, pos.x, pos.y, pos.z);
+    m3dTranslationMatrix44 (currentTransform, pos.x (), pos.y (), pos.z ());
     m3dMatrixMultiply44 (currentResult, currentTransform, mat_World);
     m3dCopyMatrix44(mat_World, currentResult);
-    //m3dScaleMatrix44(mat_World, 1, 1, 1);                                   
+    //m3dScaleMatrix44(mat_World, 1, 1, 1);
     m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
 
     glUseProgram (m_basicShader);

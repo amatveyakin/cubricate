@@ -250,7 +250,7 @@ void ChunksForRender::addRenderChunk (Vec3i renderChunk, ChunkState state, const
   m_renderChunksPosToIndex.insert (std::make_pair (renderChunk, iRenderChunk));
   m_renderChunksStates [iRenderChunk] = state;
   lockRenderChunk (iRenderChunk);
-  m_renderChunksCubeSets [iRenderChunk].clear ();
+//   m_renderChunksCubeSets [iRenderChunk].clear ();
   for (int x = 0; x < CHUNK_SIZE; ++x)
     for (int y = 0; y < CHUNK_SIZE; ++y)
       for (int z = 0; z < CHUNK_SIZE; ++z)
