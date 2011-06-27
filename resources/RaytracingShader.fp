@@ -1,4 +1,4 @@
-#version 130
+#version 140
 uniform isamplerBuffer octTree;
 uniform vec3 origin;
 
@@ -11,19 +11,19 @@ const vec3 powerVector = vec3 (1., 2., 4.);
 void main(void)
 {
   int   currCubePointer = 0;
-  uint  currCubeType;
+  int   currCubeType;
   vec3  currCubeMidpoint;
   float currCubeSize;
-  
+
   vec3  ray = fDirection;
   float currT, nextT, delta;
   vec3  deltaVector;
   vec3  currPoint, nextPoint;
 
-  currT = 0; 
+  currT = 0;
   currPoint = origin;
   vFragColor = vec4(0., 0., 0., 0.);
-  while (vFragColor.w < 0.95) {    
+  while (vFragColor.w < 0.95) {
     currCubePointer = 0;                   // <\
     currCubeSize = 128.;                   // <-kd-restart algorithm, must be optimized
     currCubeMidpoint = vec3 (0., 0., 0.);  // </
@@ -36,8 +36,8 @@ void main(void)
       currCubeType = texelFetch (octTree, currCubePointer).r;
     }
     vFragColor.xyz = vFragColor.xyz * vFragColor.w + currCubeType * vec3 ( 0., 0.7, 0.); //  <-Change to color sampling
-    vFragColor.w  += currCubeType;                                                       //  </ 
-    
+    vFragColor.w  += currCubeType;                                                       //  </
+
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);

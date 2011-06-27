@@ -7,7 +7,7 @@
 // #include "common/world_block.hpp"
 
 
-typedef unsigned char TreeNodeT;
+typedef unsigned int TreeNodeT;
 const TreeNodeT MIXED_TYPE = 0xff;
 
 

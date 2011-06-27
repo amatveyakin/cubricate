@@ -166,12 +166,12 @@ void GLWidget::initBuffers () {
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0);
   glEnableVertexAttribArray (0);
   glBindVertexArray (0);
-  
-  
-  
+
+
+
   GLfloat proxySurfaceVertices[] = { 1, 1, 0,   -1, 1, 0,  -1, -1, 0,   1, -1, 0};
   GLfloat proxySurfaceDirections[] = { 1, 1, 1,   -1, 1, 1,  -1, -1, 1,   1, -1, 1};
-  
+
   glGenVertexArrays(1, &m_raytracingVAO);
   glBindVertexArray(m_raytracingVAO);
   glGenBuffers(1, &m_raytracingVBO);
@@ -219,19 +219,19 @@ void GLWidget::initTextures () {
 
     glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
   }
-  
+
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers(1, &m_octTreeBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, m_octTreeBuffer);
   //TODO Fill the buffer with proper data
-  //glBufferData(GL_TEXTURE_BUFFER, sizeof(Position), Position, GL_STATIC_DRAW);
+  glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), cubeOctree.nodes (), GL_STATIC_DRAW);
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
-  
+
   glGenTextures(1, &m_octTreeTexture);
   glBindTexture(GL_TEXTURE_BUFFER, m_octTreeTexture);
   glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, m_octTreeTexture);
   glBindTexture(GL_TEXTURE_BUFFER, 0);
-  
+
 }
 
 // TODO: rename shader program files
@@ -330,7 +330,7 @@ void GLWidget::initShaders () {
   glUseProgram (m_basicShader);
   m_locBasicShaderWVP   = glGetUniformLocation (m_basicShader, "wvpMatrix");
   //m_locBasicShaderColor = glGetUniformLocation (m_basicShader, "color");
-  
+
   //Raytracing shader initialization
   result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/RaytracingShader.vp");
   if (!result) {
@@ -357,7 +357,7 @@ void GLWidget::initShaders () {
   glUseProgram (m_raytracingShader);
   m_locOctTree  = glGetUniformLocation (m_raytracingShader, "octTree");
   m_locOrigin   = glGetUniformLocation (m_raytracingShader, "origin");
- 
+
 }
 
 void GLWidget::setupRenderContext () {
@@ -474,10 +474,10 @@ void GLWidget::paintGL () {
   glEnable (GL_CULL_FACE);
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_MULTISAMPLE);
-  
+
   glUseProgram (m_raytracingShader);
   glBindVertexArray (m_raytracingVAO);
-  const GLfloat origin[] = {0, 0, 0}; 
+  const GLfloat origin[] = {0, 0, 0};
   glUniform1i  (m_locOctTree, 0);
   glUniform4fv (m_locOrigin, 1, origin);
   glActiveTexture (GL_TEXTURE0);
@@ -486,38 +486,38 @@ void GLWidget::paintGL () {
 
 
 
-// FUCK ALL THIS SHIT, RAYTRACING FTW  
+// FUCK ALL THIS SHIT, RAYTRACING FTW
 //   M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP, currentTransform, currentResult;
 //   player.viewFrame ().getCameraMatrix (mat_View, false);
 //   m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
-// 
+//
 //   glUseProgram (m_instancedCubeShader);
 //   glBindVertexArray (m_cubesVao);
-// 
+//
 // //   GLfloat m_rotateCameraAlpha[16], m_rotateCameraBeta[16];
 // //   m3dRotationMatrix44 (m_rotateCameraAlpha, m_cameraAlpha, 1., 0., 0.);
 // //   m3dRotationMatrix44 (m_rotateCameraBeta,  m_cameraBeta,  0., 1., 0.);
 //   m3dTranslationMatrix44 (mat_World, -MAP_SIZE / 2., -MAP_SIZE / 2., -MAP_SIZE / 2.);
 //   m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
 //   glUniformMatrix4fv (m_locInstancedCubeMvp, 1, GL_FALSE, mat_WVP);
-// 
+//
 //   glBindTexture (GL_TEXTURE_2D, m_squareTextureArray);
 //   glUniform1i (m_locInstancedCubeSquareTexture, 0);
 //   glDrawArraysInstancedARB (GL_QUADS, 0, 24, cubeArray.nCubes ());
-// 
+//
 //   glBindVertexArray (0);
-// 
+//
 //   //are we need some useless checks?
 //   //yes we fucking are =(
 //   CubeWithFace headOnCube = player.getHeadOnCube();
 //   float distance = L2::distance(player.pos(), Vec3d::fromVectorConverted (headOnCube.cube));
 //   if ( directionIsValid (headOnCube.face) ) {
-// 
+//
 //     const float   SELECTING_BOX_THICKNESS = 0.125;
 //     const GLfloat SELECTING_BOX_COLOR[]   = {0.0f, 0.0f, 0.0f, 1.0f};
 //     Vec3f selectedCube = Vec3f::fromVectorConverted (getAdjacentCube (headOnCube).cube);
 //     Vec3f direction    = selectedCube - Vec3f::fromVectorConverted (headOnCube.cube);
-// 
+//
 //     m3dScaleMatrix44 (mat_World, 5 * (1 - xAbs(direction.x ()) * (1 - SELECTING_BOX_THICKNESS)),
 //                                  5 * (1 - xAbs(direction.y ()) * (1 - SELECTING_BOX_THICKNESS)),
 //                                  5 * (1 - xAbs(direction.z ()) * (1 - SELECTING_BOX_THICKNESS))); //some shitty magic
@@ -527,18 +527,18 @@ void GLWidget::paintGL () {
 //     m3dCopyMatrix44(mat_World, currentResult);
 //     //m3dScaleMatrix44(mat_World, 1, 1, 1);
 //     m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
-// 
+//
 //     glUseProgram (m_basicShader);
 //     glBindVertexArray (m_selectingBoxVao);
 //     glDisable(GL_CULL_FACE);
 //     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE);
 //     glLineWidth(6. / distance);
-// 
+//
 //     glUniform4fv (m_locBasicShaderColor, 1, SELECTING_BOX_COLOR);
 //     glUniformMatrix4fv (m_locBasicShaderWVP, 1, GL_FALSE, mat_WVP);
-// 
+//
 //     glDrawArrays(GL_QUADS, 0, 24);
-// 
+//
 //     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL);
 //     glBindVertexArray (0);
 //   }
