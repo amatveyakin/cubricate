@@ -360,7 +360,7 @@ void GLWidget::shutdownRenderContext () {
 
 
 // 0 means success
-int loadGameMap (VisibleCubeSet& cubeArray) {
+int loadGameMap () {
   std::ifstream heightMap ("resources/height_map" + toStr (TREE_HEIGHT) + ".txt");
   if (!heightMap.is_open ()) {
     std::cout << "Unable to open height map!\n";
@@ -372,10 +372,12 @@ int loadGameMap (VisibleCubeSet& cubeArray) {
       heightMap >> height;
       if (height > MAP_SIZE / 2) {
         cubeArray.addCube (x, y, height - 1, 66);
+        cubeOctree.set (x, y, height - 1, 1);
         height--;
       }
       for (int z = 0; z < height; ++z) {
         cubeArray.addCube (x, y, z, 2);
+        cubeOctree.set (x, y, z, 1);
       }
     }
   }
@@ -385,7 +387,7 @@ int loadGameMap (VisibleCubeSet& cubeArray) {
 
 /*
 // 0 means success
-int loadGameMap (VisibleCubeSet <GLfloat, GLfloat>& cubeArray) {
+int loadGameMap () {
   std::ifstream map ("resources/World1.schematic");
   if (!map.is_open ()) {
     std::cout << "Unable to open map!\n";
@@ -436,7 +438,7 @@ void GLWidget::initializeGL () {
   GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
 
   cubeArray.setPointers (bufferPos, bufferType);
-  loadGameMap (cubeArray);
+  loadGameMap ();
 
   glUnmapBuffer (GL_ARRAY_BUFFER);
 

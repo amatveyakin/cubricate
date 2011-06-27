@@ -6,4 +6,5 @@ WorldMap        worldMap;
 ChunksForRender chunksForRender;
 Player          player;
 
-VisibleCubeSet cubeArray (MAP_SIZE, MAP_SIZE, MAP_SIZE);
+VisibleCubeSet  cubeArray (MAP_SIZE, MAP_SIZE, MAP_SIZE);
+Octree          cubeOctree (TREE_HEIGHT);
