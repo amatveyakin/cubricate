@@ -21,6 +21,7 @@ public:
 
   const TreeNodeT*  nodes() const;
   int               height () const;
+  int               size () const;
   int               nNodes () const;
   int               nLeaves () const;
 
@@ -32,6 +33,7 @@ public:
 protected:
   TreeNodeT*  m_nodes;
   int         m_height;
+  int         m_size;
   int         m_nNodes;
   int         m_nLeaves;
 

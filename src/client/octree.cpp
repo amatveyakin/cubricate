@@ -1,3 +1,8 @@
+// TODO: delete
+// #include <iostream>
+
+
+
 #include <cassert>
 
 #include "client/octree.hpp"
@@ -6,8 +11,9 @@
 Octree::Octree (int height) {
   m_height = height;
   m_nNodes = 0;
-  for (int i = 0; i < height; ++i)
+  for (int i = 0; i <= height; ++i)
     m_nNodes += 1 << (i * 3);
+  m_size = 1 << height;
   m_nLeaves = 1 << (height * 3);
   m_nodes = new TreeNodeT [m_nNodes];
   m_nodes[0] = 0;
@@ -26,6 +32,10 @@ int Octree::height() const {
   return m_height;
 }
 
+int Octree::size() const {
+  return m_size;
+}
+
 int Octree::nNodes() const {
   return m_nNodes;
 }
@@ -41,6 +51,7 @@ TreeNodeT Octree::get (int x, int y, int z) const {
 }
 
 void Octree::set (int x, int y, int z, TreeNodeT type) {
+//   std::cout << "set (" << x << ", " << y << ", " << z << ")" << std::endl;
   int nodeSize;
   int curNode = getDeepestNode (x, y, z, nodeSize);
   if  (m_nodes [curNode] != type) {
@@ -60,7 +71,7 @@ void Octree::set (int x, int y, int z, TreeNodeT type) {
 
 
 bool Octree::hasChildren (int node) const {
-  return m_nodes [node] != MIXED_TYPE;
+  return m_nodes [node] == MIXED_TYPE;
 }
 
 
@@ -76,9 +87,12 @@ int Octree::getChild (int node, int iChild) {
 
 void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize) const {
   nodeSize /= 2;
+//   std::cout << "x = " << x << ", y = " << y << ", z = " << z << ", nodeSize = " << nodeSize << std::endl;
   int iChild =   (z / nodeSize) * 4
                + (y / nodeSize) * 2
                + (x / nodeSize);
+//   std::cout << "iChild = " << iChild << std::endl;
+  assert (iChild < 8);
   z %= nodeSize;
   y %= nodeSize;
   x %= nodeSize;
@@ -87,7 +101,7 @@ void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int&
 
 int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize) const {
   int curNode = 0;
-  nodeSize = m_nLeaves;
+  nodeSize = m_size;
   while  (hasChildren (curNode))
     stepDownOneLevel (x, y, z, curNode, nodeSize);
   assert (nodeSize > 0);
@@ -101,6 +115,7 @@ int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z) const {
 
 
 void Octree::splitNode (int node) {
+//   std::cout << "splitNode (" << node << ")" << std::endl;
   for (int i = 0; i < N_NODE_CHILDREN; ++i)
     m_nodes [getChild (node, i)] = m_nodes [node];
   m_nodes [node] = MIXED_TYPE;
@@ -110,7 +125,8 @@ int Octree::uniteNodesRecursively (int node) {
   while  (node > 0) {
     int parent = getParent (node);
     TreeNodeT type = m_nodes [node];
-    if  (   m_nodes [getChild (parent, 0)] == type && m_nodes [getChild (parent, 1)] == type && m_nodes [getChild (parent, 2)] == type && m_nodes [getChild (parent, 3)] == type
+    if  (   type != MIXED_TYPE
+         && m_nodes [getChild (parent, 0)] == type && m_nodes [getChild (parent, 1)] == type && m_nodes [getChild (parent, 2)] == type && m_nodes [getChild (parent, 3)] == type
          && m_nodes [getChild (parent, 4)] == type && m_nodes [getChild (parent, 5)] == type && m_nodes [getChild (parent, 6)] == type && m_nodes [getChild (parent, 7)] == type) {
       m_nodes [parent] = type;
       node = parent;
