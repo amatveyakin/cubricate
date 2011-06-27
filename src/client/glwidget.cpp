@@ -166,6 +166,26 @@ void GLWidget::initBuffers () {
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0);
   glEnableVertexAttribArray (0);
   glBindVertexArray (0);
+  
+  
+  
+  GLfloat proxySurfaceVertices[] = { 1, 1, 0,   -1, 1, 0,  -1, -1, 0,   1, -1, 0};
+  GLfloat proxySurfaceDirections[] = { 1, 1, 1,   -1, 1, 1,  -1, -1, 1,   1, -1, 1};
+  
+  glGenVertexArrays(1, &m_raytracingVAO);
+  glBindVertexArray(m_raytracingVAO);
+  glGenBuffers(1, &m_raytracingVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, m_raytracingVBO);
+  glBufferData    (GL_ARRAY_BUFFER, sizeof (proxySurfaceVertices) + sizeof (proxySurfaceDirections), nullptr, GL_STATIC_DRAW);
+  offset = 0;
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (proxySurfaceVertices)  , proxySurfaceVertices);
+  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
+  offset += sizeof (proxySurfaceVertices);
+  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (proxySurfaceDirections), proxySurfaceDirections);
+  glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
+  glEnableVertexAttribArray (0);
+  glEnableVertexAttribArray (1);
+  glBindVertexArray (0);
 
 }
 
@@ -209,7 +229,7 @@ void GLWidget::initTextures () {
   
   glGenTextures(1, &m_octTreeTexture);
   glBindTexture(GL_TEXTURE_BUFFER, m_octTreeTexture);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R8I, m_octTreeTexture);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, m_octTreeTexture);
   glBindTexture(GL_TEXTURE_BUFFER, 0);
   
 }
@@ -336,6 +356,7 @@ void GLWidget::initShaders () {
   glLinkProgram (m_raytracingShader);
   glUseProgram (m_raytracingShader);
   m_locOctTree  = glGetUniformLocation (m_raytracingShader, "octTree");
+  m_locOrigin   = glGetUniformLocation (m_raytracingShader, "origin");
  
 }
 
@@ -454,10 +475,14 @@ void GLWidget::paintGL () {
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_MULTISAMPLE);
   
-  
-  glUniform1i (m_locOctTree, 0);
+  glUseProgram (m_raytracingShader);
+  glBindVertexArray (m_raytracingVAO);
+  const GLfloat origin[] = {0, 0, 0}; 
+  glUniform1i  (m_locOctTree, 0);
+  glUniform4fv (m_locOrigin, 1, origin);
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture );
+  glDrawArrays (GL_QUADS, 0, 4);
 
 
 

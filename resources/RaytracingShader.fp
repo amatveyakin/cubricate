@@ -1,6 +1,5 @@
 #version 130
-struct 
-uniform samplerBuffer octTree;
+uniform isamplerBuffer octTree;
 uniform vec3 origin;
 
 in  vec3 fDirection;
@@ -12,7 +11,7 @@ const vec3 powerVector = vec3 (1., 2., 4.);
 void main(void)
 {
   int   currCubePointer = 0;
-  byte  currCubeType;
+  uint  currCubeType;
   vec3  currCubeMidpoint;
   float currCubeSize;
   
@@ -28,15 +27,15 @@ void main(void)
     currCubePointer = 0;                   // <\
     currCubeSize = 128.;                   // <-kd-restart algorithm, must be optimized
     currCubeMidpoint = vec3 (0., 0., 0.);  // </
-    currCubeType = texelFetch (octTree, currCubePointer);
-    while (currCubeType = 255) {  // that means "no-leaf node"
+    currCubeType = texelFetch (octTree, currCubePointer).r;
+    while (currCubeType == 255) {  // that means "no-leaf node"
       currCubeSize /= 2.;
-      uint3 s = step (currPoint, currCubeMidpoint);
+      vec3 s = step (currPoint, currCubeMidpoint);
       currCubeMidpoint += s * currCubeSize;
-      currCubePointer = 8 * currCubePointer + dot (s, powerVector);
-      currCubeType = texelFetch (octTree, currCubePointer);
+      currCubePointer = 8 * currCubePointer + int (dot (s, powerVector));
+      currCubeType = texelFetch (octTree, currCubePointer).r;
     }
-    vFragColor.xyz = vFragColor.xyz * vFragColor.w + currCubeType * vec3 ( 0. 0.7, 0.); //  <-Change to color sampling
+    vFragColor.xyz = vFragColor.xyz * vFragColor.w + currCubeType * vec3 ( 0., 0.7, 0.); //  <-Change to color sampling
     vFragColor.w  += currCubeType;                                                       //  </ 
     
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
