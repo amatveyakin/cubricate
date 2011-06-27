@@ -1,0 +1,12 @@
+#version 130
+
+in vec3 vPosition;
+in vec3 vDirection;
+
+out vec3 fDirection;
+
+void main(void)
+{
+  gl_Position    =  vPosition;
+  fDirection = vDirection;
+}
