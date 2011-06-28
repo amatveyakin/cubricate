@@ -1,5 +1,7 @@
 #version 140
 
+uniform mat4 matView;
+
 in vec3 vPosition;
 in vec3 vDirection;
 
@@ -8,5 +10,5 @@ out vec3 fDirection;
 void main(void)
 {
   gl_Position =  vec4(vPosition, 1.0);
-  fDirection  = vDirection;
+  fDirection  = (matView * vec4(vDirection, 0)).xyz;
 }

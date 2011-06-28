@@ -170,7 +170,7 @@ void GLWidget::initBuffers () {
 
 
   GLfloat proxySurfaceVertices[] = { 1, 1, 0,   -1, 1, 0,  -1, -1, 0,   1, -1, 0};
-  GLfloat proxySurfaceDirections[] = { 1, 1, 1,   -1, 1, 1,  -1, -1, 1,   1, -1, 1};
+  GLfloat proxySurfaceDirections[] = { 1, 1, 1, -1, 1, 1,  -1, -1, 1,   1, -1, 1};
 
   glGenVertexArrays(1, &m_raytracingVAO);
   glBindVertexArray(m_raytracingVAO);
@@ -223,13 +223,21 @@ void GLWidget::initTextures () {
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers(1, &m_octTreeBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, m_octTreeBuffer);
+  //const float TREE_NODES[] = { 0., 1., 0., 1., 1., 1., 2., 1.};
+  //const float TREE_NODES[] = { 0, 0., 0., 0., 0., 0.};
+//   const float TREE_NODES[] = { 255., 1., 0., 1., 1., 0., 0., 1., 0. };
   //TODO Fill the buffer with proper data
+//   glBufferData(GL_TEXTURE_BUFFER, sizeof (TREE_NODES), TREE_NODES, GL_STATIC_DRAW);
+//   for (int i = 0; i < cubeOctree.nNodes (); ++i)
+//     std::cout << cubeOctree.nodes ()[i] << " ";
+//   std::cout << std::endl;
   glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), cubeOctree.nodes (), GL_STATIC_DRAW);
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
   glGenTextures(1, &m_octTreeTexture);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_BUFFER, m_octTreeTexture);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, m_octTreeTexture);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_octTreeBuffer);
   glBindTexture(GL_TEXTURE_BUFFER, 0);
 
 }
@@ -355,9 +363,9 @@ void GLWidget::initShaders () {
   m_raytracingShader = m_raytracingShaderProgram.programId ();
   glLinkProgram (m_raytracingShader);
   glUseProgram (m_raytracingShader);
-  m_locOctTree  = glGetUniformLocation (m_raytracingShader, "octTree");
-  m_locOrigin   = glGetUniformLocation (m_raytracingShader, "origin");
-
+  m_locOctTree  =       glGetUniformLocation (m_raytracingShader, "octTree");
+  m_locOrigin   =       glGetUniformLocation (m_raytracingShader, "origin");
+  m_locRaytracingView = glGetUniformLocation (m_raytracingShader, "matView");
 }
 
 void GLWidget::setupRenderContext () {
@@ -392,17 +400,17 @@ int loadGameMap () {
       int height;
       heightMap >> height;
       if (height > MAP_SIZE / 2) {
-        cubeArray.addCube (x, y, height - 1, 66);
+//         cubeArray.addCube (x, y, height - 1, 66);
         cubeOctree.set (x, y, height - 1, 1);
         height--;
       }
       for (int z = 0; z < height; ++z) {
-        cubeArray.addCube (x, y, z, 2);
+//         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, 1);
       }
     }
   }
-  std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
+//   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
   return 0;
 }
 
@@ -451,17 +459,19 @@ GLWidget::~GLWidget () {
 void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
 
-  setupRenderContext ();
-
-  glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
-  GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
-                                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
-  GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
-
-  cubeArray.setPointers (bufferPos, bufferType);
   loadGameMap ();
 
-  glUnmapBuffer (GL_ARRAY_BUFFER);
+  setupRenderContext ();
+
+//   glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
+//   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
+//                                                      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
+//   GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
+//
+//   cubeArray.setPointers (bufferPos, bufferType);
+//   loadGameMap ();
+//
+//   glUnmapBuffer (GL_ARRAY_BUFFER);
 
   m_time.start ();
   m_fpsTime.start ();
@@ -470,18 +480,22 @@ void GLWidget::initializeGL () {
 
 void GLWidget::paintGL () {
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  glCullFace (GL_BACK);
-  glEnable (GL_CULL_FACE);
+  //glCullFace (GL_BACK);
+  glDisable (GL_CULL_FACE);
   glEnable (GL_DEPTH_TEST);
-  glEnable (GL_MULTISAMPLE);
-
+  //glEnable (GL_MULTISAMPLE);
+  M3DMatrix44f matView;
   glUseProgram (m_raytracingShader);
-  glBindVertexArray (m_raytracingVAO);
-  const GLfloat origin[] = {0, 0, 0};
+
+  //const GLfloat origin[] = {50, 50 , 0};
   glUniform1i  (m_locOctTree, 0);
-  glUniform4fv (m_locOrigin, 1, origin);
+  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
+  player.viewFrame().getCameraMatrix (matView, true);
+  glUniformMatrix4fv (m_locRaytracingView, 1, GL_TRUE, matView);
+
   glActiveTexture (GL_TEXTURE0);
-  glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture );
+  glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
+  glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
 
 
@@ -653,13 +667,13 @@ void GLWidget::timerEvent (QTimerEvent* event) {
 
   double timeElasped = m_time.elapsed () / 1000.;
   if (m_isMovingForward)
-    player.moveForward (5. * timeElasped);
+    player.moveForward (15. * timeElasped);
   if (m_isMovingBackward)
-    player.moveForward (-3. * timeElasped);
+    player.moveForward (-13. * timeElasped);
   if (m_isMovingLeft)
-    player.moveRight (3. * timeElasped);
+    player.moveRight (13. * timeElasped);
   if (m_isMovingRight)
-    player.moveRight (-3. * timeElasped);
+    player.moveRight (-13. * timeElasped);
   m_time.restart ();
 
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;

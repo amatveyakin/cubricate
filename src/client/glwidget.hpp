@@ -36,21 +36,21 @@ protected:
 
   GLint   m_instancedCubeShader;
   GLint   m_basicShader;
-  
+
   GLuint  m_cubesVao, m_selectingBoxVao;
   GLuint  m_cubeVbo,  m_selectingBoxVbo;
-  
+
   GLuint  m_locInstancedCubeMvp, m_locInstancedCubeMapSize, m_locColor, m_locInstancedCubeSquareTexture;
   GLuint  m_locBasicShaderWVP, m_locBasicShaderColor;
-  
+
   //Raytracing
   QGLShaderProgram m_raytracingShaderProgram;
   GLint   m_raytracingShader;
-  GLuint  m_locOctTree, m_locOrigin;
+  GLuint  m_locOctTree, m_locOrigin, m_locRaytracingView;
   GLuint  m_octTreeBuffer;
   GLuint  m_octTreeTexture;
   GLuint  m_raytracingVAO, m_raytracingVBO;
-  
+
   GLuint  m_squareTextureArray;
 
   GLFrustum     m_viewFrustum;
