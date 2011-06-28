@@ -25,16 +25,28 @@ const double FPS_MEASURE_INTERVAL = 1.; // sec
 
 
 
+// void GLWidget::lockCubes () {
+//   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
+//                                                      N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
+//                                                      GL_MAP_WRITE_BIT);
+//   GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
+//   cubeArray.setPointers (bufferPos, bufferType);
+// }
+//
+// void GLWidget::unlockCubes () {
+//   glUnmapBuffer (GL_ARRAY_BUFFER);
+// }
+
 void GLWidget::lockCubes () {
-  GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
-                                                     N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
-                                                     GL_MAP_WRITE_BIT);
-  GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
-  cubeArray.setPointers (bufferPos, bufferType);
+  GLfloat* buffer = (GLfloat *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
+                                                  cubeOctree.nNodes() * sizeof (TreeNodeT),
+                                                  GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+  cubeOctree.setPointer (buffer);
 }
 
 void GLWidget::unlockCubes () {
-  glUnmapBuffer (GL_ARRAY_BUFFER);
+  glUnmapBuffer (GL_TEXTURE_BUFFER);
+  cubeOctree.restorePointer ();
 }
 
 void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius) {
@@ -44,11 +56,12 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
     for  (int y = std::max (explosionY - explosionRadius, 0); y <= std::min (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
       for  (int z = std::max (explosionZ - explosionRadius, 0); z <= std::min (explosionZ + explosionRadius, MAP_SIZE - 1); ++z) {
         if  (xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius)) {
-          cubeArray.removeCube (x, y, z);
+          cubeOctree.set (x, y, z, 0);
         }
-        else if  (   cubeArray.cubePresents (x, y, z)
+        else if  (   cubeOctree.get (x, y, z) != 0
                   && xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius + 1)) {
-          cubeArray.addCube (x, y, z, 239);
+//           cubeOctree.set (x, y, z, 239);
+          cubeOctree.set (x, y, z, 1);
         }
       }
 
@@ -58,7 +71,7 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
 void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
   const int METEORITE_RADIUS = 10;
   int meteoriteZ = MAP_SIZE - 1;
-  while  (meteoriteZ > 0 && !cubeArray.cubePresents (meteoriteX, meteoriteY, meteoriteZ))
+  while  (meteoriteZ > 0 && cubeOctree.get (meteoriteX, meteoriteY, meteoriteZ) == 0)
     meteoriteZ--;
   explosion (meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
 }
@@ -444,6 +457,55 @@ int loadGameMap () {
       }
     }
   }
+
+  // testing map
+  for (int x = 0; x < MAP_SIZE; ++x) {
+    for (int y = 0; y < MAP_SIZE; ++y) {
+      int state = 1;
+      for (int z = 0; z < MAP_SIZE; ++z) {
+        switch (state) {
+          case 1:  // dirt
+            switch (int (cubeOctree.get (x, y, z))) {
+              case 1:  // dirt
+                break;
+              case 2:  // water
+                state = 2;
+                break;
+              case 0:  // air
+                state = 0;
+                break;
+            }
+            break;
+          case 2:  // water
+            switch (int (cubeOctree.get (x, y, z))) {
+              case 1:  // dirt
+                abort ();
+                break;
+              case 2:  // water
+                break;
+              case 0:  // air
+                state = 0;
+                break;
+            }
+            break;
+          case 0:  // air
+            switch (int (cubeOctree.get (x, y, z))) {
+              case 1:  // dirt
+                abort ();
+                break;
+              case 2:  // water
+                abort ();
+                break;
+              case 0:  // air
+                state = 0;
+                break;
+            }
+            break;
+        }
+      }
+    }
+  }
+
 //   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
   return 0;
 }
@@ -664,8 +726,8 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
   isLocked = true;
   int centerX = width ()  / 2;
   int centerY = height () / 2;
-  player.viewFrame ().RotateWorld (-(event->x () - centerX) / 100., 0., 0., 1.);
-  player.viewFrame ().RotateLocalX ((event->y () - centerY) / 100.);
+  player.viewFrame ().RotateWorld ((event->x () - centerX) / 100., 0., 0., 1.);
+  player.viewFrame ().RotateLocalX (-(event->y () - centerY) / 100.);
   cursor ().setPos (mapToGlobal (QPoint (centerX, centerY)));
   isLocked = false;
   updateGL ();
@@ -679,7 +741,8 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
         break;
 //       explosion (XYZ_LIST (cube), 2);
       lockCubes ();
-      cubeArray.removeCube (XYZ_LIST (headOnCube));
+//       cubeArray.removeCube (XYZ_LIST (headOnCube));
+      cubeOctree.set (XYZ_LIST (headOnCube), 0);
       unlockCubes ();
       break;
     }
@@ -692,7 +755,8 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       if (!cubeValid (newCube))
         break;
       lockCubes ();
-      cubeArray.addCube (XYZ_LIST (newCube), 7);
+//       cubeArray.addCube (XYZ_LIST (newCube), 7);
+      cubeOctree.set (XYZ_LIST (newCube), 1);
       unlockCubes ();
       break;
     }
@@ -706,9 +770,9 @@ void GLWidget::timerEvent (QTimerEvent* event) {
 
   double timeElasped = m_time.elapsed () / 1000.;
   if (m_isMovingForward)
-    player.moveForward (15. * timeElasped);
+    player.moveForward (-17. * timeElasped);
   if (m_isMovingBackward)
-    player.moveForward (-13. * timeElasped);
+    player.moveForward (13. * timeElasped);
   if (m_isMovingLeft)
     player.moveRight (13. * timeElasped);
   if (m_isMovingRight)

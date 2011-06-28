@@ -40,19 +40,19 @@ CubeWithFace Player::getHeadOnCube() {
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
   Vec3i prevCube = cube;
   while  (  cubeValid (cube + mapCenter)
-         && !cubeArray.cubePresents (XYZ_LIST (cube + mapCenter))) {
+         && cubeOctree.get (XYZ_LIST (cube + mapCenter)) == 0) {
     Vec3d parameter;
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
-      if (forwardVector[i] > 0) 
+      if (forwardVector[i] > 0)
         nearestInt[i] = floor (currentPoint[i] - 0.5) + 1.5;
       else
-      if (forwardVector[i] < 0) 
+      if (forwardVector[i] < 0)
         nearestInt[i] = ceil  (currentPoint[i] + 0.5) - 1.5;
-      else 
+      else
         nearestInt[i] = 1;
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
-      assert (parameter[i] >= 0); 
+      assert (parameter[i] >= 0);
     }
     float t = xMin (parameter[0], parameter[1], parameter[2]);
     assert (t >= 0);

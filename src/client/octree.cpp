@@ -16,11 +16,21 @@ Octree::Octree (int height) {
   m_size = 1 << height;
   m_nLeaves = 1 << (height * 3);
   m_nodes = new TreeNodeT [m_nNodes];
+  m_nodesOriginal = m_nodes;
   m_nodes[0] = 0;
 }
 
 Octree::~Octree () {
   delete[] m_nodes;
+}
+
+
+void Octree::setPointer (TreeNodeT* newPointer) {
+  m_nodes = newPointer;
+}
+
+void Octree::restorePointer () {
+  m_nodes = m_nodesOriginal;
 }
 
 

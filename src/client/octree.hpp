@@ -17,7 +17,11 @@ public:
   static const int N_NODE_CHILDREN = 8;
 
   Octree (int height);
+  Octree (const Octree&) = delete;
   ~Octree ();
+
+  void        setPointer (TreeNodeT* newPointer);
+  void        restorePointer ();
 
   const TreeNodeT*  nodes() const;
   int               height () const;
@@ -32,6 +36,7 @@ public:
 
 protected:
   TreeNodeT*  m_nodes;
+  TreeNodeT*  m_nodesOriginal;
   int         m_height;
   int         m_size;
   int         m_nNodes;

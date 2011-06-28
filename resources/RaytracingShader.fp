@@ -11,6 +11,7 @@ const vec3  powerVector = vec3 (1., 2., 4.);
 const vec3  onesVector  = vec3 (1., 1., 1.);
 const float chunkSize = 128;
 const int   MAX_ITER_OUTER = 100;
+const float refractionIndices[3] = float[3](1., 1., 1.333);
 
 int getNodeData(int nodePointer) {
   if (nodePointer > 300000)
@@ -27,6 +28,7 @@ void main(void)
 {
   int   currCubePointer = 0;
   int   currCubeType;
+  int   prevCubeType = 0;
   vec3  currCubeMidpoint;
   float currCubeSize;
 
@@ -34,7 +36,7 @@ void main(void)
   float currT, nextT, delta;
   vec3  deltaVector;
   vec3  currPoint, nextPoint;
-
+  vec3  normal = ray;
   currT = 0;
   currPoint = origin;
   //vFragColor.xyz = (ray + vec3 (1, 1, 0)) / 2;
@@ -42,7 +44,7 @@ void main(void)
   //return;
   vFragColor = vec4 (0., 0., 0., 1.); //fourth component is transparency, not opacity!
   int iterOuter = 0;
-  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.5) && (pointInChunk(currPoint))) {
+  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInChunk(currPoint))) {
     currCubePointer = 0;
     currCubeSize = chunkSize;
     currCubeMidpoint = vec3 (0., 0., 0.);
@@ -61,32 +63,50 @@ void main(void)
       //vFragColor += vec4(3 / currCubeSize, 0., 0,  0.1);
       iterInner++;
     }
+    if (currCubeType != prevCubeType)
+      ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
+    prevCubeType = currCubeType;
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
     //deltaVector = mix (deltaVector, 128 * onesVector, isinf(deltaVector));
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
 
-    if (currCubeType == 1) {
-      vec3 baseColor  = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
-      float lightCoef = dot(trunc((currPoint - currCubeMidpoint) / currCubeSize * 1.01), vec3(3, -1, 7))/12 + 0.3;
-      vFragColor.xyz += baseColor * lightCoef * vFragColor.w;
-      vFragColor.w = 0;
-    } else
-    if (currCubeType == 2) {
-      vec3 baseColor = vec3 (0., 0., 0.7);
-      vFragColor.xyz += baseColor * vFragColor.w * 0.2 * delta;  // 0.2 is water opacity
-      vFragColor.w   *= 1 - 0.2;
+    vec3 baseColor = vec3 (0., 0., 0.);
+    float opacity = 0.;
+    float lightCoef = 1.;
+    switch (currCubeType) {
+      case 0: {
+        baseColor = vec3 (1., 1., 1.);
+        opacity = pow (0.998, delta);
+        break;
+      }
+      case 1: {
+        baseColor = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
+        lightCoef = dot (normal, vec3(3, -1, 7))/12 + 0.3;
+        break;
+      }
+      case 2: {
+        baseColor = vec3 (0., 0.1, 0.7);
+//         lightCoef = dot(trunc((currPoint - currCubeMidpoint) / currCubeSize * 1.01), vec3(3, -1, 7))/12 + 0.3;
+        opacity = pow (0.93, delta);
+        break;
+      }
     }
 
 
-    currPoint += ray * (delta + 0.001); //make epsilon constant
+    vFragColor.xyz += baseColor * vFragColor.w * lightCoef * (1 - opacity);
+    vFragColor.w   *= opacity;
+
+    currPoint += ray * (delta + 0.001);
+    normal = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
+    //make epsilon constant
 //     if (delta < 0) {
 //       vFragColor = vec4(0, 0, 1, 1);
 //       return;
 //     }
     iterOuter++;
   }
-  //if (iterOuter == MAX_ITER_OUTER) vFragColor = vec4(1, 0, 0, 1);
+  if (iterOuter == MAX_ITER_OUTER) vFragColor = vec4(1, 0, 0, 1);
 }
 
