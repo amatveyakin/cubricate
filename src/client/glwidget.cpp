@@ -223,14 +223,6 @@ void GLWidget::initTextures () {
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers(1, &m_octTreeBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, m_octTreeBuffer);
-  //const float TREE_NODES[] = { 0., 1., 0., 1., 1., 1., 2., 1.};
-  //const float TREE_NODES[] = { 0, 0., 0., 0., 0., 0.};
-//   const float TREE_NODES[] = { 255., 1., 0., 1., 1., 0., 0., 1., 0. };
-  //TODO Fill the buffer with proper data
-//   glBufferData(GL_TEXTURE_BUFFER, sizeof (TREE_NODES), TREE_NODES, GL_STATIC_DRAW);
-//   for (int i = 0; i < cubeOctree.nNodes (); ++i)
-//     std::cout << cubeOctree.nodes ()[i] << " ";
-//   std::cout << std::endl;
   glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), cubeOctree.nodes (), GL_STATIC_DRAW);
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
@@ -240,6 +232,44 @@ void GLWidget::initTextures () {
   glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_octTreeBuffer);
   glBindTexture(GL_TEXTURE_BUFFER, 0);
 
+  const char *szCubeFaces[6] = { "right.tga", "left.tga", "front.tga", "back.tga", "up.tga", "down.tga" };
+  const float angles[6] = {-90, 90, 0, 180, 0, 0};
+  GLenum  cube[6] = { GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+                      GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+                      GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+                      GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                      GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+                      GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
+
+
+  glGenTextures(1, &m_cubeTexture);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTexture);
+
+  // Set up texture maps
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  // Load Cube Map images
+  for(int i = 0; i < 6; ++i) {
+    // Load this texture map
+    //pBytes = gltReadTGABits(("resources/textures" + std::string(szCubeFaces[i])).c_str(), &iWidth, &iHeight, &iComponents, &eFormat);
+    QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
+    if (rawTexture.isNull ()) {
+      std::cout << "Cannot open texture file !!!" << std::endl;
+      exit (1);
+    }
+    QMatrix rotateMatrix;
+    rotateMatrix.rotate (angles[i]);
+    rawTexture =  rawTexture.transformed(rotateMatrix);
+    QImage texture = convertToGLFormat (rawTexture);
+    assert (!texture.isNull ());
+    glTexImage2D(cube[i], 0, GL_RGBA8, texture.width(), texture.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits());
+  }
+  glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 }
 
 // TODO: rename shader program files
@@ -366,6 +396,7 @@ void GLWidget::initShaders () {
   m_locOctTree  =       glGetUniformLocation (m_raytracingShader, "octTree");
   m_locOrigin   =       glGetUniformLocation (m_raytracingShader, "origin");
   m_locRaytracingView = glGetUniformLocation (m_raytracingShader, "matView");
+  m_locCubeTexture    = glGetUniformLocation (m_raytracingShader, "cubeTexture");
 }
 
 void GLWidget::setupRenderContext () {
@@ -399,14 +430,17 @@ int loadGameMap () {
     for (int y = 0; y < MAP_SIZE; ++y) {
       int height;
       heightMap >> height;
-      if (height > MAP_SIZE / 2) {
-//         cubeArray.addCube (x, y, height - 1, 66);
-        cubeOctree.set (x, y, height - 1, 1);
-        height--;
-      }
+//       if (height > MAP_SIZE / 2) {
+// //         cubeArray.addCube (x, y, height - 1, 66);
+//         cubeOctree.set (x, y, height - 1, 1);
+//         height--;
+//       }
       for (int z = 0; z < height; ++z) {
 //         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, 1);
+      }
+      for (int z = height; z < MAP_SIZE / 2; ++z) {
+        cubeOctree.set (x, y, z, 2);
       }
     }
   }
@@ -489,12 +523,17 @@ void GLWidget::paintGL () {
 
   //const GLfloat origin[] = {50, 50 , 0};
   glUniform1i  (m_locOctTree, 0);
+  glUniform1i  (m_locCubeTexture, 1);
   glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
   player.viewFrame().getCameraMatrix (matView, true);
   glUniformMatrix4fv (m_locRaytracingView, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
+
+  glActiveTexture (GL_TEXTURE1);
+  glBindTexture (GL_TEXTURE_CUBE_MAP, m_cubeTexture);
+
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
 

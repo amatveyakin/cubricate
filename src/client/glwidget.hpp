@@ -46,10 +46,11 @@ protected:
   //Raytracing
   QGLShaderProgram m_raytracingShaderProgram;
   GLint   m_raytracingShader;
-  GLuint  m_locOctTree, m_locOrigin, m_locRaytracingView;
+  GLuint  m_locOctTree, m_locOrigin, m_locRaytracingView, m_locCubeTexture;
   GLuint  m_octTreeBuffer;
   GLuint  m_octTreeTexture;
   GLuint  m_raytracingVAO, m_raytracingVBO;
+  GLuint  m_cubeTexture;
 
   GLuint  m_squareTextureArray;
 
