@@ -21,10 +21,10 @@ const float refractionIndices[3] = float[3](1., 1., 1.333);
 
 
 int getNodeData(int nodePointer) {
-  if (nodePointer > 300000)
-    return 0;
-  else
-    return int (texelFetch (octTree, nodePointer).r);
+//   if (nodePointer > 300000)
+//     return 0;
+//   else
+  return int (texelFetch (octTree, nodePointer).r);
 }
 
 bool pointInChunk (vec3 point) {
@@ -62,7 +62,7 @@ void main(void)
       vec3 s = step (currCubeMidpoint, currPoint);
       currCubeMidpoint += (2 * s - onesVector) * currCubeSize;
       currCubePointer = 8 * currCubePointer + int (dot (s, powerVector)) + 1;
-//       if (currCubePointer >= 9) {
+//       if (currCubePointer >= 19173961) {
 //         vFragColor = vec4(1, 1, 1, 1);
 //         return;
 //       }

@@ -42,6 +42,8 @@ protected:
   int         m_nNodes;
   int         m_nLeaves;
 
+  void        checkCoordinates (int x, int y, int z) const;
+
   static int  getParent (int node);
   static int  getChild  (int node, int iChild);   // iChild = 0, 1, ..., 7
 

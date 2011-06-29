@@ -57,10 +57,12 @@ int Octree::nLeaves() const {
 
 
 TreeNodeT Octree::get (int x, int y, int z) const {
+  checkCoordinates (x, y, z);
   return m_nodes [getDeepestNode (x, y, z)];
 }
 
 void Octree::set (int x, int y, int z, TreeNodeT type) {
+  checkCoordinates (x, y, z);
 //   std::cout << "set (" << x << ", " << y << ", " << z << ")" << std::endl;
   int nodeSize;
   int curNode = getDeepestNode (x, y, z, nodeSize);
@@ -86,11 +88,23 @@ bool Octree::hasChildren (int node) const {
 
 
 
+void Octree::checkCoordinates (int x, int y, int z) const {
+  assert (x >= 0);
+  assert (y >= 0);
+  assert (z >= 0);
+  assert (x < m_size);
+  assert (y < m_size);
+  assert (z < m_size);
+}
+
+
 int Octree::getParent (int node) {
   return (node - 1) / 8;
 }
 
 int Octree::getChild (int node, int iChild) {
+  assert (iChild >= 0);
+  assert (iChild < 8);
   return node * 8 + 1 + iChild;
 }
 

@@ -506,6 +506,21 @@ int loadGameMap () {
     }
   }
 
+  int MAX_NODE_VALUE = 256;
+  const TreeNodeT* nodes = cubeOctree.nodes();
+  int nNodeValues[MAX_NODE_VALUE];
+  std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
+  for (int i = 0; i < cubeOctree.nNodes(); ++i) {
+    int nodeValue = nodes[i];
+    assert (nodeValue >= 0);
+    assert (nodeValue < MAX_NODE_VALUE);
+    nNodeValues [nodeValue]++;
+  }
+  for (int i = 0;i < MAX_NODE_VALUE; ++i)
+    if (nNodeValues[i] != 0)
+      std::cout << i << ": " << nNodeValues[i] << std::endl;
+
+  std::cout << "nOctreeNodes = " << cubeOctree.nNodes () << std::endl;
 //   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
   return 0;
 }
@@ -556,6 +571,7 @@ void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
 
   loadGameMap ();
+  player.setPos (Vec3d (0, 0, MAP_SIZE / 8));
 
   setupRenderContext ();
 
