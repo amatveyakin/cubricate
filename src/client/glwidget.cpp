@@ -38,9 +38,9 @@ const double FPS_MEASURE_INTERVAL = 1.; // sec
 // }
 
 void GLWidget::lockCubes () {
-  GLfloat* buffer = (GLfloat *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
-                                                  cubeOctree.nNodes() * sizeof (TreeNodeT),
-                                                  GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+  TreeNodeT* buffer = (TreeNodeT *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
+                                                      cubeOctree.nNodes() * sizeof (TreeNodeT),
+                                                      GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
   cubeOctree.setPointer (buffer);
 }
 
@@ -242,7 +242,7 @@ void GLWidget::initTextures () {
   glGenTextures(1, &m_octTreeTexture);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_BUFFER, m_octTreeTexture);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_octTreeBuffer);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, m_octTreeBuffer);
   glBindTexture(GL_TEXTURE_BUFFER, 0);
 
   const char *szCubeFaces[6] = { "right.tga", "left.tga", "front.tga", "back.tga", "up.tga", "down.tga" };

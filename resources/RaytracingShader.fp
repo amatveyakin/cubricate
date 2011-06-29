@@ -1,5 +1,5 @@
 #version 140
-uniform samplerBuffer octTree;
+uniform isamplerBuffer octTree;
 uniform samplerCube   cubeTexture;
 uniform vec3 origin;
 
@@ -24,7 +24,7 @@ int getNodeData(int nodePointer) {
 //   if (nodePointer > 300000)
 //     return 0;
 //   else
-  return int (texelFetch (octTree, nodePointer).r);
+  return texelFetch (octTree, nodePointer).r;
 }
 
 bool pointInChunk (vec3 point) {
