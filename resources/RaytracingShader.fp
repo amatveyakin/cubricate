@@ -11,7 +11,14 @@ const vec3  powerVector = vec3 (1., 2., 4.);
 const vec3  onesVector  = vec3 (1., 1., 1.);
 const float chunkSize = 128;
 const int   MAX_ITER_OUTER = 100;
+const int   MAX_ITER_INNER = 100;
+
+const int   CUBE_TYPE_AIR     = 0;
+const int   CUBE_TYPE_DIRT    = 1;
+const int   CUBE_TYPE_WATER   = 2;
+
 const float refractionIndices[3] = float[3](1., 1., 1.333);
+
 
 int getNodeData(int nodePointer) {
   if (nodePointer > 300000)
@@ -50,7 +57,7 @@ void main(void)
     currCubeMidpoint = vec3 (0., 0., 0.);
     currCubeType = getNodeData (currCubePointer);
     int iterInner = 0;
-    while (/*iterInner < 100 &&*/ currCubeType == 255) {  // that means "no-leaf node"
+    while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
       currCubeSize /= 2.;
       vec3 s = step (currCubeMidpoint, currPoint);
       currCubeMidpoint += (2 * s - onesVector) * currCubeSize;
@@ -65,7 +72,6 @@ void main(void)
     }
     if (currCubeType != prevCubeType)
       ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
-    prevCubeType = currCubeType;
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
@@ -73,30 +79,31 @@ void main(void)
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
 
     vec3 baseColor = vec3 (0., 0., 0.);
-    float opacity = 0.;
+    float transparency = 0.;
     float lightCoef = 1.;
     switch (currCubeType) {
-      case 0: {
+      case CUBE_TYPE_AIR: {
         baseColor = vec3 (1., 1., 1.);
-        opacity = pow (0.998, delta);
+        transparency = pow (0.998, delta);
         break;
       }
-      case 1: {
+      case CUBE_TYPE_DIRT: {
         baseColor = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
+        // moistening effect
+        if (prevCubeType == CUBE_TYPE_WATER)
+          baseColor *= 0.3;
         lightCoef = dot (normal, vec3(3, -1, 7))/12 + 0.3;
         break;
       }
-      case 2: {
+      case CUBE_TYPE_WATER: {
         baseColor = vec3 (0., 0.1, 0.7);
-//         lightCoef = dot(trunc((currPoint - currCubeMidpoint) / currCubeSize * 1.01), vec3(3, -1, 7))/12 + 0.3;
-        opacity = pow (0.93, delta);
+        transparency = pow (0.93, delta);
         break;
       }
     }
 
-
-    vFragColor.xyz += baseColor * vFragColor.w * lightCoef * (1 - opacity);
-    vFragColor.w   *= opacity;
+    vFragColor.xyz += baseColor * vFragColor.w * lightCoef * (1 - transparency);
+    vFragColor.w   *= transparency;
 
     currPoint += ray * (delta + 0.001);
     normal = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
@@ -105,6 +112,7 @@ void main(void)
 //       vFragColor = vec4(0, 0, 1, 1);
 //       return;
 //     }
+    prevCubeType = currCubeType;
     iterOuter++;
   }
   if (iterOuter == MAX_ITER_OUTER) vFragColor = vec4(1, 0, 0, 1);
