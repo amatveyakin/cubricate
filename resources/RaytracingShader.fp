@@ -1,4 +1,5 @@
 #version 140
+
 uniform isamplerBuffer octTree;
 uniform samplerCube   cubeTexture;
 uniform vec3 origin;
@@ -7,9 +8,12 @@ in  vec3 fDirection;
 
 out vec4 vFragColor;
 
-const vec3  powerVector = vec3 (1., 2., 4.);
-const vec3  onesVector  = vec3 (1., 1., 1.);
-const float chunkSize = 128;
+const vec3  vec111 = vec3 (1., 1., 1.);
+const vec3  vec123 = vec3 (1., 2., 3.);
+const vec3  vec124 = vec3 (1., 2., 4.);
+
+const int   TREE_HEIGHT = 1;
+const float CHUNK_SIZE = 128;
 const int   MAX_ITER_OUTER = 100;
 const int   MAX_ITER_INNER = 100;
 
@@ -17,18 +21,61 @@ const int   CUBE_TYPE_AIR     = 0;
 const int   CUBE_TYPE_DIRT    = 1;
 const int   CUBE_TYPE_WATER   = 2;
 
-const float refractionIndices[3] = float[3](1., 1., 1.333);
+// Node structure: Type | NeigbourZ- | NeigbourY- | NeigbourX- | Size | NeigbourX+ | NeigbourY+ | NeigbourZ+
+const int   NODE_STRUCT_SIZE       = 8;
+const int   NODE_OFFSET_TYPE       = 0;
+const int   NODE_OFFSET_HEIGHT     = 4;
+const int   NODE_OFFSET_NEIGHBOURS = 4;
+
+const int   NODE_OFFSET_BY_HEIGHT[] = int[](
+  /* 0 */  0,
+  /* 1 */  1,
+  /* 2 */  9,
+  /* 3 */  73,
+  /* 4 */  585,
+  /* 5 */  4681,
+  /* 6 */  37449,
+  /* 7 */  299593,
+  /* 8 */  2396745,
+  /* 9 */  19173961
+);
+
+const float refractionIndices[] = float[](1., 1., 1.333);
 
 
-int getNodeData(int nodePointer) {
-//   if (nodePointer > 300000)
-//     return 0;
-//   else
-  return texelFetch (octTree, nodePointer).r;
+int getNodeParent (int nodePointer) {
+  return (nodePointer - 1) / 8;
+}
+
+int getNodeChild (int nodePointer, int iChild) {
+  return nodePointer * 8 + 1 + iChild;
+}
+
+int getNodeType (int nodePointer) {
+  return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_TYPE).r;
+}
+
+float getNodeSize (int nodePointer) {
+  return CHUNK_SIZE / (1 << texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_HEIGHT).r);
+}
+
+vec3 getNodeMidpoint (int nodePointer) {
+  int nodeHeight = texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_HEIGHT).r;
+  int nodeIndex = nodePointer - NODE_OFFSET_BY_HEIGHT [nodeHeight];
+  int levelSize = 1 << nodeHeight;
+  return (vec3 (nodeIndex % levelSize,
+                (nodeIndex / levelSize) % levelSize,
+                (nodeIndex / (levelSize * levelSize)) % levelSize)
+          * 2. + vec111 * (1 - levelSize)) / float (levelSize) * CHUNK_SIZE;
+}
+
+// nodePointer can be -3, -2, -1, 1, 2, 3
+int getNodeNeighbour (int nodePointer, int neighbourIndex) {
+  return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + neighbourIndex).r;
 }
 
 bool pointInChunk (vec3 point) {
-  return all (lessThan (abs(point), vec3(chunkSize, chunkSize, chunkSize)));
+  return all (lessThan (abs(point), vec3(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE)));
 }
 
 void main(void)
@@ -46,32 +93,27 @@ void main(void)
   vec3  normal = ray;
   currT = 0;
   currPoint = origin;
-  //vFragColor.xyz = (ray + vec3 (1, 1, 0)) / 2;
-  //vFragColor = vec4 (texelFetch (octTree, 1).xyz / 2, 1);
-  //return;
+
   vFragColor = vec4 (0., 0., 0., 1.); //fourth component is transparency, not opacity!
   int iterOuter = 0;
+
+  currCubePointer = 0;
+  currCubeSize = CHUNK_SIZE;
+  currCubeMidpoint = vec3 (0., 0., 0.);
+  currCubeType = getNodeType (currCubePointer);
+
   while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInChunk(currPoint))) {
-    currCubePointer = 0;
-    currCubeSize = chunkSize;
-    currCubeMidpoint = vec3 (0., 0., 0.);
-    currCubeType = getNodeData (currCubePointer);
     int iterInner = 0;
     while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
       currCubeSize /= 2.;
       vec3 s = step (currCubeMidpoint, currPoint);
-      currCubeMidpoint += (2 * s - onesVector) * currCubeSize;
-      currCubePointer = 8 * currCubePointer + int (dot (s, powerVector)) + 1;
-//       if (currCubePointer >= 19173961) {
-//         vFragColor = vec4(1, 1, 1, 1);
-//         return;
-//       }
-      currCubeType = getNodeData (currCubePointer);
-      //vFragColor += vec4(3 / currCubeSize, 0., 0,  0.1);
+      currCubeMidpoint += (2 * s - vec111) * currCubeSize;
+      currCubePointer = getNodeChild (currCubePointer, int (dot (s, vec124)));
+      currCubeType = getNodeType (currCubePointer);
       iterInner++;
     }
-    if (currCubeType != prevCubeType)
-      ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
+//     if (currCubeType != prevCubeType)
+//       ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
@@ -102,19 +144,36 @@ void main(void)
       }
     }
 
-    vFragColor.xyz += baseColor * vFragColor.w * lightCoef * (1 - transparency);
-    vFragColor.w   *= transparency;
+    vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * (1 - transparency);
+    vFragColor.w     *= transparency;
 
-    currPoint += ray * (delta + 0.001);
-    normal = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
+    currPoint        += ray * (delta + 0.001);
+    normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
+
+    currCubePointer   = getNodeNeighbour (currCubePointer, -int (round (dot (normal, vec123))));
+    currCubeSize      = getNodeSize (currCubePointer);
+    currCubeMidpoint  = getNodeMidpoint (currCubePointer);
+
+    prevCubeType      = currCubeType;
+    currCubeType      = getNodeType (currCubePointer);
+
+    if (currCubePointer < 0) {
+      vFragColor = vec4 (1., 1., 0., 1.);
+      return;
+    }
+    else if (currCubePointer > 8) {
+      vFragColor = vec4 (0., 1., 1., 1.);
+      return;
+    }
+
     //make epsilon constant
 //     if (delta < 0) {
 //       vFragColor = vec4(0, 0, 1, 1);
 //       return;
 //     }
-    prevCubeType = currCubeType;
+
     iterOuter++;
   }
-  if (iterOuter == MAX_ITER_OUTER) vFragColor = vec4(1, 0, 0, 1);
+  if (iterOuter == MAX_ITER_OUTER) vFragColor = vec4 (1., 0., 0., 1.);
 }
 

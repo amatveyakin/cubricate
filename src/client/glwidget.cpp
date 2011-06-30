@@ -38,7 +38,7 @@ const double FPS_MEASURE_INTERVAL = 1.; // sec
 // }
 
 void GLWidget::lockCubes () {
-  TreeNodeT* buffer = (TreeNodeT *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
+  TreeDataT* buffer = (TreeDataT *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
                                                       cubeOctree.nNodes() * sizeof (TreeNodeT),
                                                       GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
   cubeOctree.setPointer (buffer);
@@ -385,22 +385,22 @@ void GLWidget::initShaders () {
   //Raytracing shader initialization
   result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/RaytracingShader.vp");
   if (!result) {
-    std::cout << "Unable to compile vertex shader:" << std::endl
-              << m_raytracingShaderProgram.log ().toStdString () << std::endl;
+//     std::cout << "Unable to compile vertex shader:" << std::endl
+//               << m_raytracingShaderProgram.log ().toStdString () << std::endl;
     exit (1);
   }
   result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/RaytracingShader.fp");
   if (!result) {
-    std::cout << "Unable to compile fragment shader:" << std::endl
-              << m_raytracingShaderProgram.log ().toStdString () << std::endl;
+//     std::cout << "Unable to compile fragment shader:" << std::endl
+//               << m_raytracingShaderProgram.log ().toStdString () << std::endl;
     exit (1);
   }
   m_raytracingShaderProgram.bindAttributeLocation ("vPosition",  0);
   m_raytracingShaderProgram.bindAttributeLocation ("vDirection", 1);
   result = m_raytracingShaderProgram.link ();
   if (!result) {
-    std::cout << "Unable to link shaders:" << std::endl
-              << m_basicShaderProgram.log ().toStdString () << std::endl;
+//     std::cout << "Unable to link shaders:" << std::endl
+//               << m_basicShaderProgram.log ().toStdString () << std::endl;
     exit (1);
   }
   m_raytracingShader = m_raytracingShaderProgram.programId ();
@@ -452,11 +452,13 @@ int loadGameMap () {
 //         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, 1);
       }
-      for (int z = height; z < MAP_SIZE / 2; ++z) {
-        cubeOctree.set (x, y, z, 2);
-      }
+//       for (int z = height; z < MAP_SIZE / 2; ++z) {
+//         cubeOctree.set (x, y, z, 2);
+//       }
     }
   }
+
+  cubeOctree.computeNeighbours ();
 
   // testing map
   for (int x = 0; x < MAP_SIZE; ++x) {
@@ -507,21 +509,40 @@ int loadGameMap () {
   }
 
   int MAX_NODE_VALUE = 256;
-  const TreeNodeT* nodes = cubeOctree.nodes();
+  const TreeDataT* nodes = cubeOctree.nodes();
   int nNodeValues[MAX_NODE_VALUE];
   std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
   for (int i = 0; i < cubeOctree.nNodes(); ++i) {
-    int nodeValue = nodes[i];
+    std::cout.width (3);
+    std::cout << i << ": ";
+    for (int j = 0; j < NODE_STRUCT_SIZE; ++j) {
+      std::cout.width (3);
+      int value = nodes[i * NODE_STRUCT_SIZE + j];
+      if (value == -1)
+        std::cout << "." << " ";
+      else {
+        assert (value >= 0);
+        std::cout << value << " ";
+      }
+    }
+    std::cout << std::endl;
+    int nodeValue = nodes[i * NODE_STRUCT_SIZE];
     assert (nodeValue >= 0);
     assert (nodeValue < MAX_NODE_VALUE);
     nNodeValues [nodeValue]++;
   }
+  std::cout << std::endl;
+
+  std::cout << "Cube type frequency:" << std::endl;
   for (int i = 0;i < MAX_NODE_VALUE; ++i)
     if (nNodeValues[i] != 0)
       std::cout << i << ": " << nNodeValues[i] << std::endl;
+  std::cout << std::endl;
 
   std::cout << "nOctreeNodes = " << cubeOctree.nNodes () << std::endl;
-//   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
+  std::cout << std::endl;
+
+  //   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
   return 0;
 }
 
@@ -571,7 +592,7 @@ void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
 
   loadGameMap ();
-  player.setPos (Vec3d (0, 0, MAP_SIZE / 8));
+  player.setPos (Vec3d (0., 0., MAP_SIZE / 8.));
 
   setupRenderContext ();
 

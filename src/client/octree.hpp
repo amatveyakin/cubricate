@@ -7,8 +7,21 @@
 // #include "common/world_block.hpp"
 
 
-typedef int TreeNodeT;
-const TreeNodeT MIXED_TYPE = 0xff;
+typedef int TreeDataT;
+
+const int NODE_STRUCT_SIZE = 8;
+
+const int neighbourIndices[] = { 1, 2, 3, 5, 6, 7 };
+
+struct TreeNodeT {
+  TreeDataT& type ()              { return data [0]; }
+  TreeDataT& neighbour (int i)    { assert (i >= 0);  assert (i < 6);  return data [neighbourIndices[i]]; }
+  TreeDataT& height ()            { return data [4]; }
+
+  TreeDataT data[NODE_STRUCT_SIZE];
+};
+
+const TreeDataT MIXED_TYPE = 0xff;
 
 
 // TODO: use Vec3i for indexing
@@ -20,19 +33,21 @@ public:
   Octree (const Octree&) = delete;
   ~Octree ();
 
-  void        setPointer (TreeNodeT* newPointer);
+  void        setPointer (TreeDataT* newPointer);
   void        restorePointer ();
 
-  const TreeNodeT*  nodes() const;
+  const TreeDataT*  nodes() const;
   int               height () const;
   int               size () const;
   int               nNodes () const;
   int               nLeaves () const;
 
-  TreeNodeT   get (int x, int y, int z) const;
-  void        set (int x, int y, int z, TreeNodeT type);
+  TreeDataT   get (int x, int y, int z) const;
+  void        set (int x, int y, int z, TreeDataT type);
 
   bool        hasChildren (int node) const;
+
+  void        computeNeighbours ();
 
 protected:
   TreeNodeT*  m_nodes;
@@ -53,6 +68,9 @@ protected:
 
   void        splitNode (int node);
   int         uniteNodesRecursively (int node);
+
+  bool        tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ);
+//   void        doComputeNeighboursRecursively (int node, int x, int y, int z, int nodeSize);
 };
 
 
