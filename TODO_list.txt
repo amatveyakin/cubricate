@@ -1,3 +1,9 @@
-* Project name --- ?
-* Exclude GLTools from project (?)
+On next (and I hope, last) repository reset:
+* Find a good name for the project   (variants: Voxeland)
+* Switch file name pattern to camelCase
+
+Bugs:
+* Exclude the rest of GLTools from project
+
+Improvements:
 * Find or write a logging system (with message ranking: information, warning, error, etc.)
