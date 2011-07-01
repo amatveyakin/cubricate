@@ -12,7 +12,7 @@ const vec3  vec111 = vec3 (1., 1., 1.);
 const vec3  vec123 = vec3 (1., 2., 3.);
 const vec3  vec124 = vec3 (1., 2., 4.);
 
-const int   TREE_HEIGHT = 1;
+const int   TREE_HEIGHT = 8;
 const float CHUNK_SIZE = 128;
 const int   MAX_ITER_OUTER = 100;
 const int   MAX_ITER_INNER = 100;
@@ -59,14 +59,8 @@ float getNodeSize (int nodePointer) {
   return CHUNK_SIZE / (1 << texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_HEIGHT).r);
 }
 
-vec3 getNodeMidpoint (int nodePointer) {
-  int nodeHeight = texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_HEIGHT).r;
-  int nodeIndex = nodePointer - NODE_OFFSET_BY_HEIGHT [nodeHeight];
-  int levelSize = 1 << nodeHeight;
-  return (vec3 (nodeIndex % levelSize,
-                (nodeIndex / levelSize) % levelSize,
-                (nodeIndex / (levelSize * levelSize)) % levelSize)
-          * 2. + vec111 * (1 - levelSize)) / float (levelSize) * CHUNK_SIZE;
+vec3 getNodeMidpoint (vec3 pointInNode, float nodeSize) {
+  return 2 * nodeSize * (floor (pointInNode / (2 * nodeSize)) + 0.5 * vec111);
 }
 
 // nodePointer can be -3, -2, -1, 1, 2, 3
@@ -74,8 +68,8 @@ int getNodeNeighbour (int nodePointer, int neighbourIndex) {
   return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + neighbourIndex).r;
 }
 
-bool pointInChunk (vec3 point) {
-  return all (lessThan (abs(point), vec3(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE)));
+bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
+  return all (lessThan (abs(point - cubeMidpoint), vec3(cubeSize, cubeSize, cubeSize)));
 }
 
 void main(void)
@@ -102,7 +96,16 @@ void main(void)
   currCubeMidpoint = vec3 (0., 0., 0.);
   currCubeType = getNodeType (currCubePointer);
 
-  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInChunk(currPoint))) {
+  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInCube(currPoint, vec3(0, 0, 0), CHUNK_SIZE))) {
+//     if (currCubePointer < 0) {
+//       vFragColor = vec4 (1., 1., 0., 1.);
+//       return;
+//     }
+//     else if (currCubePointer > 8) {
+//       vFragColor = vec4 (0., 1., 1., 1.);
+//       return;
+//     }
+
     int iterInner = 0;
     while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
       currCubeSize /= 2.;
@@ -117,8 +120,14 @@ void main(void)
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
-    //deltaVector = mix (deltaVector, 128 * onesVector, isinf(deltaVector));
+    deltaVector = mix (deltaVector, 128 * vec111, isinf(deltaVector));
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
+
+
+    if ( delta < 0) {
+      vFragColor = vec4 (0.5, 0., 1., 1.);
+      return;
+    }
 
     vec3 baseColor = vec3 (0., 0., 0.);
     float transparency = 0.;
@@ -150,21 +159,24 @@ void main(void)
     currPoint        += ray * (delta + 0.001);
     normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
 
+//     if ( length (normal) > 2.01) {
+//       vFragColor = vec4 (1., 0., 1., 1.);
+//       return;
+//     }
+
     currCubePointer   = getNodeNeighbour (currCubePointer, -int (round (dot (normal, vec123))));
-    currCubeSize      = getNodeSize (currCubePointer);
-    currCubeMidpoint  = getNodeMidpoint (currCubePointer);
+    //if (currCubePointer != -1) {
+      currCubeSize      = getNodeSize (currCubePointer);
+      currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
+/*
+      if (!pointInCube(currPoint, currCubeMidpoint, currCubeSize)) {
+        vFragColor =  vec4(0, 1, 0, 0);
+        return;
+      }*/
 
     prevCubeType      = currCubeType;
     currCubeType      = getNodeType (currCubePointer);
-
-    if (currCubePointer < 0) {
-      vFragColor = vec4 (1., 1., 0., 1.);
-      return;
-    }
-    else if (currCubePointer > 8) {
-      vFragColor = vec4 (0., 1., 1., 1.);
-      return;
-    }
+  //}
 
     //make epsilon constant
 //     if (delta < 0) {

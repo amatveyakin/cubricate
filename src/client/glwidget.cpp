@@ -452,9 +452,9 @@ int loadGameMap () {
 //         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, 1);
       }
-//       for (int z = height; z < MAP_SIZE / 2; ++z) {
-//         cubeOctree.set (x, y, z, 2);
-//       }
+      for (int z = height; z < MAP_SIZE / 2; ++z) {
+        cubeOctree.set (x, y, z, 2);
+      }
     }
   }
 
@@ -513,19 +513,19 @@ int loadGameMap () {
   int nNodeValues[MAX_NODE_VALUE];
   std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
   for (int i = 0; i < cubeOctree.nNodes(); ++i) {
-    std::cout.width (3);
-    std::cout << i << ": ";
+//     std::cout.width (3);
+//     std::cout << i << ": ";
     for (int j = 0; j < NODE_STRUCT_SIZE; ++j) {
-      std::cout.width (3);
+//       std::cout.width (3);
       int value = nodes[i * NODE_STRUCT_SIZE + j];
-      if (value == -1)
-        std::cout << "." << " ";
-      else {
-        assert (value >= 0);
-        std::cout << value << " ";
-      }
+//       if (value == -1)
+//         std::cout << "." << " ";
+//       else {
+//         assert (value >= 0);
+//         std::cout << value << " ";
+//       }
     }
-    std::cout << std::endl;
+//     std::cout << std::endl;
     int nodeValue = nodes[i * NODE_STRUCT_SIZE];
     assert (nodeValue >= 0);
     assert (nodeValue < MAX_NODE_VALUE);

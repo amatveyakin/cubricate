@@ -116,24 +116,24 @@ void Octree::computeNeighbours () {
             || m_nodes[node].neighbour (4) >= 0 || m_nodes[node].neighbour (5) >= 0)
           continue;
 
-        for (int neighbourX = x + 1; neighbourX < m_size; ++neighbourX)
-          if (tryToAddNeighbour (node, nodeSize, 0, neighbourX, y, z))
-            break;
-        for (int neighbourY = y + 1; neighbourY < m_size; ++neighbourY)
-          if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
-            break;
-        for (int neighbourZ = z + 1; neighbourZ < m_size; ++neighbourZ)
-          if (tryToAddNeighbour (node, nodeSize, 2, x, y, neighbourZ))
-            break;
-
-        for (int neighbourX = x - 1; neighbourX >= 0; --neighbourX)
-          if (tryToAddNeighbour (node, nodeSize, 5, neighbourX, y, z))
+        for (int neighbourZ = z - 1; neighbourZ >= 0; --neighbourZ)
+          if (tryToAddNeighbour (node, nodeSize, 0, x, y, neighbourZ))
             break;
         for (int neighbourY = y - 1; neighbourY >= 0; --neighbourY)
+          if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
+            break;
+        for (int neighbourX = x - 1; neighbourX >= 0; --neighbourX)
+          if (tryToAddNeighbour (node, nodeSize, 2, neighbourX, y, z))
+            break;
+
+        for (int neighbourX = x + 1; neighbourX < m_size; ++neighbourX)
+          if (tryToAddNeighbour (node, nodeSize, 3, neighbourX, y, z))
+            break;
+        for (int neighbourY = y + 1; neighbourY < m_size; ++neighbourY)
           if (tryToAddNeighbour (node, nodeSize, 4, x, neighbourY, z))
             break;
-        for (int neighbourZ = z - 1; neighbourZ >= 0; --neighbourZ)
-          if (tryToAddNeighbour (node, nodeSize, 3, x, y, neighbourZ))
+        for (int neighbourZ = z + 1; neighbourZ < m_size; ++neighbourZ)
+          if (tryToAddNeighbour (node, nodeSize, 5, x, y, neighbourZ))
             break;
       }
     }
