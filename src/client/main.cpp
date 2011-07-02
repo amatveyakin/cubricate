@@ -64,7 +64,7 @@ int main (int argc, char** argv) {
   else {
     QRect screenGeometry = app.desktop ()->screenGeometry (-1);
 //     QPoint diagonal = screenGeometry.bottomRight () - screenGeometry.topLeft ();
-    int size = (screenGeometry.bottom () - screenGeometry.top ()) * 13 / 16;
+    int size = (screenGeometry.bottom () - screenGeometry.top ()) * 15 / 16;
     glWidget.setGeometry (QRect (0, 0, size, size).translated ((screenGeometry.width () - size) / 2, (screenGeometry.height () - size) / 2));
     glWidget.show ();
   }
