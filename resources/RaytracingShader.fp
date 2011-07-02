@@ -12,7 +12,7 @@ const vec3  vec111 = vec3 (1., 1., 1.);
 const vec3  vec123 = vec3 (1., 2., 3.);
 const vec3  vec124 = vec3 (1., 2., 4.);
 
-const int   TREE_HEIGHT = 2;
+const int   TREE_HEIGHT = 6;
 const float CHUNK_SIZE = 128;
 const int   MAX_ITER_OUTER = 100;
 const int   MAX_ITER_INNER = 100;
@@ -79,10 +79,16 @@ vec3 getNodeMidpoint (vec3 pointInNode, float nodeSize) {
 // nodePointer can be -3, -2, -1, 1, 2, 3
 int getNodeNeighbour (int nodePointer, vec3 direction) {
   int iChild = (nodePointer - 1) % 8;
-  int directionIndex = int (round (dot (direction, vec123)));
-  int shift = siblingShiftTable[7 * iChild + 3 + directionIndex];
-  if (shift != 0)
-    return nodePointer + shift;
+  int directionIndex = int (round (dot (direction, vec124)));
+//   int shift = siblingShiftTable[7 * iChild + 3 + directionIndex];
+//   if (shift != 0)
+//     return nodePointer + shift;
+//   else
+//     return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex)).r;
+
+  if (bool (  int ((iChild & abs (directionIndex)) != 0)   // We can move is negative direction
+            ^ int (directionIndex > 0)                  )) // Current direction is positive
+    return nodePointer + (iChild ^ abs (directionIndex)) - iChild;
   else
     return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex)).r;
 }
