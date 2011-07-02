@@ -1,16 +1,12 @@
 #version 140
 
+uniform isamplerBuffer octTree;
+uniform samplerCube   cubeTexture;
+uniform vec3 origin;
 
-#define EXIT_IF(condition__, r__, g__, b__)   if (bool (condition__)) { vFragColor = vec4 ((r__), (g__), (b__), 1.); return; }
+in  vec3 fDirection;
 
-
-uniform isamplerBuffer  octTree;
-uniform samplerCube     cubeTexture;
-uniform vec3            origin;
-
-in  vec3    fDirection;
-
-out vec4    vFragColor;
+out vec4 vFragColor;
 
 const vec3  vec111 = vec3 (1., 1., 1.);
 const vec3  vec123 = vec3 (1., 2., 3.);
@@ -25,36 +21,37 @@ const int   CUBE_TYPE_AIR     = 0;
 const int   CUBE_TYPE_DIRT    = 1;
 const int   CUBE_TYPE_WATER   = 2;
 
-// Node structure: Type | NeigbourX | NeigbourY | NeigbourZ | Size
+// Node structure: Type | NeigbourX | NeigbourY | NeigbourZ | Size |
 const int   NODE_STRUCT_SIZE       = 5;
 const int   NODE_OFFSET_TYPE       = 0;
 const int   NODE_OFFSET_HEIGHT     = 4;
 const int   NODE_OFFSET_NEIGHBOURS = 0;
 
-// const int   NODE_OFFSET_BY_HEIGHT[] = int[](
-//   /* 0 */  0,
-//   /* 1 */  1,
-//   /* 2 */  9,
-//   /* 3 */  73,
-//   /* 4 */  585,
-//   /* 5 */  4681,
-//   /* 6 */  37449,
-//   /* 7 */  299593,
-//   /* 8 */  2396745,
-//   /* 9 */  19173961
-// );
-//
-// const int siblingShiftTable[] = int[](
-// /* Z-  Y-  X-      X+  Y+  Z+ */
-//    0,  0,  0,  0,  1,  2,  4,  /* 0 */
-//    0,  0, -1,  0,  0,  2,  4,  /* 1 */
-//    0, -2,  0,  0,  1,  0,  4,  /* 2 */
-//    0, -2, -1,  0,  0,  0,  4,  /* 3 */
-//   -4,  0,  0,  0,  1,  2,  0,  /* 4 */
-//   -4,  0, -1,  0,  0,  2,  0,  /* 5 */
-//   -4, -2,  0,  0,  1,  0,  0,  /* 6 */
-//   -4, -2, -1,  0,  0,  0,  0   /* 7 */
-// );
+const int   NODE_OFFSET_BY_HEIGHT[] = int[](
+  /* 0 */  0,
+  /* 1 */  1,
+  /* 2 */  9,
+  /* 3 */  73,
+  /* 4 */  585,
+  /* 5 */  4681,
+  /* 6 */  37449,
+  /* 7 */  299593,
+  /* 8 */  2396745,
+  /* 9 */  19173961
+);
+
+const int siblingShiftTable[] = int[](
+/* Z-  Y-  X-      X+  Y+  Z+ */
+   0,  0,  0,  0,  1,  2,  4,  /* 0 */
+   0,  0, -1,  0,  0,  2,  4,  /* 1 */
+   0, -2,  0,  0,  1,  0,  4,  /* 2 */
+   0, -2, -1,  0,  0,  0,  4,  /* 3 */
+  -4,  0,  0,  0,  1,  2,  0,  /* 4 */
+  -4,  0, -1,  0,  0,  2,  0,  /* 5 */
+  -4, -2,  0,  0,  1,  0,  0,  /* 6 */
+  -4, -2, -1,  0,  0,  0,  0   /* 7 */
+);
+
 
 const float refractionIndices[] = float[](1., 1., 1.333);
 
@@ -79,6 +76,7 @@ vec3 getNodeMidpoint (vec3 pointInNode, float nodeSize) {
   return 2 * nodeSize * (floor (pointInNode / (2 * nodeSize)) + 0.5 * vec111);
 }
 
+// nodePointer can be -3, -2, -1, 1, 2, 3
 int getNodeNeighbour (int nodePointer, vec3 direction) {
   int iChild = (nodePointer - 1) % 8;
   int directionIndex123 = int (round (dot (direction, vec123)));
@@ -100,52 +98,59 @@ bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
   return all (lessThan (abs(point - cubeMidpoint), vec3(cubeSize, cubeSize, cubeSize)));
 }
 
-
 void main(void)
 {
   int   currCubePointer = 0;
-  int   currCubeType = getNodeType (currCubePointer);
+  int   currCubeType;
   int   prevCubeType = 0;
-  vec3  currCubeMidpoint = vec3 (0., 0., 0.);
-  float currCubeSize = CHUNK_SIZE;
+  vec3  currCubeMidpoint;
+  float currCubeSize;
 
   vec3  ray = normalize (fDirection);
-  float currT = 0;
-  float nextT;
-  float delta;
+  float currT, nextT, delta;
   vec3  deltaVector;
-  vec3  currPoint = origin;
-  vec3  nextPoint;
+  vec3  currPoint, nextPoint;
   vec3  normal = ray;
+  currT = 0;
+  currPoint = origin;
 
-  vFragColor = vec4 (0., 0., 0., 1.); // fourth component is transparency, not opacity!
+  vFragColor = vec4 (0., 0., 0., 1.); //fourth component is transparency, not opacity!
+  int iterOuter = 0;
 
-  int   iterOuter = 0;
+  currCubePointer = 0;
+  currCubeSize = CHUNK_SIZE;
+  currCubeMidpoint = vec3 (0., 0., 0.);
+  currCubeType = getNodeType (currCubePointer);
 
-  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05)) {
-//     EXIT_IF (!pointInCube (currPoint, vec3 (0, 0, 0), CHUNK_SIZE)),  1., 0.5, 0.);
-//     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
-//     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
+  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInCube(currPoint, vec3(0, 0, 0), CHUNK_SIZE))) {
+//     if (currCubePointer < 0) {
+//       vFragColor = vec4 (1., 1., 0., 1.);
+//       return;
+//     }
+//     else if (currCubePointer > 8) {
+//       vFragColor = vec4 (0., 1., 1., 1.);
+//       return;
+//     }
 
     int iterInner = 0;
     while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
       currCubeSize /= 2.;
-      vec3 s            = step (currCubeMidpoint, currPoint);
+      vec3 s = step (currCubeMidpoint, currPoint);
       currCubeMidpoint += (2 * s - vec111) * currCubeSize;
-      currCubePointer   = getNodeChild (currCubePointer, int (dot (s, vec124)));
-      currCubeType      = getNodeType (currCubePointer);
+      currCubePointer = getNodeChild (currCubePointer, int (dot (s, vec124)));
+      currCubeType = getNodeType (currCubePointer);
       iterInner++;
     }
 //     if (currCubeType != prevCubeType)
 //       ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
 
-    nextPoint   = currCubeMidpoint + currCubeSize * sign (ray);
+    nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
-    deltaVector = mix (deltaVector, 128 * vec111, isinf (deltaVector));
-    delta       = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
+    deltaVector = mix (deltaVector, 128 * vec111, isinf(deltaVector));
+    delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
 
 
-    if (delta < 0) {
+    if ( delta < 0) {
       vFragColor = vec4 (0.5, 0., 1., 1.);
       return;
     }
@@ -157,6 +162,7 @@ void main(void)
       case CUBE_TYPE_AIR: {
         baseColor = vec3 (1., 1., 1.);
         transparency = pow (0.995, delta);
+        //lightCoef = dot (normal, vec3(3, -1, 7))/12 + 0.4;
         break;
       }
       case CUBE_TYPE_DIRT: {
@@ -164,7 +170,7 @@ void main(void)
         // moistening effect
         if (prevCubeType == CUBE_TYPE_WATER)
           baseColor *= 0.3;
-        lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
+        lightCoef = dot (normal, vec3(3, -1, 7))/12 + 0.3;
         break;
       }
       case CUBE_TYPE_WATER: {
@@ -177,23 +183,38 @@ void main(void)
     vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * (1 - transparency);
     vFragColor.w     *= transparency;
 
+/*    if (currCubeType != CUBE_TYPE_AIR) {
+      vFragColor.xyz = (1 - length (currPoint - origin) / 200)*
+                                            texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
+      vFragColor.w = 0;
+    }*/
     currPoint        += ray * (delta + 0.001);
     normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
 
-//     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
+//     if ( length (normal) > 2.01) {
+//       vFragColor = vec4 (1., 0., 1., 1.);
+//       return;
+//     }
 
     currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
-    if (currCubePointer < 0)
-      return;
+    //if (currCubePointer != -1) {
+      currCubeSize      = getNodeSize (currCubePointer);
+      currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
+/*
+      if (!pointInCube(currPoint, currCubeMidpoint, currCubeSize)) {
+        vFragColor =  vec4(0, 1, 0, 0);
+        return;
+      }*/
 
-    currCubeSize      = getNodeSize (currCubePointer);
-    currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
-//     EXIT_IF (!pointInCube(currPoint, currCubeMidpoint, currCubeSize),  0., 1., 0.);
     prevCubeType      = currCubeType;
     currCubeType      = getNodeType (currCubePointer);
+  //}
 
-    // make epsilon constant
-//     EXIT_IF (delta < 0.,  0., 0., 1.);
+    //make epsilon constant
+//     if (delta < 0) {
+//       vFragColor = vec4(0, 0, 1, 1);
+//       return;
+//     }
 
     iterOuter++;
   }
