@@ -1,12 +1,16 @@
 #version 140
 
-uniform isamplerBuffer octTree;
-uniform samplerCube   cubeTexture;
-uniform vec3 origin;
 
-in  vec3 fDirection;
+#define EXIT_IF(condition__, r__, g__, b__)   if (bool (condition__)) { vFragColor = vec4 ((r__), (g__), (b__), 1.); return; }
 
-out vec4 vFragColor;
+
+uniform isamplerBuffer  octTree;
+uniform samplerCube     cubeTexture;
+uniform vec3            origin;
+
+in  vec3    fDirection;
+
+out vec4    vFragColor;
 
 const vec3  vec111 = vec3 (1., 1., 1.);
 const vec3  vec123 = vec3 (1., 2., 3.);
@@ -51,7 +55,6 @@ const int   NODE_OFFSET_NEIGHBOURS = 0;
 //   -4, -2,  0,  0,  1,  0,  0,  /* 6 */
 //   -4, -2, -1,  0,  0,  0,  0   /* 7 */
 // );
-
 
 const float refractionIndices[] = float[](1., 1., 1.333);
 
@@ -122,14 +125,8 @@ void main(void)
   currCubeType = getNodeType (currCubePointer);
 
   while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInCube(currPoint, vec3(0, 0, 0), CHUNK_SIZE))) {
-//     if (currCubePointer < 0) {
-//       vFragColor = vec4 (1., 1., 0., 1.);
-//       return;
-//     }
-//     else if (currCubePointer > 8) {
-//       vFragColor = vec4 (0., 1., 1., 1.);
-//       return;
-//     }
+//     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
+//     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
 
     int iterInner = 0;
     while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
@@ -149,7 +146,7 @@ void main(void)
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
 
 
-    if ( delta < 0) {
+    if (delta < 0) {
       vFragColor = vec4 (0.5, 0., 1., 1.);
       return;
     }
@@ -184,30 +181,21 @@ void main(void)
     currPoint        += ray * (delta + 0.001);
     normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
 
-//     if (length (normal) > 2.01) {
-//       vFragColor = vec4 (1., 0., 1., 1.);
-//       return;
-//     }
+//     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
 
     currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
     //if (currCubePointer != -1) {
     currCubeSize      = getNodeSize (currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
 
-//     if (!pointInCube(currPoint, currCubeMidpoint, currCubeSize)) {
-//       vFragColor =  vec4(0, 1, 0, 0);
-//       return;
-//     }
+//     EXIT_IF (!pointInCube(currPoint, currCubeMidpoint, currCubeSize),  0., 1., 0.);
 
     prevCubeType      = currCubeType;
     currCubeType      = getNodeType (currCubePointer);
   //}
 
-    //make epsilon constant
-//     if (delta < 0) {
-//       vFragColor = vec4(0, 0, 1, 1);
-//       return;
-//     }
+    // make epsilon constant
+//     EXIT_IF (delta < 0.,  0., 0., 1.);
 
     iterOuter++;
   }
