@@ -49,7 +49,8 @@ protected:
   GLuint  m_locOctTree, m_locOrigin, m_locRaytracingView, m_locCubeTexture;
   GLuint  m_octTreeBuffer;
   GLuint  m_octTreeTexture;
-  GLuint  m_raytracingVAO, m_raytracingVBO;
+  GLuint  m_raytracingFirstPassResult;
+  GLuint  m_raytracingVAO, m_raytracingVBO, m_raytracingFBO;
   GLuint  m_cubeTexture;
 
   GLuint  m_squareTextureArray;

@@ -200,6 +200,18 @@ void GLWidget::initBuffers () {
   glEnableVertexAttribArray (1);
   glBindVertexArray (0);
 
+
+  glGenFramebuffers (1, &m_raytracingFBO);
+  glBindFramebuffer (GL_DRAW_FRAMEBUFFER, m_raytracingFBO);
+
+  glGenTextures(1, &m_raytracingFirstPassResult);
+  glBindTexture(GL_TEXTURE_2D, m_raytracingFirstPassResult);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT, 0, GL_R, GL_FLOAT, NULL);
+
+  glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_raytracingFirstPassResult, 0);
+
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
 }
 
 void GLWidget::initTextures () {

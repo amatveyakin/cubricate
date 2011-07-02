@@ -18,5 +18,10 @@ static_assert (MAP_HEIGHT % CHUNK_SIZE == 0, "Map height must be divisible by ch
 
 const int     PLAYER_SIGHT_RADIUS = 9; // chunks
 
+const int     SCREEN_WIDTH  = 1011;
+const int     SCREEN_HEIGHT = 1011;
+
+const int     RAY_PACKET_WIDTH  = 4;
+const int     RAY_PACKET_HEIGHT = 4;
 
 #endif
