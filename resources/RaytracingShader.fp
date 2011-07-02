@@ -121,7 +121,8 @@ void main(void)
 
   int   iterOuter = 0;
 
-  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInCube (currPoint, vec3 (0, 0, 0), CHUNK_SIZE))) {
+  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05)) {
+    EXIT_IF (!pointInCube (currPoint, vec3 (0, 0, 0), CHUNK_SIZE),  1., 0.5, 0.);
 //     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
 //     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
 
@@ -181,13 +182,14 @@ void main(void)
 //     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
 
     currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
-//     if (currCubePointer != -1) {
+    if (currCubePointer < 0)
+      return;
+
     currCubeSize      = getNodeSize (currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
 //     EXIT_IF (!pointInCube(currPoint, currCubeMidpoint, currCubeSize),  0., 1., 0.);
     prevCubeType      = currCubeType;
     currCubeType      = getNodeType (currCubePointer);
-//     }
 
     // make epsilon constant
 //     EXIT_IF (delta < 0.,  0., 0., 1.);
