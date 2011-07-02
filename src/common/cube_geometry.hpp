@@ -97,12 +97,12 @@
 
 
 enum class Direction {
-  RIGHT,
-  FRONT,
-  UP,
-  LEFT,
-  BACK,
-  DOWN,
+  X_PLUS,
+  Y_PLUS,
+  Z_PLUS,
+  X_MINUS,
+  Y_MINUS,
+  Z_MINUS,
   INVALID
 };
 
@@ -139,21 +139,21 @@ struct CubeWithFace {
 
 static inline void getUnifiedCube (/* i/o */ int& x, int& y, int& z, Direction& face) {
   switch (face) {
-    case Direction::RIGHT:
-    case Direction::FRONT:
-    case Direction::UP:
+    case Direction::X_PLUS:
+    case Direction::Y_PLUS:
+    case Direction::Z_PLUS:
       return;
-    case Direction::LEFT:
+    case Direction::X_MINUS:
       x--;
-      face = Direction::RIGHT;
+      face = Direction::X_PLUS;
       return;
-    case Direction::BACK:
+    case Direction::Y_MINUS:
       y--;
-      face = Direction::FRONT;
+      face = Direction::Y_PLUS;
       return;
-    case Direction::DOWN:
+    case Direction::Z_MINUS:
       z--;
-      face = Direction::UP;
+      face = Direction::Z_PLUS;
       return;
     case Direction::INVALID:
       break;
@@ -169,29 +169,29 @@ static inline CubeWithFace getUnifiedCube (CubeWithFace cubeWithFace) {
 
 static inline void getAdjacentCube (/* i/o */ int& x, int& y, int& z, Direction& face) {
   switch (face) {
-    case Direction::RIGHT:
+    case Direction::X_PLUS:
       x++;
-      face = Direction::LEFT;
+      face = Direction::X_MINUS;
       return;
-    case Direction::FRONT:
+    case Direction::Y_PLUS:
       y++;
-      face = Direction::BACK;
+      face = Direction::Y_MINUS;
       return;
-    case Direction::UP:
+    case Direction::Z_PLUS:
       z++;
-      face = Direction::DOWN;
+      face = Direction::Z_MINUS;
       return;
-    case Direction::LEFT:
+    case Direction::X_MINUS:
       x--;
-      face = Direction::RIGHT;
+      face = Direction::X_PLUS;
       return;
-    case Direction::BACK:
+    case Direction::Y_MINUS:
       y--;
-      face = Direction::FRONT;
+      face = Direction::Y_PLUS;
       return;
-    case Direction::DOWN:
+    case Direction::Z_MINUS:
       z--;
-      face = Direction::UP;
+      face = Direction::Z_PLUS;
       return;
     case Direction::INVALID:
       break;
@@ -215,17 +215,17 @@ static inline Direction getAdjacentFace (Vec3i cube, Vec3i neighbour) {
     return Direction::INVALID;
 
   if      (direction.x () == 1)
-    return Direction::RIGHT;
+    return Direction::X_PLUS;
   else if (direction.y () == 1)
-    return Direction::FRONT;
+    return Direction::Y_PLUS;
   else if (direction.z () == 1)
-    return Direction::UP;
+    return Direction::Z_PLUS;
   else if (direction.x () == -1)
-    return Direction::LEFT;
+    return Direction::X_MINUS;
   else if (direction.y () == -1)
-    return Direction::BACK;
+    return Direction::Y_MINUS;
   else if (direction.z () == -1)
-    return Direction::DOWN;
+    return Direction::Z_MINUS;
 
   return Direction::INVALID;
 }
