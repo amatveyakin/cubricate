@@ -122,7 +122,7 @@ void main(void)
   int   iterOuter = 0;
 
   while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05)) {
-    EXIT_IF (!pointInCube (currPoint, vec3 (0, 0, 0), CHUNK_SIZE),  1., 0.5, 0.);
+//     EXIT_IF (!pointInCube (currPoint, vec3 (0, 0, 0), CHUNK_SIZE)),  1., 0.5, 0.);
 //     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
 //     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
 
