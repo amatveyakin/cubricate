@@ -21,36 +21,36 @@ const int   CUBE_TYPE_AIR     = 0;
 const int   CUBE_TYPE_DIRT    = 1;
 const int   CUBE_TYPE_WATER   = 2;
 
-// Node structure: Type | NeigbourX | NeigbourY | NeigbourZ | Size |
+// Node structure: Type | NeigbourX | NeigbourY | NeigbourZ | Size
 const int   NODE_STRUCT_SIZE       = 5;
 const int   NODE_OFFSET_TYPE       = 0;
 const int   NODE_OFFSET_HEIGHT     = 4;
 const int   NODE_OFFSET_NEIGHBOURS = 0;
 
-const int   NODE_OFFSET_BY_HEIGHT[] = int[](
-  /* 0 */  0,
-  /* 1 */  1,
-  /* 2 */  9,
-  /* 3 */  73,
-  /* 4 */  585,
-  /* 5 */  4681,
-  /* 6 */  37449,
-  /* 7 */  299593,
-  /* 8 */  2396745,
-  /* 9 */  19173961
-);
-
-const int siblingShiftTable[] = int[](
-/* Z-  Y-  X-      X+  Y+  Z+ */
-   0,  0,  0,  0,  1,  2,  4,  /* 0 */
-   0,  0, -1,  0,  0,  2,  4,  /* 1 */
-   0, -2,  0,  0,  1,  0,  4,  /* 2 */
-   0, -2, -1,  0,  0,  0,  4,  /* 3 */
-  -4,  0,  0,  0,  1,  2,  0,  /* 4 */
-  -4,  0, -1,  0,  0,  2,  0,  /* 5 */
-  -4, -2,  0,  0,  1,  0,  0,  /* 6 */
-  -4, -2, -1,  0,  0,  0,  0   /* 7 */
-);
+// const int   NODE_OFFSET_BY_HEIGHT[] = int[](
+//   /* 0 */  0,
+//   /* 1 */  1,
+//   /* 2 */  9,
+//   /* 3 */  73,
+//   /* 4 */  585,
+//   /* 5 */  4681,
+//   /* 6 */  37449,
+//   /* 7 */  299593,
+//   /* 8 */  2396745,
+//   /* 9 */  19173961
+// );
+//
+// const int siblingShiftTable[] = int[](
+// /* Z-  Y-  X-      X+  Y+  Z+ */
+//    0,  0,  0,  0,  1,  2,  4,  /* 0 */
+//    0,  0, -1,  0,  0,  2,  4,  /* 1 */
+//    0, -2,  0,  0,  1,  0,  4,  /* 2 */
+//    0, -2, -1,  0,  0,  0,  4,  /* 3 */
+//   -4,  0,  0,  0,  1,  2,  0,  /* 4 */
+//   -4,  0, -1,  0,  0,  2,  0,  /* 5 */
+//   -4, -2,  0,  0,  1,  0,  0,  /* 6 */
+//   -4, -2, -1,  0,  0,  0,  0   /* 7 */
+// );
 
 
 const float refractionIndices[] = float[](1., 1., 1.333);
@@ -76,7 +76,6 @@ vec3 getNodeMidpoint (vec3 pointInNode, float nodeSize) {
   return 2 * nodeSize * (floor (pointInNode / (2 * nodeSize)) + 0.5 * vec111);
 }
 
-// nodePointer can be -3, -2, -1, 1, 2, 3
 int getNodeNeighbour (int nodePointer, vec3 direction) {
   int iChild = (nodePointer - 1) % 8;
   int directionIndex123 = int (round (dot (direction, vec123)));
@@ -114,7 +113,7 @@ void main(void)
   currT = 0;
   currPoint = origin;
 
-  vFragColor = vec4 (0., 0., 0., 1.); //fourth component is transparency, not opacity!
+  vFragColor = vec4 (0., 0., 0., 1.); // fourth component is transparency, not opacity!
   int iterOuter = 0;
 
   currCubePointer = 0;
@@ -162,7 +161,6 @@ void main(void)
       case CUBE_TYPE_AIR: {
         baseColor = vec3 (1., 1., 1.);
         transparency = pow (0.995, delta);
-        //lightCoef = dot (normal, vec3(3, -1, 7))/12 + 0.4;
         break;
       }
       case CUBE_TYPE_DIRT: {
@@ -170,7 +168,7 @@ void main(void)
         // moistening effect
         if (prevCubeType == CUBE_TYPE_WATER)
           baseColor *= 0.3;
-        lightCoef = dot (normal, vec3(3, -1, 7))/12 + 0.3;
+        lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
         break;
       }
       case CUBE_TYPE_WATER: {
@@ -183,28 +181,23 @@ void main(void)
     vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * (1 - transparency);
     vFragColor.w     *= transparency;
 
-/*    if (currCubeType != CUBE_TYPE_AIR) {
-      vFragColor.xyz = (1 - length (currPoint - origin) / 200)*
-                                            texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
-      vFragColor.w = 0;
-    }*/
     currPoint        += ray * (delta + 0.001);
     normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
 
-//     if ( length (normal) > 2.01) {
+//     if (length (normal) > 2.01) {
 //       vFragColor = vec4 (1., 0., 1., 1.);
 //       return;
 //     }
 
     currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
     //if (currCubePointer != -1) {
-      currCubeSize      = getNodeSize (currCubePointer);
-      currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
-/*
-      if (!pointInCube(currPoint, currCubeMidpoint, currCubeSize)) {
-        vFragColor =  vec4(0, 1, 0, 0);
-        return;
-      }*/
+    currCubeSize      = getNodeSize (currCubePointer);
+    currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
+
+//     if (!pointInCube(currPoint, currCubeMidpoint, currCubeSize)) {
+//       vFragColor =  vec4(0, 1, 0, 0);
+//       return;
+//     }
 
     prevCubeType      = currCubeType;
     currCubeType      = getNodeType (currCubePointer);
