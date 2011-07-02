@@ -100,8 +100,15 @@ bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
   return all (lessThan (abs(point - cubeMidpoint), vec3(cubeSize, cubeSize, cubeSize)));
 }
 
+
 void main(void)
 {
+  int   currCubePointer = 0;
+  int   currCubeType = getNodeType (currCubePointer);
+  int   prevCubeType = 0;
+  vec3  currCubeMidpoint = vec3 (0., 0., 0.);
+  float currCubeSize = CHUNK_SIZE;
+
   vec3  ray = normalize (fDirection);
   float currT = 0;
   float nextT;
@@ -112,12 +119,6 @@ void main(void)
   vec3  normal = ray;
 
   vFragColor = vec4 (0., 0., 0., 1.); // fourth component is transparency, not opacity!
-
-  int   currCubePointer = 0;
-  float currCubeSize = CHUNK_SIZE;
-  vec3  currCubeMidpoint = vec3 (0., 0., 0.);
-  int   currCubeType = getNodeType (currCubePointer);
-  int   prevCubeType = 0;
 
   int   iterOuter = 0;
 
