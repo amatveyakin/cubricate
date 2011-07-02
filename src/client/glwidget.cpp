@@ -515,16 +515,16 @@ int loadGameMap () {
   for (int i = 0; i < cubeOctree.nNodes(); ++i) {
 //     std::cout.width (3);
 //     std::cout << i << ": ";
-    for (int j = 0; j < NODE_STRUCT_SIZE; ++j) {
+//     for (int j = 0; j < NODE_STRUCT_SIZE; ++j) {
 //       std::cout.width (3);
-      int value = nodes[i * NODE_STRUCT_SIZE + j];
+//       int value = nodes[i * NODE_STRUCT_SIZE + j];
 //       if (value == -1)
 //         std::cout << "." << " ";
 //       else {
 //         assert (value >= 0);
 //         std::cout << value << " ";
 //       }
-    }
+//     }
 //     std::cout << std::endl;
     int nodeValue = nodes[i * NODE_STRUCT_SIZE];
     assert (nodeValue >= 0);

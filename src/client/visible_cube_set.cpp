@@ -166,6 +166,8 @@ int VisibleCubeSet::removeCube (int x, int y, int z) {
 
 
 void VisibleCubeSet::changeNExternalNeighbours (int x, int y, int z, CubeTypeT type, int neighboursDelta) {
+  FIX_UNUSED (type);
+
   while (neighboursDelta > 0) {
     addNeighbour (x, y, z);
     neighboursDelta--;
@@ -270,6 +272,8 @@ void ChunksForRender::setRenderChunkState (Vec3i renderChunk, ChunkState newStat
   int iRenderChunk = getRenderChunkIndex (renderChunk);
   ChunkState oldState = m_renderChunksStates [iRenderChunk];
   // TODO: ...
+  FIX_UNUSED (oldState);
+  FIX_UNUSED (newState);
 }
 
 
