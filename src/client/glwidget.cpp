@@ -206,7 +206,7 @@ void GLWidget::initBuffers () {
 
   glGenTextures(1, &m_raytracingFirstPassResult);
   glBindTexture(GL_TEXTURE_2D, m_raytracingFirstPassResult);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT, 0, GL_R, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
 
   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_raytracingFirstPassResult, 0);
 
@@ -303,125 +303,35 @@ void GLWidget::initShaders () {
     std::cout << "Your system does not support OpenGL custom shader programs :-(" << std::endl;
     exit (1);
   }
-
-//   QGLShader vertexShader   (QGLShader::Vertex);
-//   QGLShader fragmentShader (QGLShader::Fragment);
-//
-//   bool result;
-//
-//   result = vertexShader.compileSourceFile ("resources/InstancedCube.vp");
-//   if (!result) {
-//     std::cout << "Unable to compile vertex shader:" << std::endl
-//               << vertexShader.log ().toStdString () << std::endl;
-//     exit (1);
-//   }
-//
-//   result = fragmentShader.compileSourceFile ("resources/InstancedCube.fp");
-//   if (!result) {
-//     std::cout << "Unable to compile fragment shader:" << std::endl
-//               << fragmentShader.log ().toStdString () << std::endl;
-//     exit (1);
-//   }
-
+  
   bool result;
 
-  result = m_shaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/InstancedCube.vp");
-  if (!result) {
-    std::cout << "Unable to compile vertex shader:" << std::endl
-              << m_shaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
-
-  result = m_shaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/InstancedCube.fp");
-  if (!result) {
-    std::cout << "Unable to compile fragment shader:" << std::endl
-              << m_shaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
-
-
-
-  m_shaderProgram.bindAttributeLocation ("v_vertex", 0);
-  m_shaderProgram.bindAttributeLocation ("v_normal", 1);
-  m_shaderProgram.bindAttributeLocation ("v_tex_coord", 2);
-  m_shaderProgram.bindAttributeLocation ("v_pos_and_size", 3);
-  m_shaderProgram.bindAttributeLocation ("v_type", 4);
-
-  result = m_shaderProgram.link ();
-  if (!result) {
-    std::cout << "Unable to link shaders:" << std::endl
-              << m_shaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
-
-  m_instancedCubeShader = m_shaderProgram.programId ();
-  glLinkProgram (m_instancedCubeShader);
-  glUseProgram (m_instancedCubeShader);
-  m_locInstancedCubeMvp            = glGetUniformLocation (m_instancedCubeShader, "mvp_matrix");
-  m_locInstancedCubeMapSize        = glGetUniformLocation (m_instancedCubeShader, "MAP_SIZE");
-  m_locInstancedCubeSquareTexture  = glGetUniformLocation (m_instancedCubeShader, "squareTexture");
-
-  glUniform1i (m_locInstancedCubeMapSize, MAP_SIZE);
-
-
-  result = m_basicShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/BasicShader.vp");
-  if (!result) {
-    std::cout << "Unable to compile vertex shader:" << std::endl
-              << m_basicShaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
-
-  result = m_basicShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/BasicShader.fp");
-  if (!result) {
-    std::cout << "Unable to compile fragment shader:" << std::endl
-              << m_basicShaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
-
-  m_basicShaderProgram.bindAttributeLocation ("vPosition", 0);
-  //m_basicShaderProgram.bindAttributeLocation ("vColor", 1);
-
-  result = m_basicShaderProgram.link ();
-  if (!result) {
-    std::cout << "Unable to link shaders:" << std::endl
-              << m_basicShaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
-  m_locBasicShaderWVP = 0;
-  m_basicShader = m_basicShaderProgram.programId ();
-  glLinkProgram (m_basicShader);
-  glUseProgram (m_basicShader);
-  m_locBasicShaderWVP   = glGetUniformLocation (m_basicShader, "wvpMatrix");
-  //m_locBasicShaderColor = glGetUniformLocation (m_basicShader, "color");
-
   //Raytracing shader initialization
+  result = m_raytracingDepthPassShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/RaytracingShader.vp");
+  result = m_raytracingDepthPassShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/RaytracingShaderDepthPass.fp");
+  m_raytracingDepthPassShaderProgram.bindAttributeLocation ("vPosition",  0);
+  m_raytracingDepthPassShaderProgram.bindAttributeLocation ("vDirection", 1);
+  result = m_raytracingDepthPassShaderProgram.link ();
+  m_raytracingDepthPassShader = m_raytracingDepthPassShaderProgram.programId ();
+  glLinkProgram (m_raytracingDepthPassShader);
+  glUseProgram (m_raytracingDepthPassShader);
+  m_locDepthPassOctTree    = glGetUniformLocation (m_raytracingDepthPassShader, "octTree");
+  m_locDepthPassOrigin     = glGetUniformLocation (m_raytracingDepthPassShader, "origin");
+  m_locDepthPassViewMatrix = glGetUniformLocation (m_raytracingDepthPassShader, "matView");
+
   result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/RaytracingShader.vp");
-  if (!result) {
-//     std::cout << "Unable to compile vertex shader:" << std::endl
-//               << m_raytracingShaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
   result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/RaytracingShader.fp");
-  if (!result) {
-//     std::cout << "Unable to compile fragment shader:" << std::endl
-//               << m_raytracingShaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
   m_raytracingShaderProgram.bindAttributeLocation ("vPosition",  0);
   m_raytracingShaderProgram.bindAttributeLocation ("vDirection", 1);
   result = m_raytracingShaderProgram.link ();
-  if (!result) {
-//     std::cout << "Unable to link shaders:" << std::endl
-//               << m_basicShaderProgram.log ().toStdString () << std::endl;
-    exit (1);
-  }
   m_raytracingShader = m_raytracingShaderProgram.programId ();
   glLinkProgram (m_raytracingShader);
   glUseProgram (m_raytracingShader);
-  m_locOctTree  =       glGetUniformLocation (m_raytracingShader, "octTree");
-  m_locOrigin   =       glGetUniformLocation (m_raytracingShader, "origin");
-  m_locRaytracingView = glGetUniformLocation (m_raytracingShader, "matView");
-  m_locCubeTexture    = glGetUniformLocation (m_raytracingShader, "cubeTexture");
+  m_locOctTree      =  glGetUniformLocation (m_raytracingShader, "octTree");
+  m_locDepthTexture =  glGetUniformLocation (m_raytracingShader, "depthTexture");
+  m_locOrigin       =  glGetUniformLocation (m_raytracingShader, "origin");
+  m_locViewMatrix   =  glGetUniformLocation (m_raytracingShader, "matView");
+  m_locCubeTexture  =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
 }
 
 void GLWidget::setupRenderContext () {
@@ -626,88 +536,60 @@ void GLWidget::initializeGL () {
 }
 
 void GLWidget::paintGL () {
-  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+  GLenum windowBuff[] = {GL_BACK_LEFT};
+  GLenum fboBuffs[] = {GL_COLOR_ATTACHMENT0};
   //glCullFace (GL_BACK);
   glDisable (GL_CULL_FACE);
-  glEnable (GL_DEPTH_TEST);
+  glDisable (GL_DEPTH_TEST);
   //glEnable (GL_MULTISAMPLE);
   M3DMatrix44f matView;
-  glUseProgram (m_raytracingShader);
-
-  //const GLfloat origin[] = {50, 50 , 0};
-  glUniform1i  (m_locOctTree, 0);
-  glUniform1i  (m_locCubeTexture, 1);
-  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
   player.viewFrame().getCameraMatrix (matView, true);
-  glUniformMatrix4fv (m_locRaytracingView, 1, GL_TRUE, matView);
+  
+  //Depth-pass of raytracing
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_raytracingFBO);
+  //glDrawBuffers(1, fboBuffs);
+  glViewport(0, 0, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT);
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  glUseProgram (m_raytracingDepthPassShader);
+  glUniform1i  (m_locOctTree, 0);
+  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
+  glUniformMatrix4fv (m_locViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
 
+  glBindVertexArray (m_raytracingVAO);
+  glDrawArrays (GL_QUADS, 0, 4);
+  
+  
+  //Window-pass of raytracing
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  //glDrawBuffers(1, windowBuff);
+  glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  
+  glUseProgram (m_raytracingShader);
+  
+  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
+  glUniformMatrix4fv (m_locViewMatrix, 1, GL_TRUE, matView);
+  
+  glActiveTexture (GL_TEXTURE0);
+  glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
+  glUniform1i  (m_locOctTree, 0);
+  
   glActiveTexture (GL_TEXTURE1);
+  glBindTexture (GL_TEXTURE_2D, m_raytracingFirstPassResult);
+  glUniform1i  (m_locDepthTexture, 1);
+  
+  glActiveTexture (GL_TEXTURE2);
   glBindTexture (GL_TEXTURE_CUBE_MAP, m_cubeTexture);
+  glUniform1i  (m_locCubeTexture, 2);
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
 
-
-
-// FUCK ALL THIS SHIT, RAYTRACING FTW
-//   M3DMatrix44f mat_View, mat_VP, mat_World, mat_WVP, currentTransform, currentResult;
-//   player.viewFrame ().getCameraMatrix (mat_View, false);
-//   m3dMatrixMultiply44 (mat_VP, m_viewFrustum.GetProjectionMatrix (), mat_View);
-//
-//   glUseProgram (m_instancedCubeShader);
-//   glBindVertexArray (m_cubesVao);
-//
-// //   GLfloat m_rotateCameraAlpha[16], m_rotateCameraBeta[16];
-// //   m3dRotationMatrix44 (m_rotateCameraAlpha, m_cameraAlpha, 1., 0., 0.);
-// //   m3dRotationMatrix44 (m_rotateCameraBeta,  m_cameraBeta,  0., 1., 0.);
-//   m3dTranslationMatrix44 (mat_World, -MAP_SIZE / 2., -MAP_SIZE / 2., -MAP_SIZE / 2.);
-//   m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
-//   glUniformMatrix4fv (m_locInstancedCubeMvp, 1, GL_FALSE, mat_WVP);
-//
-//   glBindTexture (GL_TEXTURE_2D, m_squareTextureArray);
-//   glUniform1i (m_locInstancedCubeSquareTexture, 0);
-//   glDrawArraysInstancedARB (GL_QUADS, 0, 24, cubeArray.nCubes ());
-//
-//   glBindVertexArray (0);
-//
-//   //are we need some useless checks?
-//   //yes we fucking are =(
-//   CubeWithFace headOnCube = player.getHeadOnCube();
-//   float distance = L2::distance(player.pos(), Vec3d::fromVectorConverted (headOnCube.cube));
-//   if ( directionIsValid (headOnCube.face) ) {
-//
-//     const float   SELECTING_BOX_THICKNESS = 0.125;
-//     const GLfloat SELECTING_BOX_COLOR[]   = {0.0f, 0.0f, 0.0f, 1.0f};
-//     Vec3f selectedCube = Vec3f::fromVectorConverted (getAdjacentCube (headOnCube).cube);
-//     Vec3f direction    = selectedCube - Vec3f::fromVectorConverted (headOnCube.cube);
-//
-//     m3dScaleMatrix44 (mat_World, 5 * (1 - xAbs(direction.x ()) * (1 - SELECTING_BOX_THICKNESS)),
-//                                  5 * (1 - xAbs(direction.y ()) * (1 - SELECTING_BOX_THICKNESS)),
-//                                  5 * (1 - xAbs(direction.z ()) * (1 - SELECTING_BOX_THICKNESS))); //some shitty magic
-//     Vec3f pos = selectedCube - direction * ((1 - SELECTING_BOX_THICKNESS) / 2.);
-//     m3dTranslationMatrix44 (currentTransform, pos.x (), pos.y (), pos.z ());
-//     m3dMatrixMultiply44 (currentResult, currentTransform, mat_World);
-//     m3dCopyMatrix44(mat_World, currentResult);
-//     //m3dScaleMatrix44(mat_World, 1, 1, 1);
-//     m3dMatrixMultiply44 (mat_WVP, mat_VP, mat_World);
-//
-//     glUseProgram (m_basicShader);
-//     glBindVertexArray (m_selectingBoxVao);
-//     glDisable(GL_CULL_FACE);
-//     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE);
-//     glLineWidth(6. / distance);
-//
-//     glUniform4fv (m_locBasicShaderColor, 1, SELECTING_BOX_COLOR);
-//     glUniformMatrix4fv (m_locBasicShaderWVP, 1, GL_FALSE, mat_WVP);
-//
-//     glDrawArrays(GL_QUADS, 0, 24);
-//
-//     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL);
-//     glBindVertexArray (0);
-//   }
   m_nFramesDrawn++;
 }
 

@@ -5,6 +5,7 @@
 
 
 uniform isamplerBuffer  octTree;
+uniform sampler2D       depthTexture;
 uniform samplerCube     cubeTexture;
 uniform vec3            origin;
 
@@ -161,7 +162,8 @@ void main(void)
         break;
       }
       case CUBE_TYPE_DIRT: {
-        baseColor = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
+        //baseColor = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
+        baseColor = texture (depthTexture, ((currPoint - currCubeMidpoint) / currCubeSize).xy).rgb;
         // moistening effect
         if (prevCubeType == CUBE_TYPE_WATER)
           baseColor *= 0.3;

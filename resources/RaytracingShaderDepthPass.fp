@@ -5,6 +5,7 @@ uniform vec3 origin;
 
 in  vec3 fDirection;
 
+out vec4    vFragColor;
 const vec3  vec111 = vec3 (1., 1., 1.);
 const vec3  vec123 = vec3 (1., 2., 3.);
 const vec3  vec124 = vec3 (1., 2., 4.);
@@ -114,7 +115,7 @@ void main(void)
   currCubeMidpoint = vec3 (0., 0., 0.);
   currCubeType = getNodeType (currCubePointer);
 
-  while (iterOuter < MAX_ITER_OUTER && (currCubeType == CUBE_TYPE_AIR) && (pointInCube(currPoint, vec3(0, 0, 0), CHUNK_SIZE))) {
+  while (iterOuter < MAX_ITER_OUTER && (pointInCube(currPoint, vec3(0, 0, 0), CHUNK_SIZE))) {
 
     int iterInner = 0;
     while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
@@ -125,7 +126,10 @@ void main(void)
       currCubeType = getNodeType (currCubePointer);
       iterInner++;
     }
-
+    if (currCubeType != CUBE_TYPE_AIR) {
+      vFragColor = vec4(1, 1, 1, 1) * length (currPoint - origin) / (4 * CHUNK_SIZE);      
+      return;
+    }
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
     deltaVector = mix (deltaVector, 128 * vec111, isinf(deltaVector));
@@ -140,6 +144,7 @@ void main(void)
 
     iterOuter++;
   }
-  gl_FragData[0] = length(currPoint - origin) / (4 * CHUNK_SIZE);
+  vFragColor = vec4(1, 1, 1, 1) * length (currPoint - origin) / (4 * CHUNK_SIZE);      
+
 }
 

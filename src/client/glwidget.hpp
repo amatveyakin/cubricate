@@ -47,7 +47,7 @@ protected:
   QGLShaderProgram m_raytracingShaderProgram;
   QGLShaderProgram m_raytracingDepthPassShaderProgram;
   GLint   m_raytracingShader, m_raytracingDepthPassShader;
-  GLuint  m_locOctTree, m_locOrigin, m_locViewMatrix, m_locCubeTexture;
+  GLuint  m_locOctTree, m_locOrigin, m_locViewMatrix, m_locCubeTexture, m_locDepthTexture;
   GLuint  m_locDepthPassOctTree, m_locDepthPassOrigin, m_locDepthPassViewMatrix;
   GLuint  m_octTreeBuffer;
   GLuint  m_octTreeTexture;
