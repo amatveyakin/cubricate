@@ -161,7 +161,8 @@ void main(void)
     switch (currCubeType) {
       case CUBE_TYPE_AIR: {
         baseColor = vec3 (1., 1., 1.);
-        transparency = pow (0.998, delta);
+        transparency = pow (0.995, delta);
+        //lightCoef = dot (normal, vec3(3, -1, 7))/12 + 0.4;
         break;
       }
       case CUBE_TYPE_DIRT: {
@@ -182,6 +183,11 @@ void main(void)
     vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * (1 - transparency);
     vFragColor.w     *= transparency;
 
+/*    if (currCubeType != CUBE_TYPE_AIR) {
+      vFragColor.xyz = (1 - length (currPoint - origin) / 200)*
+                                            texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
+      vFragColor.w = 0;
+    }*/
     currPoint        += ray * (delta + 0.001);
     normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
 

@@ -95,7 +95,7 @@ public:
 
 
 // TODO: can't this fucntion be optimized?
-  void RotateLocalX (double angle) {
+  void rotateLocalX (double angle) {
     M3DMatrix33d rotMat;
     Vec3d localX = crossProduct (m_dirUp, m_dirForward);
     Vec3d rotVec;
@@ -158,7 +158,7 @@ public:
 //   }
 
 
-  void RotateWorld (double angle, double x, double y, double z) {
+  void rotateWorld (double angle, double x, double y, double z) {
     M3DMatrix44d rotMat;
 
     m3dRotationMatrix44 (rotMat, angle, x, y, z);

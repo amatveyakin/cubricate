@@ -452,9 +452,9 @@ int loadGameMap () {
 //         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, 1);
       }
-      for (int z = height; z < MAP_SIZE / 2; ++z) {
+/*      for (int z = height; z < MAP_SIZE / 2; ++z) {
         cubeOctree.set (x, y, z, 2);
-      }
+      }*/
     }
   }
 
@@ -592,7 +592,9 @@ void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
 
   loadGameMap ();
-  player.setPos (Vec3d (0., 0., MAP_SIZE / 8.));
+  player.setPos (Vec3d (0., 0., MAP_SIZE / 4.));
+  player.viewFrame ().rotateLocalX (-M_PI / 2. + 0.01);
+  player.viewFrame ().rotateWorld (M_PI / 2. - 0.1, 0., 0., 1.);
 
   setupRenderContext ();
 
@@ -763,8 +765,8 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
   isLocked = true;
   int centerX = width ()  / 2;
   int centerY = height () / 2;
-  player.viewFrame ().RotateWorld ((event->x () - centerX) / 100., 0., 0., 1.);
-  player.viewFrame ().RotateLocalX (-(event->y () - centerY) / 100.);
+  player.viewFrame ().rotateWorld ((event->x () - centerX) / 100., 0., 0., 1.);
+  player.viewFrame ().rotateLocalX (-(event->y () - centerY) / 100.);
   cursor ().setPos (mapToGlobal (QPoint (centerX, centerY)));
   isLocked = false;
   updateGL ();
