@@ -9,13 +9,11 @@
 
 typedef int TreeDataT;
 
-const int NODE_STRUCT_SIZE = 8;
-
-const int neighbourIndices[] = { 1, 2, 3, 5, 6, 7 };
+const int NODE_STRUCT_SIZE = 5;
 
 struct TreeNodeT {
   TreeDataT& type ()              { return data [0]; }
-  TreeDataT& neighbour (int i)    { assert (i >= 0);  assert (i < 6);  return data [neighbourIndices[i]]; }
+  TreeDataT& neighbour (int i)    { assert (i >= 0);  assert (i < 3);  return data [i + 1]; }
   TreeDataT& height ()            { return data [4]; }
 
   TreeDataT data[NODE_STRUCT_SIZE];
@@ -62,7 +60,10 @@ protected:
   static int  getParent (int node);
   static int  getChild  (int node, int iChild);   // iChild = 0, 1, ..., 7
 
+  void        stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize, int& iChild) const;
   void        stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize) const;
+
+  int         getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize, int& iChild) const;
   int         getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize) const;
   int         getDeepestNode (/* i/o */ int& x, int& y, int& z) const;
 

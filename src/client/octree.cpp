@@ -8,6 +8,20 @@
 #include "client/octree.hpp"
 
 
+// Returns the difference (myNumber - siblingNumber) for every direction, 0 if there is not sibling there
+int siblingShiftTable[8][7] = {
+  /* Z-  Y-  X-      X+  Y+  Z+ */
+  {  0,  0,  0,  0, -1, -2, -4  },  /* 0 */
+  {  0,  0,  1,  0,  0, -2, -4  },  /* 1 */
+  {  0,  2,  0,  0, -1,  0, -4  },  /* 2 */
+  {  0,  2,  1,  0,  0,  0, -4  },  /* 3 */
+  {  4,  0,  0,  0, -1, -2,  0  },  /* 4 */
+  {  4,  0,  1,  0,  0, -2,  0  },  /* 5 */
+  {  4,  2,  0,  0, -1,  0,  0  },  /* 6 */
+  {  4,  2,  1,  0,  0,  0,  0  }   /* 7 */
+};
+
+
 Octree::Octree (int height) {
   m_height = height;
   m_nNodes = 0;
@@ -105,9 +119,9 @@ void Octree::computeNeighbours () {
   for (int x = 0; x < m_size; ++x) {
     for (int y = 0; y < m_size; ++y) {
       for (int z = 0; z < m_size; ++z) {
-        int nodeSize;
+        int nodeSize, iChild;
         int xTmp = x, yTmp = y, zTmp = z;
-        int node = getDeepestNode (xTmp, yTmp, zTmp, nodeSize);
+        int node = getDeepestNode (xTmp, yTmp, zTmp, nodeSize, iChild);
 
 //         std::cout << "(" << x << ", " << y << ", " << z << "): node = " << node << ", nodeSize = " << nodeSize << std::endl;
 
@@ -163,12 +177,12 @@ int Octree::getChild (int node, int iChild) {
 }
 
 
-void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize) const {
+void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize, int& iChild) const {
   nodeSize /= 2;
 //   std::cout << "x = " << x << ", y = " << y << ", z = " << z << ", nodeSize = " << nodeSize << std::endl;
-  int iChild =   (z / nodeSize) * 4
-               + (y / nodeSize) * 2
-               + (x / nodeSize);
+  iChild =   (z / nodeSize) * 4
+            + (y / nodeSize) * 2
+            + (x / nodeSize);
 //   std::cout << "iChild = " << iChild << std::endl;
   assert (iChild < 8);
   z %= nodeSize;
@@ -177,13 +191,24 @@ void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int&
   node = getChild (node, iChild);
 }
 
-int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize) const {
+void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize) const {
+  int tmp;
+  stepDownOneLevel (x, y, z, node, nodeSize, tmp);
+}
+
+
+int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize, int& iChild) const {
   int curNode = 0;
   nodeSize = m_size;
   while  (hasChildren (curNode))
-    stepDownOneLevel (x, y, z, curNode, nodeSize);
+    stepDownOneLevel (x, y, z, curNode, nodeSize, iChild);
   assert (nodeSize > 0);
   return curNode;
+}
+
+int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize) const {
+  int tmp;
+  return getDeepestNode (x, y, z, nodeSize, tmp);
 }
 
 int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z) const {
