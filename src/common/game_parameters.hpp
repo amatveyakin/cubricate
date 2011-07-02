@@ -3,7 +3,7 @@
 
 
 // TODO: delete this block
-const int     TREE_HEIGHT = 8;
+const int     TREE_HEIGHT = 2;
 const int     MAP_SIZE = 1 << TREE_HEIGHT;
 const int     N_MAP_BLOCKS = MAP_SIZE * MAP_SIZE * MAP_SIZE;
 

@@ -9,17 +9,33 @@
 
 
 // Returns the difference (myNumber - siblingNumber) for every direction, 0 if there is not sibling there
-int siblingShiftTable[8][7] = {
+const int siblingShiftTable[8][7] = {
   /* Z-  Y-  X-      X+  Y+  Z+ */
-  {  0,  0,  0,  0, -1, -2, -4  },  /* 0 */
-  {  0,  0,  1,  0,  0, -2, -4  },  /* 1 */
-  {  0,  2,  0,  0, -1,  0, -4  },  /* 2 */
-  {  0,  2,  1,  0,  0,  0, -4  },  /* 3 */
-  {  4,  0,  0,  0, -1, -2,  0  },  /* 4 */
-  {  4,  0,  1,  0,  0, -2,  0  },  /* 5 */
-  {  4,  2,  0,  0, -1,  0,  0  },  /* 6 */
-  {  4,  2,  1,  0,  0,  0,  0  }   /* 7 */
+  {  0,  0,  0,  0,  1,  2,  4  },  /* 0 */
+  {  0,  0, -1,  0,  0,  2,  4  },  /* 1 */
+  {  0, -2,  0,  0,  1,  0,  4  },  /* 2 */
+  {  0, -2, -1,  0,  0,  0,  4  },  /* 3 */
+  { -4,  0,  0,  0,  1,  2,  0  },  /* 4 */
+  { -4,  0, -1,  0,  0,  2,  0  },  /* 5 */
+  { -4, -2,  0,  0,  1,  0,  0  },  /* 6 */
+  { -4, -2, -1,  0,  0,  0,  0  }   /* 7 */
 };
+
+const int SIBLING_SHIFT_TABLE_X_PLUS  = 4;
+const int SIBLING_SHIFT_TABLE_Y_PLUS  = 5;
+const int SIBLING_SHIFT_TABLE_Z_PLUS  = 6;
+const int SIBLING_SHIFT_TABLE_X_MINUS = 2;
+const int SIBLING_SHIFT_TABLE_Y_MINUS = 1;
+const int SIBLING_SHIFT_TABLE_Z_MINUS = 0;
+
+// const int directionToSiblingShiftTable = {
+//   4, /* X_PLUS  */
+//   5, /* Y_PLUS  */
+//   6, /* Z_PLUS  */
+//   2, /* X_MINUS */
+//   1, /* Y_MINUS */
+//   0, /* Z_MINUS */
+// };
 
 
 Octree::Octree (int height) {
@@ -113,7 +129,7 @@ void Octree::computeNeighbours () {
 //   doComputeNeighboursRecursively (0);
 
   for (int i = 0; i < m_nNodes; ++i)
-    for (int j = 0; j < 6; ++j)
+    for (int j = 0; j < 3; ++j)
       m_nodes[i].neighbour (j) = -1;
 
   for (int x = 0; x < m_size; ++x) {
@@ -125,30 +141,61 @@ void Octree::computeNeighbours () {
 
 //         std::cout << "(" << x << ", " << y << ", " << z << "): node = " << node << ", nodeSize = " << nodeSize << std::endl;
 
-        if (   m_nodes[node].neighbour (0) >= 0 || m_nodes[node].neighbour (1) >= 0
-            || m_nodes[node].neighbour (2) >= 0 || m_nodes[node].neighbour (3) >= 0
-            || m_nodes[node].neighbour (4) >= 0 || m_nodes[node].neighbour (5) >= 0)
+        if (m_nodes[node].neighbour (0) >= 0 || m_nodes[node].neighbour (1) >= 0 || m_nodes[node].neighbour (2) >= 0)
           continue;
 
-        for (int neighbourZ = z - 1; neighbourZ >= 0; --neighbourZ)
-          if (tryToAddNeighbour (node, nodeSize, 0, x, y, neighbourZ))
-            break;
-        for (int neighbourY = y - 1; neighbourY >= 0; --neighbourY)
-          if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
-            break;
-        for (int neighbourX = x - 1; neighbourX >= 0; --neighbourX)
-          if (tryToAddNeighbour (node, nodeSize, 2, neighbourX, y, z))
-            break;
+        if (siblingShiftTable [iChild][SIBLING_SHIFT_TABLE_X_PLUS] == 0) {
+          for (int neighbourX = x + 1; neighbourX < m_size; ++neighbourX)
+            if (tryToAddNeighbour (node, nodeSize, 0, neighbourX, y, z))
+              break;
+        }
+        else {
+          for (int neighbourX = x - 1; neighbourX >= 0; --neighbourX)
+            if (tryToAddNeighbour (node, nodeSize, 0, neighbourX, y, z))
+              break;
+        }
 
-        for (int neighbourX = x + 1; neighbourX < m_size; ++neighbourX)
-          if (tryToAddNeighbour (node, nodeSize, 3, neighbourX, y, z))
-            break;
-        for (int neighbourY = y + 1; neighbourY < m_size; ++neighbourY)
-          if (tryToAddNeighbour (node, nodeSize, 4, x, neighbourY, z))
-            break;
-        for (int neighbourZ = z + 1; neighbourZ < m_size; ++neighbourZ)
-          if (tryToAddNeighbour (node, nodeSize, 5, x, y, neighbourZ))
-            break;
+        if (siblingShiftTable [iChild][SIBLING_SHIFT_TABLE_Y_PLUS] == 0) {
+          for (int neighbourY = y + 1; neighbourY < m_size; ++neighbourY)
+            if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
+              break;
+        }
+        else {
+          for (int neighbourY = y - 1; neighbourY >= 0; --neighbourY)
+            if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
+              break;
+        }
+
+        if (siblingShiftTable [iChild][SIBLING_SHIFT_TABLE_Z_PLUS] == 0) {
+          for (int neighbourZ = z + 1; neighbourZ < m_size; ++neighbourZ)
+            if (tryToAddNeighbour (node, nodeSize, 2, x, y, neighbourZ))
+              break;
+        }
+        else {
+          for (int neighbourZ = z - 1; neighbourZ >= 0; --neighbourZ)
+            if (tryToAddNeighbour (node, nodeSize, 2, x, y, neighbourZ))
+              break;
+        }
+
+//         for (int neighbourZ = z - 1; neighbourZ >= 0; --neighbourZ)
+//           if (tryToAddNeighbour (node, nodeSize, 0, x, y, neighbourZ))
+//             break;
+//         for (int neighbourY = y - 1; neighbourY >= 0; --neighbourY)
+//           if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
+//             break;
+//         for (int neighbourX = x - 1; neighbourX >= 0; --neighbourX)
+//           if (tryToAddNeighbour (node, nodeSize, 2, neighbourX, y, z))
+//             break;
+//
+//         for (int neighbourX = x + 1; neighbourX < m_size; ++neighbourX)
+//           if (tryToAddNeighbour (node, nodeSize, 3, neighbourX, y, z))
+//             break;
+//         for (int neighbourY = y + 1; neighbourY < m_size; ++neighbourY)
+//           if (tryToAddNeighbour (node, nodeSize, 4, x, neighbourY, z))
+//             break;
+//         for (int neighbourZ = z + 1; neighbourZ < m_size; ++neighbourZ)
+//           if (tryToAddNeighbour (node, nodeSize, 5, x, y, neighbourZ))
+//             break;
       }
     }
   }

@@ -42,7 +42,7 @@ int main (int argc, char **argv) {
       int dir = DIRECTIONS [iDir];
       if (  ((iChild & abs (dir)) != 0)  // We can move is negative direction
           ^ (dir > 0)                  ) // Current direction is positive
-        std::cout << (iChild - (iChild ^ abs (dir)));
+        std::cout << ((iChild ^ abs (dir)) - iChild);
       else
         std::cout << 0;
       std::cout << ((iDir < N_DIRECTIONS - 1) ? ", " : "  ");

@@ -12,7 +12,7 @@ const vec3  vec111 = vec3 (1., 1., 1.);
 const vec3  vec123 = vec3 (1., 2., 3.);
 const vec3  vec124 = vec3 (1., 2., 4.);
 
-const int   TREE_HEIGHT = 8;
+const int   TREE_HEIGHT = 2;
 const float CHUNK_SIZE = 128;
 const int   MAX_ITER_OUTER = 100;
 const int   MAX_ITER_INNER = 100;
@@ -21,11 +21,11 @@ const int   CUBE_TYPE_AIR     = 0;
 const int   CUBE_TYPE_DIRT    = 1;
 const int   CUBE_TYPE_WATER   = 2;
 
-// Node structure: Type | NeigbourZ- | NeigbourY- | NeigbourX- | Size | NeigbourX+ | NeigbourY+ | NeigbourZ+
-const int   NODE_STRUCT_SIZE       = 8;
+// Node structure: Type | NeigbourX | NeigbourY | NeigbourZ | Size |
+const int   NODE_STRUCT_SIZE       = 5;
 const int   NODE_OFFSET_TYPE       = 0;
 const int   NODE_OFFSET_HEIGHT     = 4;
-const int   NODE_OFFSET_NEIGHBOURS = 4;
+const int   NODE_OFFSET_NEIGHBOURS = 0;
 
 const int   NODE_OFFSET_BY_HEIGHT[] = int[](
   /* 0 */  0,
@@ -39,6 +39,19 @@ const int   NODE_OFFSET_BY_HEIGHT[] = int[](
   /* 8 */  2396745,
   /* 9 */  19173961
 );
+
+const int siblingShiftTable[] = int[](
+/* Z-  Y-  X-      X+  Y+  Z+ */
+   0,  0,  0,  0,  1,  2,  4,  /* 0 */
+   0,  0, -1,  0,  0,  2,  4,  /* 1 */
+   0, -2,  0,  0,  1,  0,  4,  /* 2 */
+   0, -2, -1,  0,  0,  0,  4,  /* 3 */
+  -4,  0,  0,  0,  1,  2,  0,  /* 4 */
+  -4,  0, -1,  0,  0,  2,  0,  /* 5 */
+  -4, -2,  0,  0,  1,  0,  0,  /* 6 */
+  -4, -2, -1,  0,  0,  0,  0   /* 7 */
+);
+
 
 const float refractionIndices[] = float[](1., 1., 1.333);
 
@@ -64,8 +77,14 @@ vec3 getNodeMidpoint (vec3 pointInNode, float nodeSize) {
 }
 
 // nodePointer can be -3, -2, -1, 1, 2, 3
-int getNodeNeighbour (int nodePointer, int neighbourIndex) {
-  return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + neighbourIndex).r;
+int getNodeNeighbour (int nodePointer, vec3 direction) {
+  int iChild = (nodePointer - 1) % 8;
+  int directionIndex = int (round (dot (direction, vec123)));
+  int shift = siblingShiftTable[7 * iChild + 3 + directionIndex];
+  if (shift != 0)
+    return nodePointer + shift;
+  else
+    return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex)).r;
 }
 
 bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
@@ -164,7 +183,7 @@ void main(void)
 //       return;
 //     }
 
-    currCubePointer   = getNodeNeighbour (currCubePointer, -int (round (dot (normal, vec123))));
+    currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
     //if (currCubePointer != -1) {
       currCubeSize      = getNodeSize (currCubePointer);
       currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
