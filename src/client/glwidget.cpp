@@ -221,32 +221,33 @@ void GLWidget::initTextures () {
   const int N_TEXTURES    = 6;
   const int TEXTURE_SIZE  = 16;
 
-  glGenTextures (1, &m_squareTextureArray);
-  glBindTexture (GL_TEXTURE_2D_ARRAY, m_squareTextureArray);
-  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//   glGenTextures (1, &m_squareTextureArray);
+//   glBindTexture (GL_TEXTURE_2D_ARRAY, m_squareTextureArray);
+//   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//
+//   glTexImage3D (GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, N_TEXTURES, 0,
+//                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+//
+//   for (int i = 0; i < N_TEXTURES; i++) {
+//     char textureFileName[256];
+//     sprintf (textureFileName, "resources/textures/tile_%d.tga", i);
+//
+//     QImage rawTexture (textureFileName);
+//     if (rawTexture.isNull ()) {
+//       std::cout << "Cannot open texture file ``" << textureFileName << "''" << std::endl;
+//       exit (1);
+//     }
+//
+//     QImage texture = convertToGLFormat (rawTexture);
+//     assert (!texture.isNull ());
+//
+//     glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
+//   }
 
-  glTexImage3D (GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, N_TEXTURES, 0,
-                GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-  for (int i = 0; i < N_TEXTURES; i++) {
-    char textureFileName[256];
-    sprintf (textureFileName, "resources/textures/tile_%d.tga", i);
-
-    QImage rawTexture (textureFileName);
-    if (rawTexture.isNull ()) {
-      std::cout << "Cannot open texture file ``" << textureFileName << "''" << std::endl;
-      exit (1);
-    }
-
-    QImage texture = convertToGLFormat (rawTexture);
-    assert (!texture.isNull ());
-
-    glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
-  }
 
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers(1, &m_octTreeBuffer);
@@ -280,7 +281,7 @@ void GLWidget::initTextures () {
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  
+
   glTexImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, 6 * N_TEXTURES, 0,
                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   // Load Cube Map images
@@ -301,10 +302,31 @@ void GLWidget::initTextures () {
       rawTexture =  rawTexture.transformed(rotateMatrix);
     QImage texture = convertToGLFormat (rawTexture);
     assert (!texture.isNull ());
-    glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());  
-    }
-    glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
-  } 
+    glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
+  }
+  glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
+
+  const float cubeProperties[] = { 0.993, 1,
+                                   0.95,  1.333,
+                                   0,     1,
+                                   0,     1,
+                                   0,     1,
+                                   0,     1,
+                                   0,     1      };
+
+
+  glGenBuffers (1, &m_cubePropertiesBuffer);
+  glBindBuffer (GL_TEXTURE_BUFFER, m_cubePropertiesBuffer);
+  glBufferData (GL_TEXTURE_BUFFER, sizeof (cubeProperties), cubeProperties, GL_STATIC_DRAW);
+  glBindBuffer (GL_TEXTURE_BUFFER, 0);
+
+  glGenTextures   (1, &m_cubePropertiesTexture);
+  glActiveTexture (GL_TEXTURE3);
+  glBindTexture   (GL_TEXTURE_BUFFER, m_cubePropertiesTexture);
+  glTexBuffer     (GL_TEXTURE_BUFFER, GL_RG32F, m_cubePropertiesBuffer);
+  glBindTexture   (GL_TEXTURE_BUFFER, 0);
+
+}
 
 // TODO: rename shader program files
 void GLWidget::initShaders () {
@@ -312,7 +334,7 @@ void GLWidget::initShaders () {
     std::cout << "Your system does not support OpenGL custom shader programs :-(" << std::endl;
     exit (1);
   }
-  
+
   bool result;
 
   //Raytracing shader initialization
@@ -336,11 +358,12 @@ void GLWidget::initShaders () {
   m_raytracingShader = m_raytracingShaderProgram.programId ();
   glLinkProgram (m_raytracingShader);
   glUseProgram (m_raytracingShader);
-  m_locOctTree      =  glGetUniformLocation (m_raytracingShader, "octTree");
-  m_locDepthTexture =  glGetUniformLocation (m_raytracingShader, "depthTexture");
-  m_locOrigin       =  glGetUniformLocation (m_raytracingShader, "origin");
-  m_locViewMatrix   =  glGetUniformLocation (m_raytracingShader, "matView");
-  m_locCubeTexture  =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
+  m_locOctTree               =  glGetUniformLocation (m_raytracingShader, "octTree");
+  m_locCubePropertiesTexture =  glGetUniformLocation (m_raytracingShader, "cubeProperties");
+  m_locDepthTexture          =  glGetUniformLocation (m_raytracingShader, "depthTexture");
+  m_locOrigin                =  glGetUniformLocation (m_raytracingShader, "origin");
+  m_locViewMatrix            =  glGetUniformLocation (m_raytracingShader, "matView");
+  m_locCubeTexture           =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
 }
 
 void GLWidget::setupRenderContext () {
@@ -356,11 +379,6 @@ void GLWidget::shutdownRenderContext () {
   glDeleteBuffers (1, &m_cubeVbo);
   glDeleteVertexArrays (1, &m_cubesVao);
 }
-
-
-
-
-
 
 
 // 0 means success
@@ -383,10 +401,10 @@ int loadGameMap () {
 //         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, BT_DIRT);
       }
-      if (height > 5 * MAP_SIZE / 8) 
+      if (height > 5 * MAP_SIZE / 8)
         cubeOctree.set (x, y, height - 1, BT_SNOWY_DIRT);
       else
-        cubeOctree.set (x, y, height - 1, BT_GRASS);        
+        cubeOctree.set (x, y, height - 1, BT_GRASS);
       for (int z = height; z < MAP_SIZE / 2; ++z) {
         cubeOctree.set (x, y, z, BT_WATER);
       }
@@ -511,13 +529,13 @@ void GLWidget::paintGL () {
   //glEnable (GL_MULTISAMPLE);
   M3DMatrix44f matView;
   player.viewFrame().getCameraMatrix (matView, true);
-  
+
   //Depth-pass of raytracing
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_raytracingFBO);
   //glDrawBuffers(1, fboBuffs);
   glViewport(0, 0, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+
   glUseProgram (m_raytracingDepthPassShader);
   glUniform1i  (m_locDepthPassOctTree, 0);
   glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
@@ -528,8 +546,8 @@ void GLWidget::paintGL () {
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
-  
-  
+
+
   //Window-pass of raytracing
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_raytracingFBO);
@@ -538,27 +556,32 @@ void GLWidget::paintGL () {
   glDrawBuffers(1, windowBuff);
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  
+
   glUseProgram (m_raytracingShader);
-  
+
   glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
   glUniformMatrix4fv (m_locViewMatrix, 1, GL_TRUE, matView);
-  
+
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
   glUniform1i  (m_locOctTree, 0);
-  
+
   glActiveTexture (GL_TEXTURE1);
   glBindTexture (GL_TEXTURE_2D, m_raytracingFirstPassResult);
   glUniform1i  (m_locDepthTexture, 1);
-  
+
   glActiveTexture (GL_TEXTURE2);
   glBindTexture (GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeTexture);
   glUniform1i  (m_locCubeTexture, 2);
 
+  glActiveTexture (GL_TEXTURE3);
+  glBindTexture (GL_TEXTURE_BUFFER, m_cubePropertiesTexture);
+  glUniform1i  (m_locCubePropertiesTexture, 3);
+
+
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
-  
+
 //   glBlitFramebuffer(0, 0, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT,
 //                           SCREEN_WIDTH * 0.7, SCREEN_HEIGHT * 0.7, SCREEN_WIDTH, SCREEN_HEIGHT, GL_COLOR_BUFFER_BIT, GL_LINEAR );
 

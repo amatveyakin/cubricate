@@ -3,10 +3,16 @@
 
 #define EXIT_IF(condition__, r__, g__, b__)   if (bool (condition__)) { vFragColor = vec4 ((r__), (g__), (b__), 1.); return; }
 
+struct CubeProperties {
+  float transparency;
+  float refractionIndex;
+};
 
 uniform isamplerBuffer   octTree;
+uniform  samplerBuffer   cubeProperties;
 uniform sampler2D        depthTexture;
 uniform samplerCubeArray cubeTexture;
+
 uniform vec3             origin;
 
 in  vec3    fDirection;
@@ -65,8 +71,8 @@ const int     SCREEN_HEIGHT = 1024;
 //   -4, -2, -1,  0,  0,  0,  0   /* 7 */
 // );
 
-const float refractionIndices[] = float[](1., 1., 1.333, 1, 1, 1, 1, 1);
-const float transparencyArray[] = float[](0.995, 0.95, 0, 0, 0, 0, 0);
+// const float refractionIndices[] = float[](1., 1., 1.333, 1, 1, 1, 1, 1);
+// const float transparencyArray[] = float[](0.995, 0.95, 0, 0, 0, 0, 0);
 
 int getNodeParent (int nodePointer) {
   return (nodePointer - 1) / 8;
@@ -105,6 +111,16 @@ int getNodeNeighbour (int nodePointer, vec3 direction) {
     return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
 }
 
+CubeProperties getCubeProperties (int cubeType) {
+  CubeProperties result;
+  vec4 fetch = texelFetch (cubeProperties, cubeType);
+  result.transparency    = fetch.r;
+  result.refractionIndex = fetch.g;
+  return result;
+}
+
+
+
 bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
   return all (lessThan (abs(point - cubeMidpoint), vec3(cubeSize, cubeSize, cubeSize)));
 }
@@ -114,6 +130,7 @@ void main(void)
   int   currCubePointer = 0;
   int   currCubeType;
   int   prevCubeType = 0;
+  CubeProperties currCubeProperties, prevCubeProperties;
   vec3  currCubeMidpoint;
   float currCubeSize;
 
@@ -122,7 +139,7 @@ void main(void)
   vec3  deltaVector;
   vec3  currPoint, nextPoint;
   vec3  normal = ray;
-  
+
   //vec2 samplingPosition = floor (fPosition * SCREEN_WIDTH / RAY_PACKET_WIDTH) * RAY_PACKET_WIDTH  * (1. / SCREEN_WIDTH);
   vec2 samplingPosition = fPosition;
   float samplingShift = 0.5 * RAY_PACKET_WIDTH / SCREEN_WIDTH;
@@ -142,7 +159,7 @@ void main(void)
   currCubeSize = CHUNK_SIZE;
   currCubeMidpoint = vec3 (0., 0., 0.);
   currCubeType = getNodeType (currCubePointer);
-
+  //prevCubeType = currCubeType;
   while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInCube(currPoint, vec3(0, 0, 0), CHUNK_SIZE))) {
 //     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
 //     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
@@ -156,29 +173,25 @@ void main(void)
       currCubeType = getNodeType (currCubePointer);
       iterInner++;
     }
-    if (currCubeType != prevCubeType)
-      ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
+   currCubeProperties = getCubeProperties (currCubeType);
+   if ((currCubeType != prevCubeType) && (iterOuter > 0))
+      ray = normalize (refract (ray, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex));
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
     deltaVector = mix (deltaVector, 128 * vec111, isinf(deltaVector));
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
 
+    EXIT_IF (delta < 0, 0.5, 0., 1.);
 
-    if (delta < 0) {
-      vFragColor = vec4 (0.5, 0., 1., 1.);
-      return;
-    }
-
-    vec3 baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType)).rgb;
-    float transparency = transparencyArray[currCubeType];
+    vec3  baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType)).rgb;
+    float transparency = pow (currCubeProperties.transparency, delta);
     float lightCoef;
-    if (transparency == 0) 
+    if (currCubeProperties.transparency == 0)
       lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
-    else 
+    else
       lightCoef = 1.0;
-    transparency = pow (transparency, delta);      
- 
+
 //     switch (currCubeType) {
 //       case CUBE_TYPE_AIR: {
 //         //baseColor = vec3 (1., 1., 1.);
@@ -219,7 +232,8 @@ void main(void)
 
 //     EXIT_IF (!pointInCube(currPoint, currCubeMidpoint, currCubeSize),  0., 1., 0.);
 
-    prevCubeType      = currCubeType;
+    prevCubeType       = currCubeType;
+    prevCubeProperties = currCubeProperties;
     currCubeType      = getNodeType (currCubePointer);
   //}
 
