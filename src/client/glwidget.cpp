@@ -377,9 +377,9 @@ int loadGameMap () {
 //         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, 1);
       }
-/*      for (int z = height; z < MAP_SIZE / 2; ++z) {
+      for (int z = height; z < MAP_SIZE / 2; ++z) {
         cubeOctree.set (x, y, z, 2);
-      }*/
+      }
     }
   }
 

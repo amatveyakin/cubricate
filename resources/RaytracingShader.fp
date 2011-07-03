@@ -33,11 +33,11 @@ const int   NODE_OFFSET_TYPE       = 0;
 const int   NODE_OFFSET_HEIGHT     = 4;
 const int   NODE_OFFSET_NEIGHBOURS = 0;
 
-const int     RAY_PACKET_WIDTH  = 8;
-const int     RAY_PACKET_HEIGHT = 8;
+const int     RAY_PACKET_WIDTH  = 4;
+const int     RAY_PACKET_HEIGHT = 4;
 
-const int     SCREEN_WIDTH  = 1011;
-const int     SCREEN_HEIGHT = 1011;
+const int     SCREEN_WIDTH  = 1024;
+const int     SCREEN_HEIGHT = 1024;
 
 
 // const int   NODE_OFFSET_BY_HEIGHT[] = int[](
@@ -123,14 +123,14 @@ void main(void)
   vec3  currPoint, nextPoint;
   vec3  normal = ray;
   
-  vec2 samplingPosition = floor (fPosition * SCREEN_WIDTH / RAY_PACKET_WIDTH) * RAY_PACKET_WIDTH  * (1. / SCREEN_WIDTH);
-  //vec2 samplingPosition = fPosition;
-  float samplingShift = RAY_PACKET_WIDTH / SCREEN_WIDTH;
+  //vec2 samplingPosition = floor (fPosition * SCREEN_WIDTH / RAY_PACKET_WIDTH) * RAY_PACKET_WIDTH  * (1. / SCREEN_WIDTH);
+  vec2 samplingPosition = fPosition;
+  float samplingShift = 0.5 * RAY_PACKET_WIDTH / SCREEN_WIDTH;
    float minDepth = min (min (texture (depthTexture, samplingPosition + vec2(samplingShift,  samplingShift)).g, texture (depthTexture, samplingPosition + vec2(-samplingShift,  samplingShift)).g),
                          min (texture (depthTexture, samplingPosition + vec2(samplingShift, -samplingShift)).g, texture (depthTexture, samplingPosition + vec2(-samplingShift, -samplingShift)).g));
   //float minDepth = texture (depthTexture, samplingPosition).g;
   //minDepth = max( minDepth, 0);
-  currT = minDepth * 4 * CHUNK_SIZE - 2;
+  currT = minDepth * 4 * CHUNK_SIZE - 3;
   currT = max (currT, 0);
   //currT = 0;
   currPoint = origin + ray * currT;
@@ -156,8 +156,8 @@ void main(void)
       currCubeType = getNodeType (currCubePointer);
       iterInner++;
     }
-//     if (currCubeType != prevCubeType)
-//       ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
+    if (currCubeType != prevCubeType)
+      ray = normalize (refract (ray, normal, 1/ (refractionIndices[currCubeType] / refractionIndices[prevCubeType])));
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = (nextPoint - currPoint) / ray;
