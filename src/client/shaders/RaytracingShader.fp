@@ -100,7 +100,11 @@ void main(void)
 //     EXIT_IF (delta < 0, 0.5, 0., 1.);
 
     vec3  baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType)).rgb;
-    float transparency = pow (currCubeProperties.transparency, delta);
+    float transparency;
+    if (currCubeProperties.transparency == 0.)
+      transparency = 0.;
+    else
+      transparency = pow (currCubeProperties.transparency, delta);
     float lightCoef;
     if (currCubeProperties.transparency == 0)
       lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
