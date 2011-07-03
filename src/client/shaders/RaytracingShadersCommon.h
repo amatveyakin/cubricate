@@ -13,8 +13,7 @@ const int   MAX_ITER_OUTER = 100;
 const int   MAX_ITER_INNER = 100;
 
 const int   CUBE_TYPE_AIR     = 0;
-const int   CUBE_TYPE_DIRT    = 1;
-const int   CUBE_TYPE_WATER   = 2;
+const int   CUBE_TYPE_WATER   = 1;
 
 // Node structure: Type | NeigbourX | NeigbourY | NeigbourZ | Size
 const int   NODE_STRUCT_SIZE       = 5;

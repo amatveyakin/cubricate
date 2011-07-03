@@ -88,8 +88,8 @@ void main(void)
       currCubeType = getNodeType (currCubePointer);
       iterInner++;
     }
-   currCubeProperties = getCubeProperties (currCubeType);
-   if ((currCubeType != prevCubeType) && (iterOuter > 0))
+    currCubeProperties = getCubeProperties (currCubeType);
+    if ((currCubeType != prevCubeType) && (iterOuter > 0))
       ray = normalize (refract (ray, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex));
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
@@ -100,16 +100,25 @@ void main(void)
 //     EXIT_IF (delta < 0, 0.5, 0., 1.);
 
     vec3  baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType)).rgb;
+
     float transparency;
     if (currCubeProperties.transparency == 0.)
       transparency = 0.;
     else
       transparency = pow (currCubeProperties.transparency, delta);
+
     float lightCoef;
     if (currCubeProperties.transparency == 0)
       lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
     else
       lightCoef = 1.0;
+
+    float moisteningCoeff;
+    if (currCubeType > CUBE_TYPE_WATER && prevCubeType == CUBE_TYPE_WATER)
+      moisteningCoeff = 0.3;
+    else
+      moisteningCoeff = 1.;
+
 
 //     switch (currCubeType) {
 //       case CUBE_TYPE_AIR: {
@@ -136,7 +145,7 @@ void main(void)
 //       }
 //     }
 
-    vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * (1 - transparency);
+    vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * moisteningCoeff * (1 - transparency);
     vFragColor.w     *= transparency;
 
     currPoint        += ray * (delta + 0.001);
