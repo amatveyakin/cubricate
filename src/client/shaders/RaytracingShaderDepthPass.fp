@@ -8,6 +8,8 @@ uniform vec3 origin;
 in  vec2    fPosition;
 in  vec3    fDirection;
 
+out vec4    vFragColor;
+
 
 include(`RaytracingShadersCommon.h')
 
