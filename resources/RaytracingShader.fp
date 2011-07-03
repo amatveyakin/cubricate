@@ -10,6 +10,7 @@ uniform samplerCube     cubeTexture;
 uniform vec3            origin;
 
 in  vec3    fDirection;
+in  vec2    fPosition;
 
 out vec4    vFragColor;
 
@@ -31,6 +32,13 @@ const int   NODE_STRUCT_SIZE       = 5;
 const int   NODE_OFFSET_TYPE       = 0;
 const int   NODE_OFFSET_HEIGHT     = 4;
 const int   NODE_OFFSET_NEIGHBOURS = 0;
+
+const int     RAY_PACKET_WIDTH  = 8;
+const int     RAY_PACKET_HEIGHT = 8;
+
+const int     SCREEN_WIDTH  = 1011;
+const int     SCREEN_HEIGHT = 1011;
+
 
 // const int   NODE_OFFSET_BY_HEIGHT[] = int[](
 //   /* 0 */  0,
@@ -114,12 +122,22 @@ void main(void)
   vec3  deltaVector;
   vec3  currPoint, nextPoint;
   vec3  normal = ray;
-  currT = 0;
-  currPoint = origin;
+  
+  vec2 samplingPosition = floor (fPosition * SCREEN_WIDTH / RAY_PACKET_WIDTH) * RAY_PACKET_WIDTH  * (1. / SCREEN_WIDTH);
+  //vec2 samplingPosition = fPosition;
+  float samplingShift = RAY_PACKET_WIDTH / SCREEN_WIDTH;
+   float minDepth = min (min (texture (depthTexture, samplingPosition + vec2(samplingShift,  samplingShift)).g, texture (depthTexture, samplingPosition + vec2(-samplingShift,  samplingShift)).g),
+                         min (texture (depthTexture, samplingPosition + vec2(samplingShift, -samplingShift)).g, texture (depthTexture, samplingPosition + vec2(-samplingShift, -samplingShift)).g));
+  //float minDepth = texture (depthTexture, samplingPosition).g;
+  //minDepth = max( minDepth, 0);
+  currT = minDepth * 4 * CHUNK_SIZE - 2;
+  currT = max (currT, 0);
+  //currT = 0;
+  currPoint = origin + ray * currT;
 
   vFragColor = vec4 (0., 0., 0., 1.); // fourth component is transparency, not opacity!
+  //int iterOuter = int (texture (cubeTexture, vec3(1, 0.5, -0.5)).r);
   int iterOuter = 0;
-
   currCubePointer = 0;
   currCubeSize = CHUNK_SIZE;
   currCubeMidpoint = vec3 (0., 0., 0.);
@@ -157,13 +175,16 @@ void main(void)
     float lightCoef = 1.;
     switch (currCubeType) {
       case CUBE_TYPE_AIR: {
-        baseColor = vec3 (1., 1., 1.);
+        //baseColor = vec3 (1., 1., 1.);
         transparency = pow (0.995, delta);
         break;
       }
       case CUBE_TYPE_DIRT: {
-        //baseColor = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
-        baseColor = texture (depthTexture, ((currPoint - currCubeMidpoint) / currCubeSize).xy).rgb;
+        baseColor = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
+        //baseColor = texture (depthTexture, (vec2(1,1) + ((currPoint - currCubeMidpoint) / currCubeSize).xz) / 2).rgb;
+        //baseColor = texture (depthTexture,((currPoint - currCubeMidpoint) / currCubeSize).xz).rgb;
+        //baseColor = texture (depthTexture, fPosition).rgb;
+        //baseColor = vec3(0, 1, 0);
         // moistening effect
         if (prevCubeType == CUBE_TYPE_WATER)
           baseColor *= 0.3;

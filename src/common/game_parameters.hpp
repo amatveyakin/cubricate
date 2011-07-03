@@ -21,7 +21,7 @@ const int     PLAYER_SIGHT_RADIUS = 9; // chunks
 const int     SCREEN_WIDTH  = 1011;
 const int     SCREEN_HEIGHT = 1011;
 
-const int     RAY_PACKET_WIDTH  = 4;
-const int     RAY_PACKET_HEIGHT = 4;
+const int     RAY_PACKET_WIDTH  = 8;
+const int     RAY_PACKET_HEIGHT = 8;
 
 #endif

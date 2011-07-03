@@ -6,9 +6,12 @@ in vec3 vPosition;
 in vec3 vDirection;
 
 out vec3 fDirection;
+out vec2    fPosition;
 
 void main(void)
 {
   gl_Position =  vec4(vPosition, 1.0);
+  fPosition   = (vPosition.xy + vec2 (1, 1)) / 2;
+  //fPosition = vPosition.xy;
   fDirection  = (matView * vec4(vDirection, 0)).xyz;
 }

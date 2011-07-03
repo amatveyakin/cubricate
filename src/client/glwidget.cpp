@@ -207,6 +207,9 @@ void GLWidget::initBuffers () {
   glGenTextures(1, &m_raytracingFirstPassResult);
   glBindTexture(GL_TEXTURE_2D, m_raytracingFirstPassResult);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 
   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_raytracingFirstPassResult, 0);
 
@@ -566,7 +569,10 @@ void GLWidget::paintGL () {
   
   //Window-pass of raytracing
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  //glDrawBuffers(1, windowBuff);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_raytracingFBO);
+  glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+  glDrawBuffers(1, windowBuff);
   glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   
@@ -589,6 +595,9 @@ void GLWidget::paintGL () {
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
+  
+//   glBlitFramebuffer(0, 0, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT,
+//                           SCREEN_WIDTH * 0.7, SCREEN_HEIGHT * 0.7, SCREEN_WIDTH, SCREEN_HEIGHT, GL_COLOR_BUFFER_BIT, GL_LINEAR );
 
   m_nFramesDrawn++;
 }

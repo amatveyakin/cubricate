@@ -3,7 +3,8 @@
 uniform isamplerBuffer octTree;
 uniform vec3 origin;
 
-in  vec3 fDirection;
+in  vec2    fPosition;
+in  vec3    fDirection;
 
 out vec4    vFragColor;
 const vec3  vec111 = vec3 (1., 1., 1.);
