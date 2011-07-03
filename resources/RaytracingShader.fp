@@ -1,4 +1,5 @@
 #version 140
+#extension GL_ARB_texture_cube_map_array : enable
 
 
 #define EXIT_IF(condition__, r__, g__, b__)   if (bool (condition__)) { vFragColor = vec4 ((r__), (g__), (b__), 1.); return; }
