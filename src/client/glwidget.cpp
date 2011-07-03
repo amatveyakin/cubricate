@@ -429,10 +429,12 @@ int loadGameMap () {
 //         cubeArray.addCube (x, y, z, 2);
         cubeOctree.set (x, y, z, BT_DIRT);
       }
-      if (height > 5 * MAP_SIZE / 8)
-        cubeOctree.set (x, y, height - 1, BT_SNOWY_DIRT);
-      else
-        cubeOctree.set (x, y, height - 1, BT_GRASS);
+      if (height >= 1) {
+        if (height > 5 * MAP_SIZE / 8)
+          cubeOctree.set (x, y, height - 1, BT_SNOWY_DIRT);
+        else
+          cubeOctree.set (x, y, height - 1, BT_GRASS);
+      }
       for (int z = height; z < MAP_SIZE / 2; ++z) {
         cubeOctree.set (x, y, z, BT_WATER);
       }
