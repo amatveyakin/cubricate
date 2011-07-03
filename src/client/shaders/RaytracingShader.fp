@@ -61,7 +61,13 @@ void main(void)
   //currT = 0;
   currPoint = origin + ray * currT;
 
-  vFragColor = vec4 (0., 0., 0., 1.); // fourth component is transparency, not opacity!
+  CubeProperties airProperties = getCubeProperties (CUBE_TYPE_AIR);
+  vec3  baseColor = texture (cubeTexture, vec4(1, 0, 0, CUBE_TYPE_AIR)).rgb;
+  float transparency = pow (airProperties.transparency, currT);
+  vFragColor.xyz   = baseColor * (1 - transparency);
+  vFragColor.w     = transparency;
+
+  //vFragColor = vec4 (0., 0., 0., 1.); // fourth component is transparency, not opacity!
   //int iterOuter = int (texture (cubeTexture, vec3(1, 0.5, -0.5)).r);
   int iterOuter = 0;
   currCubePointer = 0;
