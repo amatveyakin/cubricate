@@ -326,6 +326,30 @@ void GLWidget::initTextures () {
   glTexBuffer     (GL_TEXTURE_BUFFER, GL_RG32F, m_cubePropertiesBuffer);
   glBindTexture   (GL_TEXTURE_BUFFER, 0);
 
+
+  const int siblingShiftTable[] = {
+/* Z-  Y-  X-      X+  Y+  Z+ */
+   0,  0,  0,  0,  1,  2,  4,  /* 0 */
+   0,  0, -1,  0,  0,  2,  4,  /* 1 */
+   0, -2,  0,  0,  1,  0,  4,  /* 2 */
+   0, -2, -1,  0,  0,  0,  4,  /* 3 */
+  -4,  0,  0,  0,  1,  2,  0,  /* 4 */
+  -4,  0, -1,  0,  0,  2,  0,  /* 5 */
+  -4, -2,  0,  0,  1,  0,  0,  /* 6 */
+  -4, -2, -1,  0,  0,  0,  0   /* 7 */ };
+
+  glGenBuffers (1, &m_siblingShiftTableBuffer);
+  glBindBuffer (GL_TEXTURE_BUFFER, m_siblingShiftTableBuffer);
+  glBufferData (GL_TEXTURE_BUFFER, sizeof (siblingShiftTable), siblingShiftTable, GL_STATIC_DRAW);
+  glBindBuffer (GL_TEXTURE_BUFFER, 0);
+
+  glGenTextures   (1, &m_siblingShiftTableTexture);
+  glActiveTexture (GL_TEXTURE4);
+  glBindTexture   (GL_TEXTURE_BUFFER, m_siblingShiftTableTexture);
+  glTexBuffer     (GL_TEXTURE_BUFFER, GL_R32I, m_siblingShiftTableBuffer);
+  glBindTexture   (GL_TEXTURE_BUFFER, 0);
+
+
 }
 
 // TODO: rename shader program files
@@ -347,6 +371,7 @@ void GLWidget::initShaders () {
   glLinkProgram (m_raytracingDepthPassShader);
   glUseProgram (m_raytracingDepthPassShader);
   m_locDepthPassOctTree    = glGetUniformLocation (m_raytracingDepthPassShader, "octTree");
+  m_locDepthPassSiblingShiftTableTexture  =  glGetUniformLocation (m_raytracingDepthPassShader, "siblingShiftTable");
   m_locDepthPassOrigin     = glGetUniformLocation (m_raytracingDepthPassShader, "origin");
   m_locDepthPassViewMatrix = glGetUniformLocation (m_raytracingDepthPassShader, "matView");
 
@@ -358,12 +383,13 @@ void GLWidget::initShaders () {
   m_raytracingShader = m_raytracingShaderProgram.programId ();
   glLinkProgram (m_raytracingShader);
   glUseProgram (m_raytracingShader);
-  m_locOctTree               =  glGetUniformLocation (m_raytracingShader, "octTree");
-  m_locCubePropertiesTexture =  glGetUniformLocation (m_raytracingShader, "cubeProperties");
-  m_locDepthTexture          =  glGetUniformLocation (m_raytracingShader, "depthTexture");
-  m_locOrigin                =  glGetUniformLocation (m_raytracingShader, "origin");
-  m_locViewMatrix            =  glGetUniformLocation (m_raytracingShader, "matView");
-  m_locCubeTexture           =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
+  m_locOctTree                   =  glGetUniformLocation (m_raytracingShader, "octTree");
+  m_locCubePropertiesTexture     =  glGetUniformLocation (m_raytracingShader, "cubeProperties");
+  m_locSiblingShiftTableTexture  =  glGetUniformLocation (m_raytracingShader, "siblingShiftTable");
+  m_locDepthTexture              =  glGetUniformLocation (m_raytracingShader, "depthTexture");
+  m_locOrigin                    =  glGetUniformLocation (m_raytracingShader, "origin");
+  m_locViewMatrix                =  glGetUniformLocation (m_raytracingShader, "matView");
+  m_locCubeTexture               =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
 }
 
 void GLWidget::setupRenderContext () {
@@ -537,12 +563,17 @@ void GLWidget::paintGL () {
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glUseProgram (m_raytracingDepthPassShader);
-  glUniform1i  (m_locDepthPassOctTree, 0);
+
   glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
   glUniformMatrix4fv (m_locDepthPassViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
+  glUniform1i  (m_locDepthPassOctTree, 0);
+
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture (GL_TEXTURE_BUFFER, m_siblingShiftTableTexture);
+  glUniform1i  (m_locDepthPassSiblingShiftTableTexture, 4);
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
@@ -577,6 +608,10 @@ void GLWidget::paintGL () {
   glActiveTexture (GL_TEXTURE3);
   glBindTexture (GL_TEXTURE_BUFFER, m_cubePropertiesTexture);
   glUniform1i  (m_locCubePropertiesTexture, 3);
+
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture (GL_TEXTURE_BUFFER, m_siblingShiftTableTexture);
+  glUniform1i  (m_locSiblingShiftTableTexture, 4);
 
 
   glBindVertexArray (m_raytracingVAO);

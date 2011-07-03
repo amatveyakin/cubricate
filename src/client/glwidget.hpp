@@ -48,10 +48,11 @@ protected:
   QGLShaderProgram m_raytracingDepthPassShaderProgram;
   GLint   m_raytracingShader, m_raytracingDepthPassShader;
   GLuint  m_locOctTree,     m_locOrigin,       m_locViewMatrix;
-  GLuint  m_locCubeTexture, m_locDepthTexture, m_locCubePropertiesTexture;
-  GLuint  m_locDepthPassOctTree, m_locDepthPassOrigin, m_locDepthPassViewMatrix;
-  GLuint  m_octTreeBuffer,        m_octTreeTexture;
-  GLuint  m_cubePropertiesBuffer, m_cubePropertiesTexture;
+  GLuint  m_locCubeTexture, m_locDepthTexture, m_locCubePropertiesTexture, m_locSiblingShiftTableTexture;
+  GLuint  m_locDepthPassOctTree, m_locDepthPassOrigin, m_locDepthPassViewMatrix, m_locDepthPassSiblingShiftTableTexture;
+  GLuint  m_octTreeBuffer,           m_octTreeTexture;
+  GLuint  m_cubePropertiesBuffer,    m_cubePropertiesTexture;
+  GLuint  m_siblingShiftTableBuffer, m_siblingShiftTableTexture;
   GLuint  m_raytracingFirstPassResult;
   GLuint  m_raytracingVAO,  m_raytracingVBO,   m_raytracingFBO;
   GLuint  m_cubeTexture;

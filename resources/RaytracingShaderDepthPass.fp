@@ -1,6 +1,7 @@
 #version 140
 
 uniform isamplerBuffer octTree;
+uniform isamplerBuffer siblingShiftTable;
 uniform vec3 origin;
 
 in  vec2    fPosition;
@@ -26,30 +27,30 @@ const int   NODE_OFFSET_TYPE       = 0;
 const int   NODE_OFFSET_HEIGHT     = 4;
 const int   NODE_OFFSET_NEIGHBOURS = 0;
 
-const int   NODE_OFFSET_BY_HEIGHT[] = int[](
-  /* 0 */  0,
-  /* 1 */  1,
-  /* 2 */  9,
-  /* 3 */  73,
-  /* 4 */  585,
-  /* 5 */  4681,
-  /* 6 */  37449,
-  /* 7 */  299593,
-  /* 8 */  2396745,
-  /* 9 */  19173961
-);
+// const int   NODE_OFFSET_BY_HEIGHT[] = int[](
+//   /* 0 */  0,
+//   /* 1 */  1,
+//   /* 2 */  9,
+//   /* 3 */  73,
+//   /* 4 */  585,
+//   /* 5 */  4681,
+//   /* 6 */  37449,
+//   /* 7 */  299593,
+//   /* 8 */  2396745,
+//   /* 9 */  19173961
+// );
 
-const int siblingShiftTable[] = int[](
-/* Z-  Y-  X-      X+  Y+  Z+ */
-   0,  0,  0,  0,  1,  2,  4,  /* 0 */
-   0,  0, -1,  0,  0,  2,  4,  /* 1 */
-   0, -2,  0,  0,  1,  0,  4,  /* 2 */
-   0, -2, -1,  0,  0,  0,  4,  /* 3 */
-  -4,  0,  0,  0,  1,  2,  0,  /* 4 */
-  -4,  0, -1,  0,  0,  2,  0,  /* 5 */
-  -4, -2,  0,  0,  1,  0,  0,  /* 6 */
-  -4, -2, -1,  0,  0,  0,  0   /* 7 */
-);
+// const int siblingShiftTable[] = int[](
+// /* Z-  Y-  X-      X+  Y+  Z+ */
+//    0,  0,  0,  0,  1,  2,  4,  /* 0 */
+//    0,  0, -1,  0,  0,  2,  4,  /* 1 */
+//    0, -2,  0,  0,  1,  0,  4,  /* 2 */
+//    0, -2, -1,  0,  0,  0,  4,  /* 3 */
+//   -4,  0,  0,  0,  1,  2,  0,  /* 4 */
+//   -4,  0, -1,  0,  0,  2,  0,  /* 5 */
+//   -4, -2,  0,  0,  1,  0,  0,  /* 6 */
+//   -4, -2, -1,  0,  0,  0,  0   /* 7 */
+// );
 
 int getNodeParent (int nodePointer) {
   return (nodePointer - 1) / 8;
@@ -76,17 +77,17 @@ int getNodeNeighbour (int nodePointer, vec3 direction) {
   int iChild = (nodePointer - 1) % 8;
   int directionIndex123 = int (round (dot (direction, vec123)));
   int directionIndex124 = int (round (dot (direction, vec124)));
-//   int shift = siblingShiftTable[7 * iChild + 3 + directionIndex];
-//   if (shift != 0)
-//     return nodePointer + shift;
-//   else
-//     return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex)).r;
-
-  if (bool (  int ((iChild & abs (directionIndex124)) != 0)   // We can move is negative direction
-            ^ int (directionIndex124 > 0)                  )) // Current direction is positive
-    return nodePointer + (iChild ^ abs (directionIndex124)) - iChild;
+  int shift = texelFetch (siblingShiftTable, 7 * iChild + 3 + directionIndex123).r;
+  if (shift != 0)
+    return nodePointer + shift;
   else
     return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
+
+//   if (bool (  int ((iChild & abs (directionIndex124)) != 0)   // We can move is negative direction
+//             ^ int (directionIndex124 > 0)                  )) // Current direction is positive
+//     return nodePointer + (iChild ^ abs (directionIndex124)) - iChild;
+//   else
+//     return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
 }
 
 bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
@@ -128,7 +129,7 @@ void main(void)
       iterInner++;
     }
     if (currCubeType != CUBE_TYPE_AIR) {
-      vFragColor = vec4(1, 1, 1, 1) * length (currPoint - origin) / (4 * CHUNK_SIZE);      
+      vFragColor = vec4(1, 1, 1, 1) * length (currPoint - origin) / (4 * CHUNK_SIZE);
       return;
     }
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
@@ -145,7 +146,7 @@ void main(void)
 
     iterOuter++;
   }
-  vFragColor = vec4(1, 1, 1, 1) * length (currPoint - origin) / (4 * CHUNK_SIZE);      
+  vFragColor = vec4(1, 1, 1, 1) * length (currPoint - origin) / (4 * CHUNK_SIZE);
 
 }
 
