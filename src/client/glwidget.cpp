@@ -525,7 +525,7 @@ void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
 
   loadGameMap ();
-  player.setPos (Vec3d (0., 0., MAP_SIZE / 4.));
+  player.setPos (Vec3d (0.1, 0.1, MAP_SIZE / 8.));
   player.viewFrame ().rotateLocalX (-M_PI / 2. + 0.01);
   player.viewFrame ().rotateWorld (M_PI / 2. - 0.1, 0., 0., 1.);
 
