@@ -2,11 +2,7 @@
 #define GAME_PARAMETERS_HPP
 
 
-// TODO: delete this block
-const int     TREE_HEIGHT = 6;
-const int     MAP_SIZE = 1 << TREE_HEIGHT;
-const int     N_MAP_BLOCKS = MAP_SIZE * MAP_SIZE * MAP_SIZE;
-
+#include "client/shaders_common.h"
 
 
 const int     CHUNK_SIZE = 16;
@@ -18,10 +14,5 @@ static_assert (MAP_HEIGHT % CHUNK_SIZE == 0, "Map height must be divisible by ch
 
 const int     PLAYER_SIGHT_RADIUS = 9; // chunks
 
-const int     SCREEN_WIDTH  = 1024;
-const int     SCREEN_HEIGHT = 1024;
-
-const int     RAY_PACKET_WIDTH  = 4;
-const int     RAY_PACKET_HEIGHT = 4;
 
 #endif

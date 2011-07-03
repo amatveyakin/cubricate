@@ -2,3 +2,5 @@ build
 .kdev4
 *~
 *.kate-swp
+/resources/*.fp
+/resources/*.vp
