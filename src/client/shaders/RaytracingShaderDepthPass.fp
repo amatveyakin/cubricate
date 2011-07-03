@@ -53,8 +53,8 @@ void main(void)
       return;
     }
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
-    deltaVector = (nextPoint - currPoint) / ray;
-    deltaVector = mix (deltaVector, 128 * vec111, isinf(deltaVector));
+    deltaVector = abs ((nextPoint - currPoint) / ray);
+    //deltaVector = mix (deltaVector, 128 * vec111, isinf(deltaVector));
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
 
     currPoint        += ray * (delta + 0.001);
