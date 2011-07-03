@@ -77,17 +77,17 @@ int getNodeNeighbour (int nodePointer, vec3 direction) {
   int iChild = (nodePointer - 1) % 8;
   int directionIndex123 = int (round (dot (direction, vec123)));
   int directionIndex124 = int (round (dot (direction, vec124)));
-  int shift = texelFetch (siblingShiftTable, 7 * iChild + 3 + directionIndex123).r;
-  if (shift != 0)
-    return nodePointer + shift;
-  else
-    return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
-
-//   if (bool (  int ((iChild & abs (directionIndex124)) != 0)   // We can move is negative direction
-//             ^ int (directionIndex124 > 0)                  )) // Current direction is positive
-//     return nodePointer + (iChild ^ abs (directionIndex124)) - iChild;
+//   int shift = texelFetch (siblingShiftTable, 7 * iChild + 3 + directionIndex123).r;
+//   if (shift != 0)
+//     return nodePointer + shift;
 //   else
 //     return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
+
+  if (bool (  int ((iChild & abs (directionIndex124)) != 0)   // We can move is negative direction
+            ^ int (directionIndex124 > 0)                  )) // Current direction is positive
+    return nodePointer + (iChild ^ abs (directionIndex124)) - iChild;
+  else
+    return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
 }
 
 bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
