@@ -519,9 +519,9 @@ void GLWidget::paintGL () {
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
   glUseProgram (m_raytracingDepthPassShader);
-  glUniform1i  (m_locOctTree, 0);
-  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
-  glUniformMatrix4fv (m_locViewMatrix, 1, GL_TRUE, matView);
+  glUniform1i  (m_locDepthPassOctTree, 0);
+  glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
+  glUniformMatrix4fv (m_locDepthPassViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
