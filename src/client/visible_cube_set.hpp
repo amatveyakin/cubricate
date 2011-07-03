@@ -54,7 +54,7 @@ protected:
 
   int xyzToPosition (int x, int y, int z) const   { return  x * m_sizeY * m_sizeZ  +  y * m_sizeZ  +  z; }
 
-  static CubeTypeT emptyCube ()                   { return static_cast <CubeTypeT> (BlockType::EMPTY); }
+  static CubeTypeT emptyCube ()                   { return static_cast <CubeTypeT> (BT_AIR); }
   static CubeTypeT isEmpty (CubeTypeT cubeType)   { return cubeType == emptyCube (); }
 };
 

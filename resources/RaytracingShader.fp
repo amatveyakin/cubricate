@@ -4,10 +4,10 @@
 #define EXIT_IF(condition__, r__, g__, b__)   if (bool (condition__)) { vFragColor = vec4 ((r__), (g__), (b__), 1.); return; }
 
 
-uniform isamplerBuffer  octTree;
-uniform sampler2D       depthTexture;
-uniform samplerCube     cubeTexture;
-uniform vec3            origin;
+uniform isamplerBuffer   octTree;
+uniform sampler2D        depthTexture;
+uniform samplerCubeArray cubeTexture;
+uniform vec3             origin;
 
 in  vec3    fDirection;
 in  vec2    fPosition;
@@ -65,8 +65,8 @@ const int     SCREEN_HEIGHT = 1024;
 //   -4, -2, -1,  0,  0,  0,  0   /* 7 */
 // );
 
-const float refractionIndices[] = float[](1., 1., 1.333);
-
+const float refractionIndices[] = float[](1., 1., 1.333, 1, 1, 1, 1, 1);
+const float transparencyArray[] = float[](0.995, 0.95, 0, 0, 0, 0, 0);
 
 int getNodeParent (int nodePointer) {
   return (nodePointer - 1) / 8;
@@ -170,33 +170,39 @@ void main(void)
       return;
     }
 
-    vec3 baseColor = vec3 (0., 0., 0.);
-    float transparency = 0.;
-    float lightCoef = 1.;
-    switch (currCubeType) {
-      case CUBE_TYPE_AIR: {
-        //baseColor = vec3 (1., 1., 1.);
-        transparency = pow (0.995, delta);
-        break;
-      }
-      case CUBE_TYPE_DIRT: {
-        baseColor = texture (cubeTexture, (currPoint - currCubeMidpoint) / currCubeSize).rgb;
-        //baseColor = texture (depthTexture, (vec2(1,1) + ((currPoint - currCubeMidpoint) / currCubeSize).xz) / 2).rgb;
-        //baseColor = texture (depthTexture,((currPoint - currCubeMidpoint) / currCubeSize).xz).rgb;
-        //baseColor = texture (depthTexture, fPosition).rgb;
-        //baseColor = vec3(0, 1, 0);
-        // moistening effect
-        if (prevCubeType == CUBE_TYPE_WATER)
-          baseColor *= 0.3;
-        lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
-        break;
-      }
-      case CUBE_TYPE_WATER: {
-        baseColor = vec3 (0., 0.1, 0.7);
-        transparency = pow (0.93, delta);
-        break;
-      }
-    }
+    vec3 baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType)).rgb;
+    float transparency = transparencyArray[currCubeType];
+    float lightCoef;
+    if (transparency == 0) 
+      lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
+    else 
+      lightCoef = 1.0;
+    transparency = pow (transparency, delta);      
+ 
+//     switch (currCubeType) {
+//       case CUBE_TYPE_AIR: {
+//         //baseColor = vec3 (1., 1., 1.);
+//         transparency = pow (0.995, delta);
+//         break;
+//       }
+//       case CUBE_TYPE_DIRT: {
+//         //baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, 4)).rgb;
+//         //baseColor = texture (depthTexture, (vec2(1,1) + ((currPoint - currCubeMidpoint) / currCubeSize).xz) / 2).rgb;
+//         //baseColor = texture (depthTexture,((currPoint - currCubeMidpoint) / currCubeSize).xz).rgb;
+//         //baseColor = texture (depthTexture, fPosition).rgb;
+//         //baseColor = vec3(0, 1, 0);
+//         // moistening effect
+//         if (prevCubeType == CUBE_TYPE_WATER)
+//           baseColor *= 0.3;
+//         lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
+//         break;
+//       }
+//       case CUBE_TYPE_WATER: {
+//         baseColor = vec3 (0., 0.1, 0.7);
+//         transparency = pow (0.93, delta);
+//         break;
+//       }
+//     }
 
     vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * (1 - transparency);
     vFragColor.w     *= transparency;

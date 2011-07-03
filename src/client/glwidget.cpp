@@ -218,7 +218,7 @@ void GLWidget::initBuffers () {
 }
 
 void GLWidget::initTextures () {
-  const int N_TEXTURES    = 256;
+  const int N_TEXTURES    = 6;
   const int TEXTURE_SIZE  = 16;
 
   glGenTextures (1, &m_squareTextureArray);
@@ -260,7 +260,7 @@ void GLWidget::initTextures () {
   glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, m_octTreeBuffer);
   glBindTexture(GL_TEXTURE_BUFFER, 0);
 
-  const char *szCubeFaces[6] = { "right.tga", "left.tga", "front.tga", "back.tga", "up.tga", "down.tga" };
+  const char *szCubeFaces[6] = { "right", "left", "front", "back", "up", "down" };
   const float angles[6] = {-90, 90, 0, 180, 0, 0};
   GLenum  cube[6] = { GL_TEXTURE_CUBE_MAP_POSITIVE_X,
                       GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -271,34 +271,40 @@ void GLWidget::initTextures () {
 
 
   glGenTextures(1, &m_cubeTexture);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTexture);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeTexture);
 
   // Set up texture maps
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
+  
+  glTexImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, 6 * N_TEXTURES, 0,
+                GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   // Load Cube Map images
-  for(int i = 0; i < 6; ++i) {
-    // Load this texture map
-    //pBytes = gltReadTGABits(("resources/textures" + std::string(szCubeFaces[i])).c_str(), &iWidth, &iHeight, &iComponents, &eFormat);
-    QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
-    if (rawTexture.isNull ()) {
-      std::cout << "Cannot open texture file !!!" << std::endl;
-      exit (1);
-    }
-    QMatrix rotateMatrix;
-    rotateMatrix.rotate (angles[i]);
-    rawTexture =  rawTexture.transformed(rotateMatrix);
+  for (int i = 0; i < N_TEXTURES; ++i)
+    for(int j = 0; j < 6; ++j) {
+      // Load this texture map
+      //pBytes = gltReadTGABits(("resources/textures" + std::string(szCubeFaces[i])).c_str(), &iWidth, &iHeight, &iComponents, &eFormat);
+      char textureFileName[256];
+      sprintf (textureFileName, "resources/textures/cubemaps/%d/%s.tga", i, szCubeFaces[j]);
+      //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
+      QImage rawTexture (textureFileName);
+      if (rawTexture.isNull ()) {
+        std::cout << "Cannot open texture file !!!" << std::endl;
+        exit (1);
+      }
+      QMatrix rotateMatrix;
+      rotateMatrix.rotate (angles[j]);
+      rawTexture =  rawTexture.transformed(rotateMatrix);
     QImage texture = convertToGLFormat (rawTexture);
     assert (!texture.isNull ());
-    glTexImage2D(cube[i], 0, GL_RGBA8, texture.width(), texture.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits());
-  }
-  glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-}
+    glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());  
+    }
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
+  } 
 
 // TODO: rename shader program files
 void GLWidget::initShaders () {
@@ -373,65 +379,22 @@ int loadGameMap () {
 //         cubeOctree.set (x, y, height - 1, 1);
 //         height--;
 //       }
-      for (int z = 0; z < height; ++z) {
+      for (int z = 0; z < height - 1; ++z) {
 //         cubeArray.addCube (x, y, z, 2);
-        cubeOctree.set (x, y, z, 1);
+        cubeOctree.set (x, y, z, BT_DIRT);
       }
+      if (height > 5 * MAP_SIZE / 8) 
+        cubeOctree.set (x, y, height - 1, BT_SNOWY_DIRT);
+      else
+        cubeOctree.set (x, y, height - 1, BT_GRASS);        
       for (int z = height; z < MAP_SIZE / 2; ++z) {
-        cubeOctree.set (x, y, z, 2);
+        cubeOctree.set (x, y, z, BT_WATER);
       }
     }
   }
 
   cubeOctree.computeNeighbours ();
 
-  // testing map
-  for (int x = 0; x < MAP_SIZE; ++x) {
-    for (int y = 0; y < MAP_SIZE; ++y) {
-      int state = 1;
-      for (int z = 0; z < MAP_SIZE; ++z) {
-        switch (state) {
-          case 1:  // dirt
-            switch (int (cubeOctree.get (x, y, z))) {
-              case 1:  // dirt
-                break;
-              case 2:  // water
-                state = 2;
-                break;
-              case 0:  // air
-                state = 0;
-                break;
-            }
-            break;
-          case 2:  // water
-            switch (int (cubeOctree.get (x, y, z))) {
-              case 1:  // dirt
-                abort ();
-                break;
-              case 2:  // water
-                break;
-              case 0:  // air
-                state = 0;
-                break;
-            }
-            break;
-          case 0:  // air
-            switch (int (cubeOctree.get (x, y, z))) {
-              case 1:  // dirt
-                abort ();
-                break;
-              case 2:  // water
-                abort ();
-                break;
-              case 0:  // air
-                state = 0;
-                break;
-            }
-            break;
-        }
-      }
-    }
-  }
 
   int MAX_NODE_VALUE = 256;
   const TreeDataT* nodes = cubeOctree.nodes();
@@ -590,7 +553,7 @@ void GLWidget::paintGL () {
   glUniform1i  (m_locDepthTexture, 1);
   
   glActiveTexture (GL_TEXTURE2);
-  glBindTexture (GL_TEXTURE_CUBE_MAP, m_cubeTexture);
+  glBindTexture (GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeTexture);
   glUniform1i  (m_locCubeTexture, 2);
 
   glBindVertexArray (m_raytracingVAO);

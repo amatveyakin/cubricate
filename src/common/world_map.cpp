@@ -19,7 +19,7 @@ WorldBlock WorldMap::cube (Vec3i cubePos) const {
   const WorldChunk& chunkRef = it->second;
   if (   it == m_chunks.end ()
       || chunkRef.state () != ChunkState::ACTIVE)
-    return BlockType::EMPTY;
+    return BT_AIR;
   return chunkRef.cube (cubeInChunk);
 }
 

@@ -2,15 +2,17 @@
 #define WORLD_BLOCK_HPP
 
 
-enum class BlockType : unsigned char {
-  EMPTY = 0,
-  DIRT,
-  SNOW,
-  LAVA
+enum BlockType : unsigned char {
+  BT_AIR = 0,
+  BT_WATER,
+  BT_DIRT,
+  BT_GRASS,
+  BT_SNOWY_DIRT,
+  BT_BRICKS
 };
 
 static inline bool blockIsVisible (BlockType type) {
-  return type == BlockType::EMPTY;
+  return type == BT_AIR;
 }
 
 
