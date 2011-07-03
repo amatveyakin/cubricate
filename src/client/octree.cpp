@@ -247,7 +247,7 @@ void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int&
 int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize, int& iChild) const {
   int curNode = 0;
   nodeSize = m_size;
-  while  (hasChildren (curNode))
+  while (hasChildren (curNode))
     stepDownOneLevel (x, y, z, curNode, nodeSize, iChild);
   assert (nodeSize > 0);
   return curNode;

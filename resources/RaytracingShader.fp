@@ -26,7 +26,7 @@ const vec3  vec123 = vec3 (1., 2., 3.);
 const vec3  vec124 = vec3 (1., 2., 4.);
 
 const int   TREE_HEIGHT = 6;
-const float CHUNK_SIZE = 128;
+const float CHUNK_SIZE = (1 << TREE_HEIGHT) / 2.;
 const int   MAX_ITER_OUTER = 100;
 const int   MAX_ITER_INNER = 100;
 

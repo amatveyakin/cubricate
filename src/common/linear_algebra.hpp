@@ -10,6 +10,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <ostream>
 
 #include "common/math_utils.hpp"
 
@@ -322,9 +323,10 @@ template <int DIMENSION, typename ElementT>
 Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
   static_assert (!std::numeric_limits <ElementT>::is_integer,
                  "Are you sure your want to apply floor function to an integer type?");
+  Vector <DIMENSION, ElementT> result;
   for (int i = 0; i < DIMENSION; ++i)
-    a.at (i) = floor (a.at (i));
-  return a;
+    result.at (i) = floor (a.at (i));
+  return result;
 }
 
 
@@ -422,6 +424,14 @@ namespace Linf {
   Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
     return a / norm (a);
   }
+}
+
+
+
+template <int DIMENSION, typename ElementT>
+std::ostream& operator<< (std::ostream& os, Vector <DIMENSION, ElementT> a) {
+  os << "(" << a.x () << ", " << a.y () << ", " << a.z () << ")";
+  return os;
 }
 
 

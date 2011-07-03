@@ -34,7 +34,7 @@ static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
 
 CubeWithFace Player::getHeadOnCube() {
   Vec3d currentPoint = m_viewFrame.origin ();
-  Vec3d forwardVector = m_viewFrame.dirForward ();
+  Vec3d forwardVector = -m_viewFrame.dirForward ();  // TODO: ???
   Vec3i mapCenter = Vec3i::replicated (MAP_SIZE / 2);
 
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);

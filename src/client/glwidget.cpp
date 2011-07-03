@@ -38,6 +38,7 @@ const double FPS_MEASURE_INTERVAL = 1.; // sec
 // }
 
 void GLWidget::lockCubes () {
+  glBindBuffer(GL_TEXTURE_BUFFER, m_octTreeBuffer);
   TreeDataT* buffer = (TreeDataT *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
                                                       cubeOctree.nNodes() * sizeof (TreeNodeT),
                                                       GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
@@ -46,6 +47,7 @@ void GLWidget::lockCubes () {
 
 void GLWidget::unlockCubes () {
   glUnmapBuffer (GL_TEXTURE_BUFFER);
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
   cubeOctree.restorePointer ();
 }
 
@@ -439,7 +441,6 @@ int loadGameMap () {
 
   cubeOctree.computeNeighbours ();
 
-
   int MAX_NODE_VALUE = 256;
   const TreeDataT* nodes = cubeOctree.nodes();
   int nNodeValues[MAX_NODE_VALUE];
@@ -466,7 +467,7 @@ int loadGameMap () {
   std::cout << std::endl;
 
   std::cout << "Cube type frequency:" << std::endl;
-  for (int i = 0;i < MAX_NODE_VALUE; ++i)
+  for (int i = 0; i < MAX_NODE_VALUE; ++i)
     if (nNodeValues[i] != 0)
       std::cout << i << ": " << nNodeValues[i] << std::endl;
   std::cout << std::endl;
@@ -706,7 +707,10 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       lockCubes ();
 //       cubeArray.removeCube (XYZ_LIST (headOnCube));
       cubeOctree.set (XYZ_LIST (headOnCube), 0);
+      cubeOctree.computeNeighbours ();
       unlockCubes ();
+      cubeOctree.set (XYZ_LIST (headOnCube), 0);
+      cubeOctree.computeNeighbours ();
       break;
     }
     case Qt::RightButton: {
@@ -720,7 +724,10 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       lockCubes ();
 //       cubeArray.addCube (XYZ_LIST (newCube), 7);
       cubeOctree.set (XYZ_LIST (newCube), 1);
+      cubeOctree.computeNeighbours ();
       unlockCubes ();
+      cubeOctree.set (XYZ_LIST (newCube), 1);
+      cubeOctree.computeNeighbours ();
       break;
     }
     default:
