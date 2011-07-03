@@ -99,13 +99,15 @@ void main(void)
 
 //     EXIT_IF (delta < 0, 0.5, 0., 1.);
 
-    vec3  baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType)).rgb;
+    vec4  baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType));
 
     float transparency;
     if (currCubeProperties.transparency == 0.)
       transparency = 0.;
     else
       transparency = pow (currCubeProperties.transparency, delta);
+    if ((currCubeType != prevCubeType) && (iterOuter > 0))
+      transparency *= baseColor.a;
 
     float lightCoef;
     if (currCubeProperties.transparency == 0)
@@ -145,7 +147,7 @@ void main(void)
 //       }
 //     }
 
-    vFragColor.xyz   += baseColor * vFragColor.w * lightCoef * moisteningCoeff * (1 - transparency);
+    vFragColor.xyz   += baseColor.rgb * vFragColor.w * lightCoef * moisteningCoeff * (1 - transparency);
     vFragColor.w     *= transparency;
 
     currPoint        += ray * (delta + 0.001);
