@@ -155,7 +155,6 @@ void GLWidget::initBuffers () {
   offset += sizeof (cubeTexCoords);
 
   m_CUBES_INFORMATION_OFFSET = offset;
-  chunksForRender.init (offset);
   // TODO: It's probably better to pack each cube's data instead of doing a shift
   glVertexAttribPointer (3, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
   offset += N_MAX_BLOCKS_DRAWN * 4 * sizeof (GLfloat);
@@ -265,12 +264,12 @@ void GLWidget::initTextures () {
 
   const char *szCubeFaces[6] = { "right", "left", "front", "back", "up", "down" };
   const float angles[6] = {-90, 90, 0, 180, 0, 0};
-  GLenum  cube[6] = { GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-                      GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-                      GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-                      GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-                      GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-                      GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
+//   GLenum  cube[6] = { GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+//                       GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+//                       GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+//                       GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+//                       GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+//                       GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
 
   glGenTextures(1, &m_cubeTexture);
@@ -551,7 +550,7 @@ void GLWidget::initializeGL () {
 void GLWidget::paintGL () {
 
   GLenum windowBuff[] = {GL_BACK_LEFT};
-  GLenum fboBuffs[] = {GL_COLOR_ATTACHMENT0};
+  //GLenum fboBuffs[] = {GL_COLOR_ATTACHMENT0};
   //glCullFace (GL_BACK);
   glDisable (GL_CULL_FACE);
   glDisable (GL_DEPTH_TEST);

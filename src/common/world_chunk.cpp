@@ -50,9 +50,7 @@ void WorldChunk::setCube (Vec3i cubeInChunk, WorldBlock newBlock) {
   m_cubes (cubeInChunk) = newBlock;
 
 #ifdef CLIENT_APP
-  Vec3i renderChunk (m_pos.x (), m_pos.y (), divFloored (cubeInChunk.z (), CHUNK_SIZE));
-  Vec3i cubeInRenderChunk (cubeInChunk.x (), cubeInChunk.y (), modFloored (cubeInChunk.z (), CHUNK_SIZE));
-  chunksForRender.setCube (renderChunk, cubeInRenderChunk, newBlock.type);
+  // ...
 #endif // CLIENT_APP
 }
 

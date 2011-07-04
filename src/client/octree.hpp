@@ -2,9 +2,10 @@
 #define OCTREE_HPP
 
 
+#include <cassert>
+
 #include "common/c++0x_workaround.hpp"
 #include "common/cube_geometry.hpp"
-// #include "common/world_block.hpp"
 
 
 typedef int TreeDataT;
