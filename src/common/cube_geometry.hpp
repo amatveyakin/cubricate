@@ -233,7 +233,8 @@ static inline Direction getAdjacentFace (Vec3i cube, Vec3i neighbour) {
 
 
 static inline Vec3i worldToCube (Vec3d pos) {
-  return Vec3i::fromVectorConverted (floor (pos + Vec3d (0.5, 0.5, 0.5)));
+//   return Vec3i::fromVectorConverted (floor (pos + Vec3d (0.5, 0.5, 0.5)));
+  return Vec3i::fromVectorConverted (floor (pos));
 }
 
 static inline Vec2i cubeToChunk (Vec3i cube) {

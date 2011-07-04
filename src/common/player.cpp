@@ -33,6 +33,8 @@ static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
 
 
 CubeWithFace Player::getHeadOnCube() {
+//   return CubeWithFace (worldToCube (m_viewFrame.origin ()), Direction::X_PLUS);
+
   Vec3d currentPoint = m_viewFrame.origin ();
   Vec3d forwardVector = -m_viewFrame.dirForward ();  // TODO: ???
   Vec3i mapCenter = Vec3i::replicated (MAP_SIZE / 2);
@@ -45,10 +47,10 @@ CubeWithFace Player::getHeadOnCube() {
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
       if (forwardVector[i] > 0)
-        nearestInt[i] = floor (currentPoint[i] - 0.5) + 1.5;
+        nearestInt[i] = floor (currentPoint[i]) + 1;
       else
       if (forwardVector[i] < 0)
-        nearestInt[i] = ceil  (currentPoint[i] + 0.5) - 1.5;
+        nearestInt[i] = ceil  (currentPoint[i]) - 1;
       else
         nearestInt[i] = 1;
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
