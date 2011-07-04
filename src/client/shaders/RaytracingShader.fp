@@ -102,7 +102,7 @@ void main(void)
 
 //     EXIT_IF (delta < 0, 0.5, 0., 1.);
 
-    vec4  baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, currCubeType));
+    vec4 baseColor = texture (cubeTexture, vec4 (fract ((currPoint - currCubeMidpoint) + vec111 * currCubeSize) - vec111 / 2, currCubeType));
 
     float transparency;
     if (currCubeProperties.transparency == 0.)

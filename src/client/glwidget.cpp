@@ -724,10 +724,10 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
         break;
       lockCubes ();
 //       cubeArray.addCube (XYZ_LIST (newCube), 7);
-      cubeOctree.set (XYZ_LIST (newCube), 1);
+      cubeOctree.set (XYZ_LIST (newCube), 5);
       cubeOctree.computeNeighbours ();
       unlockCubes ();
-      cubeOctree.set (XYZ_LIST (newCube), 1);
+      cubeOctree.set (XYZ_LIST (newCube), 5);
       cubeOctree.computeNeighbours ();
       break;
     }
