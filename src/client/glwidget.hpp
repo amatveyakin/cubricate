@@ -57,6 +57,11 @@ protected:
   GLuint  m_raytracingVAO,  m_raytracingVBO,   m_raytracingFBO;
   GLuint  m_cubeTexture;
 
+  QGLShaderProgram m_UIShaderProgram;
+  GLint  m_UIShader;
+  GLuint m_locUITexture;
+  GLuint m_UITexture;
+
   GLuint  m_squareTextureArray;
 
   GLFrustum     m_viewFrustum;
@@ -88,6 +93,8 @@ protected:
   void mouseMoveEvent (QMouseEvent* event);
   void mousePressEvent (QMouseEvent* event);
   void timerEvent (QTimerEvent* event);
+
+  void renderUI ();
 };
 
 

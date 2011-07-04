@@ -1,0 +1,11 @@
+#version 140
+
+in vec3 vPosition;
+
+out vec2 fPosition;
+
+void main(void)
+{
+  gl_Position =  vec4(vPosition.xy, vPosition.z / 2., 1.0);
+  fPosition   = (vPosition.xy + vec2 (1, 1)) / 2;
+ }

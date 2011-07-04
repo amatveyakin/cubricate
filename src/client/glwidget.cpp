@@ -183,7 +183,7 @@ void GLWidget::initBuffers () {
 
 
 
-  GLfloat proxySurfaceVertices[] = { 1, 1, 0,   -1, 1, 0,  -1, -1, 0,   1, -1, 0};
+  GLfloat proxySurfaceVertices[] = { 1, 1, 1,   -1, 1, 1,  -1, -1, 1,   1, -1, 1};
   GLfloat proxySurfaceDirections[] = { 1, 1, 1, -1, 1, 1,  -1, -1, 1,   1, -1, 1};
 
   glGenVertexArrays(1, &m_raytracingVAO);
@@ -249,6 +249,26 @@ void GLWidget::initTextures () {
 //     glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
 //   }
 
+
+  QImage imageTarget ("resources/images/target.png");
+  assert (!imageTarget.isNull ());
+  assert (imageTarget.format () == QImage::Format_ARGB32);
+
+  QImage textureTarget = convertToGLFormat (imageTarget);
+  assert (!textureTarget.isNull ());
+
+  glGenTextures (1, &m_UITexture);
+  //glActiveTexture (GL_TEXTURE0);
+  glBindTexture (GL_TEXTURE_2D, m_UITexture);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+//   std::cout << "textureTarget.width () = " << textureTarget.width () << ", textureTarget.height () = " << textureTarget.height () << std::endl;
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureTarget.width (), textureTarget.height (), 0, GL_RGBA, GL_UNSIGNED_BYTE, textureTarget.bits ());
+  glBindTexture (GL_TEXTURE_2D, 0);
 
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers(1, &m_octTreeBuffer);
@@ -391,6 +411,16 @@ void GLWidget::initShaders () {
   m_locOrigin                    =  glGetUniformLocation (m_raytracingShader, "origin");
   m_locViewMatrix                =  glGetUniformLocation (m_raytracingShader, "matView");
   m_locCubeTexture               =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
+
+  result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Vertex,   "resources/UIShader.vp");
+  result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/UIShader.fp");
+  m_UIShaderProgram.bindAttributeLocation ("vPosition",  0);
+  m_UIShaderProgram.bindAttributeLocation ("vDirection", 1);
+  result = m_UIShaderProgram.link ();
+  m_UIShader = m_UIShaderProgram.programId ();
+  glLinkProgram (m_UIShader);
+  glUseProgram (m_UIShader);
+  m_locUITexture                 =  glGetUniformLocation (m_UIShader, "UITexture");
 }
 
 void GLWidget::setupRenderContext () {
@@ -619,10 +649,19 @@ void GLWidget::paintGL () {
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
 
-//   glBlitFramebuffer(0, 0, SCREEN_WIDTH / RAY_PACKET_WIDTH, SCREEN_HEIGHT / RAY_PACKET_HEIGHT,
-//                           SCREEN_WIDTH * 0.7, SCREEN_HEIGHT * 0.7, SCREEN_WIDTH, SCREEN_HEIGHT, GL_COLOR_BUFFER_BIT, GL_LINEAR );
-
+  renderUI ();
   m_nFramesDrawn++;
+}
+
+void GLWidget::renderUI () {
+  glUseProgram (m_UIShader);
+
+  glActiveTexture (GL_TEXTURE0);
+  glBindTexture (GL_TEXTURE_2D, m_UITexture);
+  glUniform1i  (m_locUITexture, 0);
+  glBindVertexArray (m_raytracingVAO);
+  glDrawArrays (GL_QUADS, 0, 4);
+  glBindTexture (GL_TEXTURE_2D, 0);
 }
 
 void GLWidget::resizeGL (int width, int height) {
