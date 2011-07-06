@@ -33,7 +33,6 @@ public:
   ~Octree ();
 
   void        setPointer (TreeDataT* newPointer);
-  void        restorePointer ();
 
   const TreeDataT*  nodes() const;
   int               height () const;
@@ -50,7 +49,6 @@ public:
 
 protected:
   TreeNodeT*  m_nodes;
-  TreeNodeT*  m_nodesOriginal;
   int         m_height;
   int         m_size;
   int         m_nNodes;

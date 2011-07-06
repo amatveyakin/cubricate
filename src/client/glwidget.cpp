@@ -25,6 +25,112 @@ const double FPS_MEASURE_INTERVAL = 1.; // sec
 
 
 
+// 0 means success
+int loadGameMap () {
+  std::ifstream heightMap ("resources/height_map" + toStr (TREE_HEIGHT) + ".txt");
+  if (!heightMap.is_open ()) {
+    std::cout << "Unable to open height map!\n";
+    return 1;
+  }
+
+  simpleWorldMap.lockRepaint ();
+  for (int x = 0; x < MAP_SIZE; ++x) {
+    for (int y = 0; y < MAP_SIZE; ++y) {
+      int height;
+      heightMap >> height;
+//       if (height > MAP_SIZE / 2) {
+// //         cubeArray.addCube (x, y, height - 1, 66);
+//         cubeOctree.set (x, y, height - 1, 1);
+//         height--;
+//       }
+      for (int z = 0; z < height - 1; ++z) {
+//         cubeArray.addCube (x, y, z, 2);
+        simpleWorldMap.set (x, y, z, BT_DIRT);
+      }
+      if (height >= 1) {
+        if (height > 5 * MAP_SIZE / 8)
+          simpleWorldMap.set (x, y, height - 1, BT_SNOWY_DIRT);
+        else
+          simpleWorldMap.set (x, y, height - 1, BT_GRASS);
+      }
+      for (int z = height; z < MAP_SIZE / 2; ++z) {
+        simpleWorldMap.set (x, y, z, BT_WATER);
+      }
+    }
+  }
+  simpleWorldMap.unlockRepaint ();
+
+//   for (int x = 0; x < MAP_SIZE; ++x)
+//     for (int y = 0; y < MAP_SIZE; ++y)
+//       for (int z = 0; z < MAP_SIZE; ++z)
+//         cubeOctree.set (x, y, z, simpleWorldMap.get (x, y, z));
+//
+//   cubeOctree.computeNeighbours ();
+
+  int MAX_NODE_VALUE = 256;
+  const TreeDataT* nodes = cubeOctree.nodes();
+  int nNodeValues[MAX_NODE_VALUE];
+  std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
+  for (int i = 0; i < cubeOctree.nNodes(); ++i) {
+//     std::cout.width (3);
+//     std::cout << i << ": ";
+//     for (int j = 0; j < NODE_STRUCT_SIZE; ++j) {
+//       std::cout.width (3);
+//       int value = nodes[i * NODE_STRUCT_SIZE + j];
+//       if (value == -1)
+//         std::cout << "." << " ";
+//       else {
+//         assert (value >= 0);
+//         std::cout << value << " ";
+//       }
+//     }
+//     std::cout << std::endl;
+    int nodeValue = nodes[i * NODE_STRUCT_SIZE];
+    assert (nodeValue >= 0);
+    assert (nodeValue < MAX_NODE_VALUE);
+    nNodeValues [nodeValue]++;
+  }
+  std::cout << std::endl;
+
+  std::cout << "Cube type frequency:" << std::endl;
+  for (int i = 0; i < MAX_NODE_VALUE; ++i)
+    if (nNodeValues[i] != 0)
+      std::cout << i << ": " << nNodeValues[i] << std::endl;
+  std::cout << std::endl;
+
+  std::cout << "nOctreeNodes = " << cubeOctree.nNodes () << std::endl;
+  std::cout << std::endl;
+
+  //   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
+  return 0;
+}
+
+/*
+// 0 means success
+int loadGameMap () {
+  std::ifstream map ("resources/World1.schematic");
+  if (!map.is_open ()) {
+    std::cout << "Unable to open map!\n";
+    return 1;
+  }
+  for (int z = 0; z < 128; ++z) {
+    for (int y = 0; y < 80; ++y) {
+      for (int x = 0; x < 80; ++x) {
+        char curBlock;
+        map >> curBlock;
+        map >> curBlock;
+        if (x < MAP_SIZE && y < MAP_SIZE && z < MAP_SIZE)
+          cubeArray.addCube (x, y, z, curBlock);
+      }
+    }
+  }
+  std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
+  return 0;
+}
+*/
+
+
+
 // void GLWidget::lockCubes () {
 //   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
 //                                                      N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
@@ -38,7 +144,8 @@ const double FPS_MEASURE_INTERVAL = 1.; // sec
 // }
 
 void GLWidget::lockCubes () {
-  glBindBuffer(GL_TEXTURE_BUFFER, m_octTreeBuffer);
+//   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
+  glBindBuffer (GL_TEXTURE_BUFFER, m_octTreeBuffer);
   TreeDataT* buffer = (TreeDataT *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
                                                       cubeOctree.nNodes() * sizeof (TreeNodeT),
                                                       GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
@@ -47,33 +154,30 @@ void GLWidget::lockCubes () {
 
 void GLWidget::unlockCubes () {
   glUnmapBuffer (GL_TEXTURE_BUFFER);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
-  cubeOctree.restorePointer ();
+  glBindBuffer (GL_TEXTURE_BUFFER, 0);
 }
 
 void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius) {
-  lockCubes ();
-
+  simpleWorldMap.lockRepaint ();
   for  (int x = std::max (explosionX - explosionRadius, 0); x <= std::min (explosionX + explosionRadius, MAP_SIZE - 1); ++x)
     for  (int y = std::max (explosionY - explosionRadius, 0); y <= std::min (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
       for  (int z = std::max (explosionZ - explosionRadius, 0); z <= std::min (explosionZ + explosionRadius, MAP_SIZE - 1); ++z) {
         if  (xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius)) {
-          cubeOctree.set (x, y, z, 0);
+          simpleWorldMap.set (x, y, z, BT_AIR);
         }
-        else if  (   cubeOctree.get (x, y, z) != 0
+        else if  (   simpleWorldMap.get (x, y, z) != BT_AIR
                   && xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius + 1)) {
-//           cubeOctree.set (x, y, z, 239);
-          cubeOctree.set (x, y, z, 1);
+//           simpleWorldMap.set (x, y, z, 239);
+          simpleWorldMap.set (x, y, z, BT_BRICKS);
         }
       }
-
-  unlockCubes ();
+  simpleWorldMap.unlockRepaint ();
 }
 
 void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
   const int METEORITE_RADIUS = 10;
   int meteoriteZ = MAP_SIZE - 1;
-  while  (meteoriteZ > 0 && cubeOctree.get (meteoriteX, meteoriteY, meteoriteZ) == 0)
+  while  (meteoriteZ > 0 && simpleWorldMap.get (meteoriteX, meteoriteY, meteoriteZ) == BT_AIR)
     meteoriteZ--;
   explosion (meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
 }
@@ -273,7 +377,9 @@ void GLWidget::initTextures () {
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers(1, &m_octTreeBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, m_octTreeBuffer);
-  glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), cubeOctree.nodes (), GL_STATIC_DRAW);
+  glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), cubeOctree.nodes (), GL_STATIC_DRAW);  // TODO: STATIC ?
+//   glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), nullptr, GL_STATIC_DRAW);
+//   loadGameMap ();
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
   glGenTextures(1, &m_octTreeTexture);
@@ -438,103 +544,6 @@ void GLWidget::shutdownRenderContext () {
 }
 
 
-// 0 means success
-int loadGameMap () {
-  std::ifstream heightMap ("resources/height_map" + toStr (TREE_HEIGHT) + ".txt");
-  if (!heightMap.is_open ()) {
-    std::cout << "Unable to open height map!\n";
-    return 1;
-  }
-  for (int x = 0; x < MAP_SIZE; ++x) {
-    for (int y = 0; y < MAP_SIZE; ++y) {
-      int height;
-      heightMap >> height;
-//       if (height > MAP_SIZE / 2) {
-// //         cubeArray.addCube (x, y, height - 1, 66);
-//         cubeOctree.set (x, y, height - 1, 1);
-//         height--;
-//       }
-      for (int z = 0; z < height - 1; ++z) {
-//         cubeArray.addCube (x, y, z, 2);
-        cubeOctree.set (x, y, z, BT_DIRT);
-      }
-      if (height >= 1) {
-        if (height > 5 * MAP_SIZE / 8)
-          cubeOctree.set (x, y, height - 1, BT_SNOWY_DIRT);
-        else
-          cubeOctree.set (x, y, height - 1, BT_GRASS);
-      }
-      for (int z = height; z < MAP_SIZE / 2; ++z) {
-        cubeOctree.set (x, y, z, BT_WATER);
-      }
-    }
-  }
-
-  cubeOctree.computeNeighbours ();
-
-  int MAX_NODE_VALUE = 256;
-  const TreeDataT* nodes = cubeOctree.nodes();
-  int nNodeValues[MAX_NODE_VALUE];
-  std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
-  for (int i = 0; i < cubeOctree.nNodes(); ++i) {
-//     std::cout.width (3);
-//     std::cout << i << ": ";
-//     for (int j = 0; j < NODE_STRUCT_SIZE; ++j) {
-//       std::cout.width (3);
-//       int value = nodes[i * NODE_STRUCT_SIZE + j];
-//       if (value == -1)
-//         std::cout << "." << " ";
-//       else {
-//         assert (value >= 0);
-//         std::cout << value << " ";
-//       }
-//     }
-//     std::cout << std::endl;
-    int nodeValue = nodes[i * NODE_STRUCT_SIZE];
-    assert (nodeValue >= 0);
-    assert (nodeValue < MAX_NODE_VALUE);
-    nNodeValues [nodeValue]++;
-  }
-  std::cout << std::endl;
-
-  std::cout << "Cube type frequency:" << std::endl;
-  for (int i = 0; i < MAX_NODE_VALUE; ++i)
-    if (nNodeValues[i] != 0)
-      std::cout << i << ": " << nNodeValues[i] << std::endl;
-  std::cout << std::endl;
-
-  std::cout << "nOctreeNodes = " << cubeOctree.nNodes () << std::endl;
-  std::cout << std::endl;
-
-  //   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
-  return 0;
-}
-
-/*
-// 0 means success
-int loadGameMap () {
-  std::ifstream map ("resources/World1.schematic");
-  if (!map.is_open ()) {
-    std::cout << "Unable to open map!\n";
-    return 1;
-  }
-  for (int z = 0; z < 128; ++z) {
-    for (int y = 0; y < 80; ++y) {
-      for (int x = 0; x < 80; ++x) {
-        char curBlock;
-        map >> curBlock;
-        map >> curBlock;
-        if (x < MAP_SIZE && y < MAP_SIZE && z < MAP_SIZE)
-          cubeArray.addCube (x, y, z, curBlock);
-      }
-    }
-  }
-  std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
-  return 0;
-}
-*/
-
-
 
 
 GLWidget::GLWidget () {
@@ -555,12 +564,12 @@ GLWidget::~GLWidget () {
 void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
 
-  loadGameMap ();
   player.setPos (Vec3d (0.1, 0.1, MAP_SIZE / 8.));
   player.viewFrame ().rotateLocalX (-M_PI / 2. + 0.01);
   player.viewFrame ().rotateWorld (M_PI / 2. - 0.1, 0., 0., 1.);
 
   setupRenderContext ();
+  loadGameMap ();
 
 //   glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
 //   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
@@ -744,13 +753,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       if (!cubeValid (headOnCube))
         break;
 //       explosion (XYZ_LIST (cube), 2);
-      lockCubes ();
-//       cubeArray.removeCube (XYZ_LIST (headOnCube));
-      cubeOctree.set (XYZ_LIST (headOnCube), 0);
-      cubeOctree.computeNeighbours ();
-      unlockCubes ();
-      cubeOctree.set (XYZ_LIST (headOnCube), 0);
-      cubeOctree.computeNeighbours ();
+      simpleWorldMap.set (XYZ_LIST (headOnCube), BT_AIR);
       break;
     }
     case Qt::RightButton: {
@@ -761,13 +764,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       Vec3i newCube = getAdjacentCube (headOnCube).cube;
       if (!cubeValid (newCube))
         break;
-      lockCubes ();
-//       cubeArray.addCube (XYZ_LIST (newCube), 7);
-      cubeOctree.set (XYZ_LIST (newCube), 5);
-      cubeOctree.computeNeighbours ();
-      unlockCubes ();
-      cubeOctree.set (XYZ_LIST (newCube), 5);
-      cubeOctree.computeNeighbours ();
+      simpleWorldMap.set (XYZ_LIST (newCube), BT_BRICKS);
       break;
     }
     default:

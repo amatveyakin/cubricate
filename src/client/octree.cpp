@@ -46,7 +46,7 @@ Octree::Octree (int height) {
   m_size = 1 << height;
   m_nLeaves = 1 << (height * 3);
   m_nodes = new TreeNodeT [m_nNodes];
-  m_nodesOriginal = m_nodes;
+  assert (m_nodes);
   m_nodes[0].type () = 0;
   int nodeBegin = 0;
   int nodeEnd   = 0;
@@ -65,10 +65,6 @@ Octree::~Octree () {
 
 void Octree::setPointer (TreeDataT* newPointer) {
   m_nodes = reinterpret_cast<TreeNodeT*>(newPointer);
-}
-
-void Octree::restorePointer () {
-  m_nodes = m_nodesOriginal;
 }
 
 

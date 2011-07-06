@@ -8,6 +8,7 @@
 #include "common/game_parameters.hpp"
 
 // #include "client/cube_array.hpp"
+#include "client/client_world.hpp"
 #include "client/glwidget.hpp"
 
 
@@ -55,6 +56,7 @@ int main (int argc, char** argv) {
   }
 
   GLWidget glWidget;
+  renderingEngine = &glWidget;
   if (!glWidget.format ().sampleBuffers ())
     std::cout << "Your system does not have sample buffer support :-(" << std::endl;
 

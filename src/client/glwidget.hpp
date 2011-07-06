@@ -26,6 +26,9 @@ public:
   void paintGL ();
   void resizeGL (int width, int height);
 
+  void lockCubes ();
+  void unlockCubes ();
+
 protected:
   int m_nFramesDrawn;
 
@@ -75,8 +78,6 @@ protected:
   QTime m_fpsTime;
 
 
-  void lockCubes ();
-  void unlockCubes ();
   Vec3i getCubeByPoint (Vec3d point, Vec3d direction);
   void explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius);
   void summonMeteorite (int meteoriteX, int meteoriteY);

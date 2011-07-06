@@ -42,7 +42,7 @@ CubeWithFace Player::getHeadOnCube() {
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
   Vec3i prevCube = cube;
   while  (  cubeValid (cube + mapCenter)
-         && cubeOctree.get (XYZ_LIST (cube + mapCenter)) == 0) {
+         && simpleWorldMap.get (XYZ_LIST (cube + mapCenter)) == 0) {
     Vec3d parameter;
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
