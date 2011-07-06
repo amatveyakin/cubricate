@@ -60,31 +60,11 @@ int loadGameMap () {
   }
   simpleWorldMap.unlockRepaint ();
 
-//   for (int x = 0; x < MAP_SIZE; ++x)
-//     for (int y = 0; y < MAP_SIZE; ++y)
-//       for (int z = 0; z < MAP_SIZE; ++z)
-//         cubeOctree.set (x, y, z, simpleWorldMap.get (x, y, z));
-//
-//   cubeOctree.computeNeighbours ();
-
   int MAX_NODE_VALUE = 256;
   const TreeDataT* nodes = cubeOctree.nodes();
   int nNodeValues[MAX_NODE_VALUE];
   std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
   for (int i = 0; i < cubeOctree.nNodes(); ++i) {
-//     std::cout.width (3);
-//     std::cout << i << ": ";
-//     for (int j = 0; j < NODE_STRUCT_SIZE; ++j) {
-//       std::cout.width (3);
-//       int value = nodes[i * NODE_STRUCT_SIZE + j];
-//       if (value == -1)
-//         std::cout << "." << " ";
-//       else {
-//         assert (value >= 0);
-//         std::cout << value << " ";
-//       }
-//     }
-//     std::cout << std::endl;
     int nodeValue = nodes[i * NODE_STRUCT_SIZE];
     assert (nodeValue >= 0);
     assert (nodeValue < MAX_NODE_VALUE);
@@ -101,7 +81,6 @@ int loadGameMap () {
   std::cout << "nOctreeNodes = " << cubeOctree.nNodes () << std::endl;
   std::cout << std::endl;
 
-  //   std::cout << "nCubes = " << cubeArray.nCubes () << std::endl;
   return 0;
 }
 
@@ -130,18 +109,6 @@ int loadGameMap () {
 */
 
 
-
-// void GLWidget::lockCubes () {
-//   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET,
-//                                                      N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
-//                                                      GL_MAP_WRITE_BIT);
-//   GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
-//   cubeArray.setPointers (bufferPos, bufferType);
-// }
-//
-// void GLWidget::unlockCubes () {
-//   glUnmapBuffer (GL_ARRAY_BUFFER);
-// }
 
 void GLWidget::lockCubes () {
 //   glBindTexture (GL_TEXTURE_BUFFER, m_octTreeTexture);
@@ -378,8 +345,6 @@ void GLWidget::initTextures () {
   glGenBuffers(1, &m_octTreeBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, m_octTreeBuffer);
   glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), cubeOctree.nodes (), GL_STATIC_DRAW);  // TODO: STATIC ?
-//   glBufferData(GL_TEXTURE_BUFFER, cubeOctree.nNodes () * sizeof (TreeNodeT), nullptr, GL_STATIC_DRAW);
-//   loadGameMap ();
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
   glGenTextures(1, &m_octTreeTexture);
