@@ -41,7 +41,7 @@ public:
   int               nLeaves () const;
 
   TreeDataT   get (int x, int y, int z) const;
-  void        set (int x, int y, int z, TreeDataT type);
+  void        set (int x, int y, int z, TreeDataT type, bool updateNeighboursFlag);
 
   bool        hasChildren (int node) const;
 

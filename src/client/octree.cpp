@@ -95,7 +95,8 @@ TreeDataT Octree::get (int x, int y, int z) const {
   return m_nodes [getDeepestNode (x, y, z)].type ();
 }
 
-void Octree::set (int x, int y, int z, TreeDataT type) {
+// TODO: speed up local neighbour update
+void Octree::set (int x, int y, int z, TreeDataT type, bool updateNeighboursFlag) {
   checkCoordinates (x, y, z);
 //   std::cout << "set (" << x << ", " << y << ", " << z << ")" << std::endl;
   int nodeSize;
@@ -107,10 +108,14 @@ void Octree::set (int x, int y, int z, TreeDataT type) {
         stepDownOneLevel (x, y, z, curNode, nodeSize);
       }
       m_nodes [curNode].type () = type;
+      if (updateNeighboursFlag)
+        computeNeighbours ();
     }
     else {
       m_nodes [curNode].type () = type;
-      uniteNodesRecursively (curNode);
+      int newNode = uniteNodesRecursively (curNode);
+      if (updateNeighboursFlag && newNode != curNode)
+        computeNeighbours ();
     }
   }
 }

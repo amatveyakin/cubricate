@@ -19,6 +19,8 @@ public:
 protected:
   Array3D <BlockType> m_blocks;
   int m_nRepaintLocks;
+
+  void doUnlockRepaint (bool octreeUpdateNeighboursFlag);
 };
 
 
