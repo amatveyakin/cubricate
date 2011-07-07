@@ -58,6 +58,7 @@ protected:
 
   QTime m_time;
   QTime m_fpsTime;
+  QTime m_physicsTime;
 
 
   Vec3i getCubeByPoint (Vec3d point, Vec3d direction);

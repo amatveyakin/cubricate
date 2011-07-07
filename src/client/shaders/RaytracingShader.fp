@@ -89,11 +89,11 @@ void main(void)
       iterInner++;
     }
     currCubeProperties = getCubeProperties (currCubeType);
-    vec3 oldRay = ray;
-    if ((currCubeType != prevCubeType) && (iterOuter > 0))
-      ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
-    if (length (ray) < 0.0001)
-      ray = reflect (oldRay, normal);
+//     vec3 oldRay = ray;
+//     if ((currCubeType != prevCubeType) && (iterOuter > 0))
+//       ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
+//     if (length (ray) < 0.0001)
+//       ray = reflect (oldRay, normal);
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = abs ((nextPoint - currPoint) / ray);

@@ -3,6 +3,7 @@
 
 
 #include "common/multidim_array.hpp"
+#include "common/world_block.hpp"
 
 
 class SimpleWorldMap {
@@ -13,11 +14,20 @@ public:
   void lockRepaint ();
   void unlockRepaint ();
 
-  BlockType get (int x, int y, int z) const                 { return m_blocks (x, y, z); }
+  // TODO: replace with operator()  (?)
+
+  WorldBlock get (Vec3i pos) const                          { return m_blocks (pos); }
+  WorldBlock get (int x, int y, int z) const                { return m_blocks (x, y, z); }
+
+  void set (Vec3i pos, BlockType newBlockType);
+  void set (Vec3i pos, WorldBlock newWorldBlock);
   void set (int x, int y, int z, BlockType newBlockType);
+  void set (int x, int y, int z, WorldBlock newWorldBlock);
+
+  void swapCubes (Vec3i firstPos, Vec3i secondPos);
 
 protected:
-  Array3D <BlockType> m_blocks;
+  Array3D <WorldBlock> m_blocks;
   int m_nRepaintLocks;
 
   void doUnlockRepaint (bool octreeUpdateNeighboursFlag);

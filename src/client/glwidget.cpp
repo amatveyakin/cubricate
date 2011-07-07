@@ -21,7 +21,8 @@
 
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
-const double FPS_MEASURE_INTERVAL = 1.; // sec
+const double FPS_MEASURE_INTERVAL         = 1.; // sec
+const double PHYSICS_PROCESSING_INTERVAL  = 0.02; // sec
 
 
 
@@ -132,7 +133,7 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
         if  (xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius)) {
           simpleWorldMap.set (x, y, z, BT_AIR);
         }
-        else if  (   simpleWorldMap.get (x, y, z) != BT_AIR
+        else if  (   simpleWorldMap.get (x, y, z).type != BT_AIR
                   && xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius + 1)) {
 //           simpleWorldMap.set (x, y, z, 239);
           simpleWorldMap.set (x, y, z, BT_BRICKS);
@@ -144,7 +145,7 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
 void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
   const int METEORITE_RADIUS = 10;
   int meteoriteZ = MAP_SIZE - 1;
-  while  (meteoriteZ > 0 && simpleWorldMap.get (meteoriteX, meteoriteY, meteoriteZ) == BT_AIR)
+  while  (meteoriteZ > 0 && simpleWorldMap.get (meteoriteX, meteoriteY, meteoriteZ).type == BT_AIR)
     meteoriteZ--;
   explosion (meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
 }
@@ -326,7 +327,8 @@ void GLWidget::initTextures () {
   glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
 
   const float cubeProperties[] = { 0.993, 1,
-                                   0.95,  1.333,
+//                                    0.95,  1.333,
+                                   0.,    1.333,
                                    0,     1,
                                    0,     1,
                                    0,     1,
@@ -490,6 +492,7 @@ void GLWidget::initializeGL () {
 
   m_time.start ();
   m_fpsTime.start ();
+  m_physicsTime.start ();
   startTimer (1);
 }
 
@@ -655,7 +658,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
   switch (event->button ()) {
     case Qt::LeftButton: {
       Vec3i headOnCube = player.getHeadOnCube ().cube + Vec3i::replicated (MAP_SIZE / 2);
-      if (!cubeValid (headOnCube))
+      if (!cubeIsValid (headOnCube))
         break;
 //       explosion (XYZ_LIST (cube), 2);
       simpleWorldMap.set (XYZ_LIST (headOnCube), BT_AIR);
@@ -667,7 +670,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
         break;
       headOnCube.cube += Vec3i::replicated (MAP_SIZE / 2);
       Vec3i newCube = getAdjacentCube (headOnCube).cube;
-      if (!cubeValid (newCube))
+      if (!cubeIsValid (newCube))
         break;
       simpleWorldMap.set (XYZ_LIST (newCube), BT_BRICKS);
       break;
@@ -697,5 +700,12 @@ void GLWidget::timerEvent (QTimerEvent* event) {
     m_nFramesDrawn = 0;
     m_fpsTime.restart ();
   }
+
+  double physicsTimeElapsed = m_physicsTime.elapsed () / 1000.;
+  if (physicsTimeElapsed > FPS_MEASURE_INTERVAL) {
+    waterEngine.processWater ();
+    m_physicsTime.restart ();
+  }
+
   updateGL ();
 }

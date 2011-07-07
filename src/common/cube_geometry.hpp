@@ -50,6 +50,8 @@
 
 
 
+// TODO: fix the following text, it doen't correspond the code now
+
 //   World floating-point coordinates and cube integer coordinates relationship
 //  ----------------------------------------------------------------------------
 //
@@ -114,6 +116,14 @@ static inline bool directionIsValid (int dir) {
 
 static inline bool directionIsValid (Direction dir) {
   return directionIsValid (int (dir));
+}
+
+const Direction DIRECTION_BEGIN = Direction::X_PLUS;
+const Direction DIRECTION_END   = Direction::INVALID;
+
+static inline Direction operator++ (Direction dir) {
+  dir = static_cast <Direction> (static_cast <int> (dir) + 1);
+  return dir;
 }
 
 // struct CubeWithFace : Vec3i {
@@ -257,14 +267,14 @@ static inline void worldToChunk (/* in */ Vec3d pos, /* out */ Vec2i& chunk, Vec
 
 
 
-static inline bool cubeValid (int x, int y, int z) {
+static inline bool cubeIsValid (int x, int y, int z) {
   return    (x >= 0) && (x < MAP_SIZE)
          && (y >= 0) && (y < MAP_SIZE)
          && (z >= 0) && (z < MAP_SIZE);
 }
 
-static inline bool cubeValid (Vec3i v) {
-  return cubeValid (v.x (), v.y (), v.z ());
+static inline bool cubeIsValid (Vec3i v) {
+  return cubeIsValid (v.x (), v.y (), v.z ());
 }
 
 
