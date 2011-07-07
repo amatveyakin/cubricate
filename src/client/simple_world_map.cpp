@@ -6,6 +6,7 @@
 SimpleWorldMap::SimpleWorldMap (int sizeX, int sizeY, int sizeZ) :
   m_blocks (sizeX, sizeY, sizeZ)
 {
+  std::fill (m_blocks.data (), m_blocks.data () + sizeX * sizeY * sizeZ, BT_AIR);
   m_nRepaintLocks = 0;
 }
 

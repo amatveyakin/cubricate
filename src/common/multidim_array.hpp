@@ -19,6 +19,9 @@ public:
     delete[] m_elements;
   }
 
+  const ElementT* data () const                             { return m_elements; }
+  ElementT* data ()                                         { return m_elements; }
+
   const ElementT& at (int x, int y, int z) const            { return m_elements [x * m_sizeY * m_sizeZ  +  y * m_sizeZ  +  z]; }
   ElementT& at (int x, int y, int z)                        { return m_elements [x * m_sizeY * m_sizeZ  +  y * m_sizeZ  +  z]; }
   const ElementT& at (Vec3i pos) const                      { return at (pos.x (), pos.y (), pos.z ()); }
