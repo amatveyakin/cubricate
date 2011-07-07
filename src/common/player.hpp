@@ -35,6 +35,7 @@ public:
   void setDirUp (double x, double y, double z)              { m_dirUp.setCoordinates (x, y, z); }
   const Vec3d& dirUp () const                               { return m_dirUp; }
 
+  Vec3d dirRight () const                                      { return crossProduct (m_dirUp, m_dirForward); }
 
 //   void TranslateWorld (float x, float y, float z) {
 //     vOrigin[0] += x;
@@ -49,9 +50,9 @@ public:
 //   }
 
 
-  void moveForward (double moveBy)                          { m_origin += m_dirForward * moveBy; }
-  void moveUp (double moveBy)                               { m_origin += m_dirUp * moveBy; }
-  void moveRight (double moveBy)                            { m_origin += crossProduct (m_dirUp, m_dirForward) * moveBy; }
+//   void moveForward (double moveBy)                          { m_origin += m_dirForward * moveBy; }
+//   void moveUp (double moveBy)                               { m_origin += m_dirUp * moveBy; }
+//   void moveRight (double moveBy)                            { m_origin += crossProduct (m_dirUp, m_dirForward) * moveBy; }
 
 
   // TODO: rewrite
@@ -249,10 +250,10 @@ public:
   ~Player ();
 
   Vec3d pos () const                    { return m_pos; }
-  void setPos (Vec3d newPos)            { m_viewFrame.setOrigin (newPos);     m_pos = m_viewFrame.origin (); }
-  void moveForward (double moveBy)      { m_viewFrame.moveForward (moveBy);   m_pos = m_viewFrame.origin (); }
-  void moveUp (double moveBy)           { m_viewFrame.moveUp (moveBy);        m_pos = m_viewFrame.origin (); }
-  void moveRight (double moveBy)        { m_viewFrame.moveRight (moveBy);     m_pos = m_viewFrame.origin (); }
+  void setPos (Vec3d newPos);
+  void moveForward (double moveBy);
+  void moveUp (double moveBy);
+  void moveRight (double moveBy);
 
   ViewFrame& viewFrame ()               { return m_viewFrame; }
   const ViewFrame& viewFrame () const   { return m_viewFrame; }
@@ -263,6 +264,8 @@ protected:
   Vec3d m_pos;
 
   ViewFrame m_viewFrame;
+
+  bool positionIsValid (Vec3d pos);
 };
 
 
