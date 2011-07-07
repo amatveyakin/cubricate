@@ -441,7 +441,8 @@ struct LexicographicCompareVectors {
   static_assert (std::numeric_limits <ElementT>::is_integer,
                  "Using floating-point values as keys for a set or a map is almost certainly a bad idea.");
   bool operator() (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) const {
-    for (int i = 0; i < DIMENSION; ++i) {
+//     for (int i = 0; i < DIMENSION; ++i) {
+    for (int i = DIMENSION - 1; i >= 0; --i) {
       if (a.at (i) < b.at (i))
         return true;
       else if (a.at (i) > b.at (i))

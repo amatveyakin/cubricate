@@ -32,32 +32,27 @@ void WaterEngine::processWater() {
     Vec3i cube = *curCubeIter;
 
 //     std::cout << cube << std::endl;
-
-    // Step 1. Repumping saturation & merging
-    if (cube.x () > 0)
-      processHorizontalNeighbour (cube, cube - Vec3i::e1 ());
-    if (cube.x () < MAP_SIZE - 1)
-      processHorizontalNeighbour (cube, cube + Vec3i::e1 ());
-
-    if (cube.y () > 0)
-      processHorizontalNeighbour (cube, cube - Vec3i::e2 ());
-    if (cube.y () < MAP_SIZE - 1)
-      processHorizontalNeighbour (cube, cube + Vec3i::e2 ());
-
     if (cube.z () > 0)
       processLowerNeighbour (cube);
+
+
+    //yep, thats must be fixed. or not.
+    if (((cube.x () > 0) && (cube.x () < MAP_SIZE - 1)) &&
+        ((cube.y () > 0) && (cube.y () < MAP_SIZE - 1)))
+      processHorizontalNeighbours(cube);
+
     if (cube.z () < MAP_SIZE - 1)
       processUpperNeighbour (cube);
 
     // Step 2. Splitting
-    if (simpleWorldMap.get (cube).fluidSaturation > WaterParams::SPLITTING_THRESHOLD) {
+/*    if (simpleWorldMap.get (cube).fluidSaturation > WaterParams::SPLITTING_THRESHOLD) {
+      if (tryToSplit (cube, Direction::Z_MINUS)) continue;
       if (tryToSplit (cube, Direction::X_MINUS)) continue;
       if (tryToSplit (cube, Direction::X_PLUS))  continue;
       if (tryToSplit (cube, Direction::Y_MINUS)) continue;
       if (tryToSplit (cube, Direction::Y_PLUS))  continue;
-      if (tryToSplit (cube, Direction::Z_MINUS)) continue;
       if (tryToSplit (cube, Direction::Z_PLUS))  continue;
-    }
+    }*/
   }
   nextCubeIter = waterCubes.end ();
   simpleWorldMap.unlockRepaint ();
@@ -74,19 +69,58 @@ void WaterEngine::processLowerNeighbour (Vec3i cube) {
 
 void WaterEngine::processUpperNeighbour (Vec3i cube) {
   Vec3i upperCube = cube + Vec3i::e3 ();
-  if (simpleWorldMap.get (upperCube).type == BT_WATER)
+  if (simpleWorldMap.get (cube).fluidSaturation > WaterParams::VERTICAL_SPLITTING_THRESHOLD) {
+    WorldBlock emptyWaterCube = newWaterCube (0);
+    simpleWorldMap.set (upperCube, emptyWaterCube);
     processVerticalWaterPair (cube, upperCube);
+  }
 }
 
-void WaterEngine::processHorizontalNeighbour (Vec3i cube, Vec3i neighbourCube) {
-  if (simpleWorldMap.get (neighbourCube).type == BT_WATER)
-    processHorizontalWaterPair (cube, neighbourCube);
+void WaterEngine::processHorizontalNeighbours (Vec3i cube) {
+  const int N_NEIGHBOURS = 5;
+  Vec3i neigbours[N_NEIGHBOURS];
+  neigbours[0] = cube;
+  neigbours[1] = cube + Vec3i::e1 ();
+  neigbours[2] = cube - Vec3i::e1 ();
+  neigbours[3] = cube + Vec3i::e2 ();
+  neigbours[4] = cube - Vec3i::e2 ();
+
+  int nValidNeigbours = 0;
+  int nWaterNeigbours = 0;
+  float totalSaturation = 0;
+  for (int i = 0; i < N_NEIGHBOURS; ++i) {
+    if (simpleWorldMap.get (neigbours[i]).type == BT_WATER) {
+      nValidNeigbours++;
+      nWaterNeigbours++;
+      totalSaturation += simpleWorldMap.get (neigbours[i]).fluidSaturation;
+    }
+    if (simpleWorldMap.get (neigbours[i]).type == BT_AIR) {
+      nValidNeigbours++;
+    }
+  }
+  float meanSaturation = totalSaturation / nValidNeigbours;
+  if (meanSaturation > WaterParams::MIN_SATURATION) {
+    WorldBlock meanCube = newWaterCube (meanSaturation);
+    for (int i = 0; i < N_NEIGHBOURS; ++i) {
+      if ((simpleWorldMap.get (neigbours[i]).type == BT_WATER) ||
+          (simpleWorldMap.get (neigbours[i]).type == BT_AIR)) {
+        simpleWorldMap.set (neigbours[i], meanCube);
+      }
+    }
+  }
+  else {
+    WorldBlock waterMeanCube = newWaterCube (totalSaturation / nWaterNeigbours);
+    for (int i = 0; i < N_NEIGHBOURS; ++i) {
+      if (simpleWorldMap.get (neigbours[i]).type == BT_WATER)
+        simpleWorldMap.set (neigbours[i], waterMeanCube);
+    }
+  }
 }
 
 
 void WaterEngine::processVerticalWaterPair (Vec3i lowerCube, Vec3i upperCube) {
   float saturationSum = simpleWorldMap.get (lowerCube).fluidSaturation + simpleWorldMap.get (upperCube).fluidSaturation;
-  if (saturationSum < WaterParams::MERGING_THRESHOLD) {
+  if (saturationSum < WaterParams::VERTICAL_MERGING_THRESHOLD) {
     simpleWorldMap.set (lowerCube, newWaterCube (saturationSum));
     simpleWorldMap.set (upperCube, BT_AIR);
   }
@@ -106,27 +140,27 @@ void WaterEngine::processVerticalWaterPair (Vec3i lowerCube, Vec3i upperCube) {
   }
 }
 
-void WaterEngine::processHorizontalWaterPair (Vec3i firstCube, Vec3i secondCube) {
-  float saturationSum = simpleWorldMap.get (firstCube).fluidSaturation + simpleWorldMap.get (secondCube).fluidSaturation;
-  if (saturationSum < WaterParams::MERGING_THRESHOLD) {
-    simpleWorldMap.set (firstCube, newWaterCube (saturationSum));
-    simpleWorldMap.set (secondCube, BT_AIR);
-  }
-  else {
-    WorldBlock homogenizedCube = newWaterCube (saturationSum / 2.);
-    simpleWorldMap.set (firstCube, homogenizedCube);
-    simpleWorldMap.set (secondCube, homogenizedCube);
-  }
-}
+// void WaterEngine::processHorizontalWaterPair (Vec3i firstCube, Vec3i secondCube) {
+//   float saturationSum = simpleWorldMap.get (firstCube).fluidSaturation + simpleWorldMap.get (secondCube).fluidSaturation;
+//   if (saturationSum < WaterParams::MERGING_THRESHOLD) {
+//     simpleWorldMap.set (firstCube, newWaterCube (saturationSum));
+//     simpleWorldMap.set (secondCube, BT_AIR);
+//   }
+//   else {
+//     WorldBlock homogenizedCube = newWaterCube (saturationSum / 2.);
+//     simpleWorldMap.set (firstCube, homogenizedCube);
+//     simpleWorldMap.set (secondCube, homogenizedCube);
+//   }
+// }
 
 
-bool WaterEngine::tryToSplit (Vec3i splittingSource, Direction dir) {
-  Vec3i splittingDest = getAdjacentCube (splittingSource, dir);
-  if (cubeIsValid (splittingDest) && simpleWorldMap.get (splittingDest).type == BT_AIR) {
-    WorldBlock splittingResult = newWaterCube (simpleWorldMap.get (splittingSource).fluidSaturation / 2.);
-    simpleWorldMap.set (splittingSource, splittingResult);
-    simpleWorldMap.set (splittingDest, splittingResult);
-    return true;
-  }
-  return false;
-}
+// bool WaterEngine::tryToSplit (Vec3i splittingSource, Direction dir) {
+//   Vec3i splittingDest = getAdjacentCube (splittingSource, dir);
+//   if (cubeIsValid (splittingDest) && simpleWorldMap.get (splittingDest).type == BT_AIR) {
+//     WorldBlock splittingResult = newWaterCube (simpleWorldMap.get (splittingSource).fluidSaturation / 2.);
+//     simpleWorldMap.set (splittingSource, splittingResult);
+//     simpleWorldMap.set (splittingDest, splittingResult);
+//     return true;
+//   }
+//   return false;
+// }

@@ -11,16 +11,16 @@
 
 
 namespace WaterParams {
-  const float NORMAL_VERTICAL_SATURATION_RATIO = 1.2;
+  const float NORMAL_VERTICAL_SATURATION_RATIO = 1.1;
 
 //   const float SPLITTING_THRESHOLD   = M_SQRT2   * sqrt (NORMAL_VERTICAL_SATURATION_RATIO);
 //   const float MERGING_THRESHOLD     = M_SQRT2   / sqrt (NORMAL_VERTICAL_SATURATION_RATIO);
 
-  const float SPLITTING_THRESHOLD   = 1.1;
-  const float MERGING_THRESHOLD     = M_SQRT2;
+  const float VERTICAL_SPLITTING_THRESHOLD   = 1.7;
+  const float VERTICAL_MERGING_THRESHOLD     = 1.6;
 
-  const float MAX_SATURATION        = M_SQRT2   * NORMAL_VERTICAL_SATURATION_RATIO;
-  const float MIN_SATURATION        = M_SQRT1_2 / NORMAL_VERTICAL_SATURATION_RATIO;
+  const float MAX_SATURATION        = 99999;
+  const float MIN_SATURATION        = 0.5;
 }
 
 
@@ -52,9 +52,9 @@ private:
   void processLowerNeighbour (Vec3i cube);
   void processUpperNeighbour (Vec3i cube);
 
-  void processHorizontalNeighbour (Vec3i cube, Vec3i neighbourCube);
+  void processHorizontalNeighbours (Vec3i cube);
   void processVerticalWaterPair (Vec3i lowerCube, Vec3i upperCube);
-  void processHorizontalWaterPair (Vec3i firstCube, Vec3i secondCube);
+//   void processHorizontalWaterPair (Vec3i firstCube, Vec3i secondCube);
 
   // Returns true if splitting succeeded
   bool tryToSplit (Vec3i cube, Direction dir);
