@@ -31,15 +31,13 @@ void WaterEngine::processWater() {
     nextCubeIter++;
     Vec3i cube = *curCubeIter;
 
-//     std::cout << cube << std::endl;
     if (cube.z () > 0)
       processLowerNeighbour (cube);
-
 
     //yep, thats must be fixed. or not.
     if (((cube.x () > 0) && (cube.x () < MAP_SIZE - 1)) &&
         ((cube.y () > 0) && (cube.y () < MAP_SIZE - 1)))
-      processHorizontalNeighbours(cube);
+      processHorizontalNeighbours (cube);
 
     if (cube.z () < MAP_SIZE - 1)
       processUpperNeighbour (cube);
@@ -102,17 +100,29 @@ void WaterEngine::processHorizontalNeighbours (Vec3i cube) {
   if (meanSaturation > WaterParams::MIN_SATURATION) {
     WorldBlock meanCube = newWaterCube (meanSaturation);
     for (int i = 0; i < N_NEIGHBOURS; ++i) {
-      if ((simpleWorldMap.get (neigbours[i]).type == BT_WATER) ||
-          (simpleWorldMap.get (neigbours[i]).type == BT_AIR)) {
+      if (   (simpleWorldMap.get (neigbours[i]).type == BT_WATER)
+          || (simpleWorldMap.get (neigbours[i]).type == BT_AIR))
         simpleWorldMap.set (neigbours[i], meanCube);
-      }
     }
   }
   else {
-    WorldBlock waterMeanCube = newWaterCube (totalSaturation / nWaterNeigbours);
+    int nFloodedAirNeighbours = 1;
+    meanSaturation = totalSaturation / (nWaterNeigbours + nFloodedAirNeighbours);
+    while (meanSaturation > WaterParams::MIN_SATURATION) {
+      nFloodedAirNeighbours++;
+      meanSaturation = totalSaturation / (nWaterNeigbours + nFloodedAirNeighbours);
+    }
+    nFloodedAirNeighbours--;
+    WorldBlock meanCube = newWaterCube (meanSaturation);
     for (int i = 0; i < N_NEIGHBOURS; ++i) {
-      if (simpleWorldMap.get (neigbours[i]).type == BT_WATER)
-        simpleWorldMap.set (neigbours[i], waterMeanCube);
+      if (simpleWorldMap.get (neigbours[i]).type == BT_WATER) {
+        simpleWorldMap.set (neigbours[i], meanCube);
+      }
+      else if (   simpleWorldMap.get (neigbours[i]).type == BT_AIR
+               && nFloodedAirNeighbours > 0) {
+        simpleWorldMap.set (neigbours[i], meanCube);
+        nFloodedAirNeighbours--;
+      }
     }
   }
 }

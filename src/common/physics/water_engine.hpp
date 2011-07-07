@@ -11,16 +11,16 @@
 
 
 namespace WaterParams {
-  const float NORMAL_VERTICAL_SATURATION_RATIO = 1.1;
+  const float NORMAL_VERTICAL_SATURATION_RATIO = 1.05;
 
 //   const float SPLITTING_THRESHOLD   = M_SQRT2   * sqrt (NORMAL_VERTICAL_SATURATION_RATIO);
 //   const float MERGING_THRESHOLD     = M_SQRT2   / sqrt (NORMAL_VERTICAL_SATURATION_RATIO);
 
-  const float VERTICAL_SPLITTING_THRESHOLD   = 1.7;
-  const float VERTICAL_MERGING_THRESHOLD     = 1.6;
+  const float VERTICAL_SPLITTING_THRESHOLD   = M_SQRT2 * 1.1;
+  const float VERTICAL_MERGING_THRESHOLD     = M_SQRT2 / 1.1;
 
-  const float MAX_SATURATION        = 99999;
-  const float MIN_SATURATION        = 0.5;
+  const float MAX_SATURATION        = 2.;
+  const float MIN_SATURATION        = 0.1;
 }
 
 
