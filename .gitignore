@@ -4,3 +4,4 @@ build
 *.kate-swp
 /resources/*.fp
 /resources/*.vp
+.kdev_include_paths
