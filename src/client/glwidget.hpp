@@ -11,9 +11,6 @@
 
 #include "common/linear_algebra.hpp"
 
-// #include "client/visible_cube_set.hpp"
-#include "client/GLTools/GLFrustum.h"
-
 
 
 class GLWidget : public QGLWidget
@@ -32,19 +29,8 @@ public:
 protected:
   int m_nFramesDrawn;
 
-  int m_CUBES_INFORMATION_OFFSET;
-
   QGLShaderProgram m_shaderProgram;
   QGLShaderProgram m_basicShaderProgram;
-
-  GLint   m_instancedCubeShader;
-  GLint   m_basicShader;
-
-  GLuint  m_cubesVao, m_selectingBoxVao;
-  GLuint  m_cubeVbo,  m_selectingBoxVbo;
-
-  GLuint  m_locInstancedCubeMvp, m_locInstancedCubeMapSize, m_locColor, m_locInstancedCubeSquareTexture;
-  GLuint  m_locBasicShaderWVP, m_locBasicShaderColor;
 
   //Raytracing
   QGLShaderProgram m_raytracingShaderProgram;
@@ -64,10 +50,6 @@ protected:
   GLint  m_UIShader;
   GLuint m_locUITexture;
   GLuint m_UITexture;
-
-  GLuint  m_squareTextureArray;
-
-  GLFrustum     m_viewFrustum;
 
   bool m_isMovingForward;
   bool m_isMovingBackward;

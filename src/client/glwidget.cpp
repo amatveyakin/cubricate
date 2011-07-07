@@ -180,79 +180,6 @@ void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
 // 7:    1.,  1.,  1.
 
 void GLWidget::initBuffers () {
-  GLfloat cubeVertices[] = { -1., -1.,  1.,    1., -1.,  1.,    1.,  1.,  1.,   -1.,  1.,  1.,    // up
-                              1., -1., -1.,    1.,  1., -1.,    1.,  1.,  1.,    1., -1.,  1.,    // right
-                             -1.,  1., -1.,   -1., -1., -1.,   -1., -1.,  1.,   -1.,  1.,  1.,    // left
-                             -1., -1., -1.,    1., -1., -1.,    1., -1.,  1.,   -1., -1.,  1.,    // front
-                              1.,  1., -1.,   -1.,  1., -1.,   -1.,  1.,  1.,    1.,  1.,  1.,    // back
-                             -1., -1., -1.,   -1.,  1., -1.,    1.,  1., -1.,    1., -1., -1.  }; // down
-
-  GLfloat cubeNormals[] =  {  0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,    0.,  0.,  1.,
-                              1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,    1.,  0.,  0.,
-                             -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,   -1.,  0.,  0.,
-                              0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,    0., -1.,  0.,
-                              0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,    0.,  1.,  0.,
-                              0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.,    0.,  0., -1.  };
-
-  GLfloat cubeTexCoords[] = {  0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                               0., 0.,   1., 0.,   1., 1.,   0., 1.,
-                               0., 0.,   1., 0.,   1., 1.,   0., 1.  };
-
-  glGenVertexArrays (1, &m_cubesVao);
-  glBindVertexArray (m_cubesVao);
-
-  glGenBuffers (1, &m_cubeVbo);
-  glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
-  glBufferData (GL_ARRAY_BUFFER,
-                sizeof (cubeVertices) + sizeof (cubeNormals) + sizeof (cubeTexCoords) + N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
-                nullptr,
-                GL_DYNAMIC_DRAW);
-
-
-  GLint offset = 0;
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cubeVertices),   cubeVertices);
-  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof (cubeVertices);
-
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cubeNormals),    cubeNormals);
-  glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof (cubeNormals);
-
-  glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (cubeTexCoords), cubeTexCoords);
-  glVertexAttribPointer (2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += sizeof (cubeTexCoords);
-
-  m_CUBES_INFORMATION_OFFSET = offset;
-  // TODO: It's probably better to pack each cube's data instead of doing a shift
-  glVertexAttribPointer (3, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  offset += N_MAX_BLOCKS_DRAWN * 4 * sizeof (GLfloat);
-
-  glVertexAttribPointer (4, 1, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
-  glUnmapBuffer (GL_ARRAY_BUFFER);
-
-  glEnableVertexAttribArray (0);
-  glEnableVertexAttribArray (1);
-  glEnableVertexAttribArray (2);
-  glEnableVertexAttribArray (3);
-  glEnableVertexAttribArray (4);
-  glVertexAttribDivisorARB (3, 1);
-  glVertexAttribDivisorARB (4, 1);
-  glBindVertexArray (0);
-
-
-  glGenVertexArrays (1, &m_selectingBoxVao);
-  glBindVertexArray (m_selectingBoxVao);
-  glGenBuffers (1, &m_selectingBoxVbo);
-  glBindBuffer (GL_ARRAY_BUFFER, m_selectingBoxVbo);
-  glBufferData (GL_ARRAY_BUFFER, sizeof (cubeVertices), cubeVertices, GL_STATIC_DRAW);
-  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0);
-  glEnableVertexAttribArray (0);
-  glBindVertexArray (0);
-
-
 
   GLfloat proxySurfaceVertices[] = { 1, 1, 1,   -1, 1, 1,  -1, -1, 1,   1, -1, 1};
   GLfloat proxySurfaceDirections[] = { 1, 1, 1, -1, 1, 1,  -1, -1, 1,   1, -1, 1};
@@ -262,7 +189,7 @@ void GLWidget::initBuffers () {
   glGenBuffers(1, &m_raytracingVBO);
   glBindBuffer(GL_ARRAY_BUFFER, m_raytracingVBO);
   glBufferData    (GL_ARRAY_BUFFER, sizeof (proxySurfaceVertices) + sizeof (proxySurfaceDirections), nullptr, GL_STATIC_DRAW);
-  offset = 0;
+  int offset = 0;
   glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (proxySurfaceVertices)  , proxySurfaceVertices);
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
   offset += sizeof (proxySurfaceVertices);
@@ -654,11 +581,9 @@ void GLWidget::renderUI () {
 }
 
 void GLWidget::resizeGL (int width, int height) {
+  FIX_UNUSED (width);
   if (height <= 0)
     height = 1;
-
-  glViewport (0, 0, width, height);
-  m_viewFrustum.SetPerspective (90.0f, float (width) / float (height), 0.1f, MAP_SIZE * 10.);
 
   updateGL ();
 }
