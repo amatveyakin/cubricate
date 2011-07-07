@@ -56,11 +56,9 @@ CubeWithFace Player::getHeadOnCube() {
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
       assert (parameter[i] >= 0);
     }
-    float t = xMin (parameter[0], parameter[1], parameter[2]);
-    assert (t >= 0);
+    float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-3);
 
-    for (int i = 0; i < 3; ++i)
-      currentPoint[i] += forwardVector[i] * t;
+    currentPoint += forwardVector * t;
 
     prevCube = cube;
     cube = getCubeByPoint (currentPoint, forwardVector);
