@@ -503,9 +503,24 @@ void GLWidget::setupRenderContext () {
 }
 
 void GLWidget::shutdownRenderContext () {
-  glDeleteProgram (m_instancedCubeShader);
-  glDeleteBuffers (1, &m_cubeVbo);
-  glDeleteVertexArrays (1, &m_cubesVao);
+  glDeleteProgram (m_UIShader);
+  glDeleteProgram (m_raytracingDepthPassShader);
+  glDeleteProgram (m_raytracingShader);
+
+  glDeleteTextures (1, &m_cubePropertiesTexture);
+  glDeleteTextures (1, &m_cubeTexture);
+  glDeleteTextures (1, &m_raytracingFirstPassResult);
+  glDeleteTextures (1, &m_octTreeTexture);
+  glDeleteTextures (1, &m_siblingShiftTableTexture);
+
+  glDeleteBuffers (1, &m_octTreeBuffer);
+  glDeleteBuffers (1, &m_cubePropertiesBuffer);
+  glDeleteBuffers (1, &m_siblingShiftTableBuffer);
+
+  glDeleteBuffers (1, &m_raytracingVBO);
+  glDeleteBuffers (1, &m_raytracingFBO);
+
+  glDeleteVertexArrays (1, &m_raytracingVAO);
 }
 
 
