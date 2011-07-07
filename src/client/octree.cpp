@@ -56,14 +56,20 @@ Octree::Octree (int height) {
       m_nodes[j].height () = i;
     nodeBegin = nodeEnd;
   }
+  m_nodesArrayIsOriginal = true;
 }
 
 Octree::~Octree () {
-  delete[] m_nodes;
+  if (m_nodesArrayIsOriginal)
+    delete[] m_nodes;
 }
 
 
 void Octree::setPointer (TreeDataT* newPointer) {
+  if (m_nodesArrayIsOriginal) {
+    delete[] m_nodes;
+    m_nodesArrayIsOriginal = false;
+  }
   m_nodes = reinterpret_cast<TreeNodeT*>(newPointer);
 }
 

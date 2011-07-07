@@ -53,6 +53,7 @@ protected:
   int         m_size;
   int         m_nNodes;
   int         m_nLeaves;
+  bool        m_nodesArrayIsOriginal;  // TODO: delete, use videomemory from the very beginning
 
   void        checkCoordinates (int x, int y, int z) const;
 
