@@ -61,23 +61,23 @@ int loadGameMap () {
   }
   simpleWorldMap.unlockRepaint ();
 
-  int MAX_NODE_VALUE = 256;
-  const TreeDataT* nodes = cubeOctree.nodes();
-  int nNodeValues[MAX_NODE_VALUE];
-  std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
-  for (int i = 0; i < cubeOctree.nNodes(); ++i) {
-    int nodeValue = nodes[i * NODE_STRUCT_SIZE];
-    assert (nodeValue >= 0);
-    assert (nodeValue < MAX_NODE_VALUE);
-    nNodeValues [nodeValue]++;
-  }
-  std::cout << std::endl;
-
-  std::cout << "Cube type frequency:" << std::endl;
-  for (int i = 0; i < MAX_NODE_VALUE; ++i)
-    if (nNodeValues[i] != 0)
-      std::cout << i << ": " << nNodeValues[i] << std::endl;
-  std::cout << std::endl;
+//   int MAX_NODE_VALUE = 256;
+//   const TreeDataT* nodes = cubeOctree.nodes();
+//   int nNodeValues[MAX_NODE_VALUE];
+//   std::fill (nNodeValues, nNodeValues + MAX_NODE_VALUE, 0);
+//   for (int i = 0; i < cubeOctree.nNodes(); ++i) {
+//     int nodeValue = nodes[i * NODE_STRUCT_SIZE];
+//     assert (nodeValue >= 0);
+//     assert (nodeValue < MAX_NODE_VALUE);
+//     nNodeValues [nodeValue]++;
+//   }
+//   std::cout << std::endl;
+//
+//   std::cout << "Cube type frequency:" << std::endl;
+//   for (int i = 0; i < MAX_NODE_VALUE; ++i)
+//     if (nNodeValues[i] != 0)
+//       std::cout << i << ": " << nNodeValues[i] << std::endl;
+//   std::cout << std::endl;
 
   std::cout << "nOctreeNodes = " << cubeOctree.nNodes () << std::endl;
   std::cout << std::endl;
