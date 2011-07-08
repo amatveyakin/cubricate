@@ -41,16 +41,6 @@ void WaterEngine::processWater() {
 
     if (cube.z () < MAP_SIZE - 1)
       processUpperNeighbour (cube);
-
-    // Step 2. Splitting
-/*    if (simpleWorldMap.get (cube).fluidSaturation > WaterParams::SPLITTING_THRESHOLD) {
-      if (tryToSplit (cube, Direction::Z_MINUS)) continue;
-      if (tryToSplit (cube, Direction::X_MINUS)) continue;
-      if (tryToSplit (cube, Direction::X_PLUS))  continue;
-      if (tryToSplit (cube, Direction::Y_MINUS)) continue;
-      if (tryToSplit (cube, Direction::Y_PLUS))  continue;
-      if (tryToSplit (cube, Direction::Z_PLUS))  continue;
-    }*/
   }
   nextCubeIter = waterCubes.end ();
   simpleWorldMap.unlockRepaint ();
@@ -67,11 +57,8 @@ void WaterEngine::processLowerNeighbour (Vec3i cube) {
 
 void WaterEngine::processUpperNeighbour (Vec3i cube) {
   Vec3i upperCube = cube + Vec3i::e3 ();
-  if (simpleWorldMap.get (cube).fluidSaturation > WaterParams::VERTICAL_SPLITTING_THRESHOLD) {
-    WorldBlock emptyWaterCube = newWaterCube (0);
-    simpleWorldMap.set (upperCube, emptyWaterCube);
+  if (simpleWorldMap.get (upperCube).type == BT_WATER)
     processVerticalWaterPair (cube, upperCube);
-  }
 }
 
 void WaterEngine::processHorizontalNeighbours (Vec3i cube) {
@@ -130,23 +117,13 @@ void WaterEngine::processHorizontalNeighbours (Vec3i cube) {
 
 void WaterEngine::processVerticalWaterPair (Vec3i lowerCube, Vec3i upperCube) {
   float saturationSum = simpleWorldMap.get (lowerCube).fluidSaturation + simpleWorldMap.get (upperCube).fluidSaturation;
-  if (saturationSum < WaterParams::VERTICAL_MERGING_THRESHOLD) {
+  if (saturationSum < WaterParams::MAX_SATURATION) {
     simpleWorldMap.set (lowerCube, newWaterCube (saturationSum));
     simpleWorldMap.set (upperCube, BT_AIR);
   }
   else {
-    float upperCubeSaturation = saturationSum / (1 + WaterParams::NORMAL_VERTICAL_SATURATION_RATIO);
-    if (upperCubeSaturation < WaterParams::MIN_SATURATION)
-      upperCubeSaturation = WaterParams::MIN_SATURATION;
-
-    float lowerCubeSaturation = upperCubeSaturation * WaterParams::NORMAL_VERTICAL_SATURATION_RATIO;
-    if (lowerCubeSaturation > WaterParams::MAX_SATURATION) {
-      lowerCubeSaturation = WaterParams::MAX_SATURATION;
-      upperCubeSaturation = saturationSum - lowerCubeSaturation;
-    }
-
-    simpleWorldMap.set (lowerCube, newWaterCube (lowerCubeSaturation));
-    simpleWorldMap.set (upperCube, newWaterCube (upperCubeSaturation));
+    simpleWorldMap.set (lowerCube, newWaterCube (WaterParams::MAX_SATURATION));
+    simpleWorldMap.set (upperCube, newWaterCube (saturationSum - WaterParams::MAX_SATURATION));
   }
 }
 
