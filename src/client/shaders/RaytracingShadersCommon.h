@@ -15,13 +15,6 @@ const int   MAX_ITER_INNER = 100;
 const int   CUBE_TYPE_AIR     = 0;
 const int   CUBE_TYPE_WATER   = 1;
 
-// Node structure: Type | NeigbourX | NeigbourY | NeigbourZ | Size
-const int   NODE_STRUCT_SIZE       = 5;
-const int   NODE_OFFSET_TYPE       = 0;
-const int   NODE_OFFSET_HEIGHT     = 4;
-const int   NODE_OFFSET_NEIGHBOURS = 0;
-
-
 // const int   NODE_OFFSET_BY_HEIGHT[] = int[](
 //   /* 0 */  0,
 //   /* 1 */  1,
@@ -69,6 +62,10 @@ float getNodeSize (int nodePointer) {
 
 vec3 getNodeMidpoint (vec3 pointInNode, float nodeSize) {
   return 2 * nodeSize * (floor (pointInNode / (2 * nodeSize)) + 0.5 * vec111);
+}
+
+int getNodeParameter (int nodePointer) {
+  return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_PARAMETER).r;
 }
 
 int getNodeNeighbour (int nodePointer, vec3 direction) {

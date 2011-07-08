@@ -74,23 +74,23 @@ void Octree::setPointer (TreeDataT* newPointer) {
 }
 
 
-const TreeDataT* Octree::nodes() const {
+const TreeDataT* Octree::nodes () const {
   return reinterpret_cast<TreeDataT*>(m_nodes);
 }
 
-int Octree::height() const {
+int Octree::height () const {
   return m_height;
 }
 
-int Octree::size() const {
+int Octree::size () const {
   return m_size;
 }
 
-int Octree::nNodes() const {
+int Octree::nNodes () const {
   return m_nNodes;
 }
 
-int Octree::nLeaves() const {
+int Octree::nLeaves () const {
   return m_nLeaves;
 }
 
@@ -102,28 +102,33 @@ TreeDataT Octree::get (int x, int y, int z) const {
 }
 
 // TODO: speed up local neighbour update
-void Octree::set (int x, int y, int z, TreeDataT type, bool updateNeighboursFlag) {
+void Octree::set (int x, int y, int z, WorldBlock block, bool updateNeighboursFlag) {
   checkCoordinates (x, y, z);
 //   std::cout << "set (" << x << ", " << y << ", " << z << ")" << std::endl;
   int nodeSize;
   int curNode = getDeepestNode (x, y, z, nodeSize);
-  if  (m_nodes [curNode].type () != type) {
+  if  (m_nodes [curNode].type () != block.type) {
     if  (nodeSize > 1) {
       while  (nodeSize > 1) {
         splitNode (curNode);
         stepDownOneLevel (x, y, z, curNode, nodeSize);
       }
-      m_nodes [curNode].type () = type;
+      m_nodes [curNode].type () = block.type;
       if (updateNeighboursFlag)
         computeNeighbours ();
     }
     else {
-      m_nodes [curNode].type () = type;
+      m_nodes [curNode].type () = block.type;
       int newNode = uniteNodesRecursively (curNode);
       if (updateNeighboursFlag && newNode != curNode)
         computeNeighbours ();
+      curNode = newNode;
     }
   }
+  if (block.type == BT_WATER)
+    m_nodes [curNode].parameter () = block.fluidSaturation * MAX_FLUID_SATURATION;
+  else
+    m_nodes [curNode].parameter () = 0;
 }
 
 

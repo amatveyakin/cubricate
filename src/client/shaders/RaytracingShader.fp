@@ -89,11 +89,11 @@ void main(void)
       iterInner++;
     }
     currCubeProperties = getCubeProperties (currCubeType);
-//     vec3 oldRay = ray;
-//     if ((currCubeType != prevCubeType) && (iterOuter > 0))
-//       ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
-//     if (length (ray) < 0.0001)
-//       ray = reflect (oldRay, normal);
+    vec3 oldRay = ray;
+    if ((currCubeType != prevCubeType) && (iterOuter > 0))
+      ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
+    if (length (ray) < 0.0001)
+      ray = reflect (oldRay, normal);
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = abs ((nextPoint - currPoint) / ray);
@@ -103,14 +103,21 @@ void main(void)
 //     EXIT_IF (delta < 0, 0.5, 0., 1.);
 
     vec4 baseColor = texture (cubeTexture, vec4 (fract ((currPoint - currCubeMidpoint) + vec111 * currCubeSize) - vec111 / 2, currCubeType));
+    float materialTransparency = currCubeProperties.transparency;
+
+//     if (currCubeType == CUBE_TYPE_WATER)
+//       baseColor.xyz = vec111 - (vec111 - baseColor.xyz) * getNodeParameter (currCubePointer) / float (MAX_FLUID_SATURATION);
+    if (currCubeType == CUBE_TYPE_WATER)
+      materialTransparency = 1 - getNodeParameter (currCubePointer) / float (MAX_FLUID_SATURATION) * (1 - materialTransparency);
+
 
     float transparency;
-    if (currCubeProperties.transparency == 0.)
+    if (materialTransparency == 0.)
       transparency = 0.;
     else
-      transparency = pow (currCubeProperties.transparency, delta);
-    if ((currCubeType != prevCubeType) && (iterOuter > 0))
-      transparency *= baseColor.a;
+      transparency = pow (materialTransparency, delta);
+//     if ((currCubeType != prevCubeType) && (iterOuter > 0))
+//       transparency *= baseColor.a;
 
     float lightCoef;
     if (currCubeProperties.transparency == 0)

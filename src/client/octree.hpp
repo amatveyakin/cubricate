@@ -6,16 +6,16 @@
 
 #include "common/c++0x_workaround.hpp"
 #include "common/cube_geometry.hpp"
+#include "common/world_block.hpp"
 
 
 typedef int TreeDataT;
 
-const int NODE_STRUCT_SIZE = 5;
-
 struct TreeNodeT {
-  TreeDataT& type ()              { return data [0]; }
-  TreeDataT& neighbour (int i)    { assert (i >= 0);  assert (i < 3);  return data [i + 1]; }
-  TreeDataT& height ()            { return data [4]; }
+  TreeDataT& type ()              { return data [NODE_OFFSET_TYPE]; }
+  TreeDataT& neighbour (int i)    { return data [NODE_OFFSET_NEIGHBOURS + i + 1]; }
+  TreeDataT& height ()            { return data [NODE_OFFSET_HEIGHT]; }
+  TreeDataT& parameter ()         { return data [NODE_OFFSET_PARAMETER]; }
 
   TreeDataT data[NODE_STRUCT_SIZE];
 };
@@ -41,7 +41,7 @@ public:
   int               nLeaves () const;
 
   TreeDataT   get (int x, int y, int z) const;
-  void        set (int x, int y, int z, TreeDataT type, bool updateNeighboursFlag);
+  void        set (int x, int y, int z, WorldBlock block, bool updateNeighboursFlag);
 
   bool        hasChildren (int node) const;
 

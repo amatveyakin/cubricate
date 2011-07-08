@@ -36,11 +36,11 @@ void SimpleWorldMap::set (Vec3i pos, WorldBlock newWorldBlock) {
   m_blocks (pos) = newWorldBlock;
   if (m_nRepaintLocks == 0) {
     lockRepaint ();
-    cubeOctree.set (pos.x (), pos.y (), pos.z (), newWorldBlock.type, true);
+    cubeOctree.set (pos.x (), pos.y (), pos.z (), newWorldBlock, true);
     doUnlockRepaint (false);
   }
   else
-    cubeOctree.set (pos.x (), pos.y (), pos.z (), newWorldBlock.type, false);
+    cubeOctree.set (pos.x (), pos.y (), pos.z (), newWorldBlock, false);
 }
 
 void SimpleWorldMap::set (int x, int y, int z, BlockType newBlockType) {

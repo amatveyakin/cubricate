@@ -6,6 +6,7 @@
 #include <cmath>
 #include <set>
 
+#include "common/utils.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/cube_geometry.hpp"
 
@@ -20,7 +21,7 @@ namespace WaterParams {
 //   const float VERTICAL_MERGING_THRESHOLD     = M_SQRT2 / 1.1;
 
   const float MAX_SATURATION        = 1.;
-  const float MIN_SATURATION        = 0.1;
+  const float MIN_SATURATION        = 0.2;
 }
 
 
@@ -29,26 +30,12 @@ public:
   WaterEngine ();
   ~WaterEngine ();
 
-  void addWaterCube (Vec3i pos) {
-    assert (waterCubes.find (pos) == waterCubes.end ());
-    waterCubes.insert (pos);
-  }
-  void removeWaterCube (Vec3i pos) {
-    // TODO: That's quite a dirty trick. Try to fix.
-    auto it = waterCubes.find (pos);
-    assert (it != waterCubes.end ());
-    if (it == nextCubeIter)
-      nextCubeIter++;
-    waterCubes.erase (it);
-  }
+  void addWaterCube (Vec3i pos) { FIX_UNUSED (pos); }
+  void removeWaterCube (Vec3i pos) { FIX_UNUSED (pos); }
 
   void processWater ();
 
 private:
-  std::set <Vec3i, LexicographicCompareVec3i> waterCubes;
-  std::set <Vec3i, LexicographicCompareVec3i >::iterator nextCubeIter;
-
-
   void processLowerNeighbour (Vec3i cube);
   void processUpperNeighbour (Vec3i cube);
 

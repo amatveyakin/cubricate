@@ -15,9 +15,7 @@ static inline WorldBlock newWaterCube (float saturation) {
 }
 
 
-WaterEngine::WaterEngine() {
-  nextCubeIter = waterCubes.end ();
-}
+WaterEngine::WaterEngine() { }
 
 WaterEngine::~WaterEngine() { }
 
@@ -25,24 +23,31 @@ WaterEngine::~WaterEngine() { }
 void WaterEngine::processWater() {
 //   std::cout << "nWaterCubes = " << waterCubes.size () << std::endl;
   simpleWorldMap.lockRepaint ();
-  for (auto curCubeIter = waterCubes.begin (); curCubeIter != waterCubes.end (); curCubeIter = nextCubeIter) {
-    // WARNING: nextCubeIter may be changed from other member functions!
-    nextCubeIter = curCubeIter;
-    nextCubeIter++;
-    Vec3i cube = *curCubeIter;
 
-    if (cube.z () > 0)
-      processLowerNeighbour (cube);
+  for (int z = 0; z < MAP_SIZE; ++z) {
+    for (int y = 0; y < MAP_SIZE; ++y) {
+      for (int x = 0; x < MAP_SIZE; ++x) {
+        Vec3i cube (x, y, z);
+        if (simpleWorldMap.get (cube).type != BT_WATER)
+          continue;
 
-    //yep, thats must be fixed. or not.
-    if (((cube.x () > 0) && (cube.x () < MAP_SIZE - 1)) &&
-        ((cube.y () > 0) && (cube.y () < MAP_SIZE - 1)))
-      processHorizontalNeighbours (cube);
+        if (cube.z () > 0)
+          processLowerNeighbour (cube);
 
-    if (cube.z () < MAP_SIZE - 1)
-      processUpperNeighbour (cube);
+        if (simpleWorldMap.get (cube).type != BT_WATER)
+          continue;
+
+        //yep, thats must be fixed. or not.
+        if (((cube.x () > 0) && (cube.x () < MAP_SIZE - 1)) &&
+            ((cube.y () > 0) && (cube.y () < MAP_SIZE - 1)))
+          processHorizontalNeighbours (cube);
+
+//         if (cube.z () < MAP_SIZE - 1)
+//           processUpperNeighbour (cube);
+      }
+    }
   }
-  nextCubeIter = waterCubes.end ();
+
   simpleWorldMap.unlockRepaint ();
 }
 
@@ -63,23 +68,25 @@ void WaterEngine::processUpperNeighbour (Vec3i cube) {
 
 void WaterEngine::processHorizontalNeighbours (Vec3i cube) {
   const int N_NEIGHBOURS = 5;
-  Vec3i neigbours[N_NEIGHBOURS];
-  neigbours[0] = cube;
-  neigbours[1] = cube + Vec3i::e1 ();
-  neigbours[2] = cube - Vec3i::e1 ();
-  neigbours[3] = cube + Vec3i::e2 ();
-  neigbours[4] = cube - Vec3i::e2 ();
+  Vec3i neighbours[N_NEIGHBOURS];
+  neighbours[0] = cube;
+  neighbours[1] = cube + Vec3i::e1 ();
+  neighbours[2] = cube - Vec3i::e1 ();
+  neighbours[3] = cube + Vec3i::e2 ();
+  neighbours[4] = cube - Vec3i::e2 ();
+
+  assert (simpleWorldMap.get (cube).type == BT_WATER);
 
   int nValidNeigbours = 0;
   int nWaterNeigbours = 0;
   float totalSaturation = 0;
   for (int i = 0; i < N_NEIGHBOURS; ++i) {
-    if (simpleWorldMap.get (neigbours[i]).type == BT_WATER) {
+    if (simpleWorldMap.get (neighbours[i]).type == BT_WATER) {
       nValidNeigbours++;
       nWaterNeigbours++;
-      totalSaturation += simpleWorldMap.get (neigbours[i]).fluidSaturation;
+      totalSaturation += simpleWorldMap.get (neighbours[i]).fluidSaturation;
     }
-    if (simpleWorldMap.get (neigbours[i]).type == BT_AIR) {
+    if (simpleWorldMap.get (neighbours[i]).type == BT_AIR) {
       nValidNeigbours++;
     }
   }
@@ -87,9 +94,9 @@ void WaterEngine::processHorizontalNeighbours (Vec3i cube) {
   if (meanSaturation > WaterParams::MIN_SATURATION) {
     WorldBlock meanCube = newWaterCube (meanSaturation);
     for (int i = 0; i < N_NEIGHBOURS; ++i) {
-      if (   (simpleWorldMap.get (neigbours[i]).type == BT_WATER)
-          || (simpleWorldMap.get (neigbours[i]).type == BT_AIR))
-        simpleWorldMap.set (neigbours[i], meanCube);
+      if (   (simpleWorldMap.get (neighbours[i]).type == BT_WATER)
+          || (simpleWorldMap.get (neighbours[i]).type == BT_AIR))
+        simpleWorldMap.set (neighbours[i], meanCube);
     }
   }
   else {
@@ -100,14 +107,15 @@ void WaterEngine::processHorizontalNeighbours (Vec3i cube) {
       meanSaturation = totalSaturation / (nWaterNeigbours + nFloodedAirNeighbours);
     }
     nFloodedAirNeighbours--;
+    meanSaturation = totalSaturation / (nWaterNeigbours + nFloodedAirNeighbours);
     WorldBlock meanCube = newWaterCube (meanSaturation);
     for (int i = 0; i < N_NEIGHBOURS; ++i) {
-      if (simpleWorldMap.get (neigbours[i]).type == BT_WATER) {
-        simpleWorldMap.set (neigbours[i], meanCube);
+      if (simpleWorldMap.get (neighbours[i]).type == BT_WATER) {
+        simpleWorldMap.set (neighbours[i], meanCube);
       }
-      else if (   simpleWorldMap.get (neigbours[i]).type == BT_AIR
+      else if (   simpleWorldMap.get (neighbours[i]).type == BT_AIR
                && nFloodedAirNeighbours > 0) {
-        simpleWorldMap.set (neigbours[i], meanCube);
+        simpleWorldMap.set (neighbours[i], meanCube);
         nFloodedAirNeighbours--;
       }
     }
