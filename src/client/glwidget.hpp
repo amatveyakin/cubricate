@@ -62,14 +62,11 @@ protected:
   QTime m_physicsTime;
 
 
-  Vec3i getCubeByPoint (Vec3d point, Vec3d direction);
   void explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius);
   void summonMeteorite (int meteoriteX, int meteoriteY);
-  bool loadTGATexture (const char *szFileName, GLenum minFilter, GLenum magFilter, GLenum wrapMode);
   void initBuffers ();
   void initTextures ();
   void initShaders ();
-  void updateCamera ();
   void setupRenderContext ();
   void shutdownRenderContext ();
 
