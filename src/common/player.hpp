@@ -258,7 +258,7 @@ public:
   ViewFrame& viewFrame ()               { return m_viewFrame; }
   const ViewFrame& viewFrame () const   { return m_viewFrame; }
 
-  CubeWithFace getHeadOnCube ();
+  CubeWithFace getHeadOnCube () const;
 
 protected:
   Vec3d m_pos;

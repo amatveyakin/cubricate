@@ -56,7 +56,7 @@ static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
   return worldToCube (point + direction * 0.00001);
 }
 
-CubeWithFace Player::getHeadOnCube() {
+CubeWithFace Player::getHeadOnCube() const {
 //   return CubeWithFace (worldToCube (m_viewFrame.origin ()), Direction::X_PLUS);
 
   Vec3d currentPoint = m_viewFrame.origin ();
