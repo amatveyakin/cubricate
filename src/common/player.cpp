@@ -12,6 +12,7 @@
 
 Player::Player () {
   m_pos = m_viewFrame.origin ();
+  m_blockInHand = BT_BRICKS;
 }
 
 Player::~Player () { }

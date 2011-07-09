@@ -674,12 +674,17 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       Vec3i newCube = getAdjacentCube (headOnCube).cube;
       if (!cubeIsValid (newCube))
         break;
-      simpleWorldMap.set (XYZ_LIST (newCube), BT_BRICKS);
+      simpleWorldMap.set (XYZ_LIST (newCube), player.getBlockInHand ());
       break;
     }
     default:
       break;
   }
+}
+
+void GLWidget::wheelEvent (QWheelEvent* event) {
+  std::cout << event->delta () << std::endl;
+  player.setBlockInHand (static_cast <BlockType> ((player.getBlockInHand () + xSgn (event->delta()) + N_BLOCK_TYPES) % N_BLOCK_TYPES));
 }
 
 void GLWidget::timerEvent (QTimerEvent* event) {

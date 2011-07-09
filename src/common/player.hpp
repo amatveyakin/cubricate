@@ -260,8 +260,12 @@ public:
 
   CubeWithFace getHeadOnCube () const;
 
+  BlockType getBlockInHand () const      { return m_blockInHand; }
+  void setBlockInHand (BlockType type)   { m_blockInHand = type; }
+
 protected:
-  Vec3d m_pos;
+  Vec3d     m_pos;
+  BlockType m_blockInHand;
 
   ViewFrame m_viewFrame;
 
