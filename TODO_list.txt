@@ -1,6 +1,8 @@
 On next (and I hope, last) repository reset:
 * Find a good name for the project   (variants: Voxeland)
 * Switch file name pattern to camelCase
+* Refactor code to new style: no spaces before empty braces
+* Rename ``build'' to ``build-debug''
 
 Bugs:
 * Exclude the rest of GLTools from project
