@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>   // TODO: delete
 #include <fstream>    // TODO: delete
+#include <iomanip>    // TODO: delete
 
 #include <QTime>
 #include <QKeyEvent>
@@ -22,7 +23,7 @@
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
 const double FPS_MEASURE_INTERVAL         = 1.; // sec
-const double PHYSICS_PROCESSING_INTERVAL  = 0.02; // sec
+const double PHYSICS_PROCESSING_INTERVAL  = 0.1; // sec
 
 
 
@@ -472,6 +473,7 @@ GLWidget::~GLWidget () {
 
 void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
+  m_nPhysicsStepsProcessed = 0;
 
   player.setPos (Vec3d (0.1, 0.1, MAP_SIZE / 8.));
   player.viewFrame ().rotateLocalX (-M_PI / 2. + 0.01);
@@ -696,14 +698,16 @@ void GLWidget::timerEvent (QTimerEvent* event) {
 
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {
-    std::cout << "fps = " << m_nFramesDrawn << std::endl;
+    std::cout << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed << std::endl;
     m_nFramesDrawn = 0;
+    m_nPhysicsStepsProcessed = 0;
     m_fpsTime.restart ();
   }
 
   double physicsTimeElapsed = m_physicsTime.elapsed () / 1000.;
-  if (physicsTimeElapsed > FPS_MEASURE_INTERVAL) {
+  if (physicsTimeElapsed > PHYSICS_PROCESSING_INTERVAL) {
     waterEngine.processWater ();
+    m_nPhysicsStepsProcessed++;
     m_physicsTime.restart ();
   }
 

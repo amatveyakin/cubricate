@@ -28,6 +28,7 @@ public:
 
 protected:
   int m_nFramesDrawn;
+  int m_nPhysicsStepsProcessed;
 
   QGLShaderProgram m_shaderProgram;
   QGLShaderProgram m_basicShaderProgram;
