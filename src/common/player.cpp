@@ -66,8 +66,8 @@ CubeWithFace Player::getHeadOnCube() const {
 
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
   Vec3i prevCube = cube;
-  while  (  cubeIsValid (cube + mapCenter)
-         && simpleWorldMap.get (cube + mapCenter).type == BT_AIR) {
+  while  (   cubeIsValid (cube + mapCenter)
+          && !BlockInfo::isSolid (simpleWorldMap.get (cube + mapCenter).type)) {
     Vec3d parameter;
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
