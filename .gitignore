@@ -7,3 +7,4 @@ build-release
 /resources/*.vp
 /world
 .kdev_include_paths
+gmon.out
