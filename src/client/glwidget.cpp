@@ -23,7 +23,7 @@
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
 const double FPS_MEASURE_INTERVAL         = 1.; // sec
-const double PHYSICS_PROCESSING_INTERVAL  = 1.; // sec
+const double PHYSICS_PROCESSING_INTERVAL  = 0.2; // sec
 
 
 
