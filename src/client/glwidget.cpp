@@ -483,6 +483,7 @@ GLWidget::GLWidget () {
   m_isMovingBackward  = false;
   m_isMovingLeft      = false;
   m_isMovingRight     = false;
+  m_isJumping         = false;
 
   m_worldFreezed      = true;
 }

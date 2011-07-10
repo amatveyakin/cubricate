@@ -52,8 +52,6 @@ void Player::jump () {
 
 void Player::setFlying (bool flyingState) {
   m_flying = flyingState;
-//   if (!m_flying)
-//     setPos (simpleWorldMap.getGroundBeneathPos (m_pos));
 }
 
 
@@ -110,10 +108,14 @@ void Player::processPlayer (double timeDelta) {
 
 
 bool Player::inAir() {
-  return !BlockInfo::isSolid (simpleWorldMap.get (worldToCube (m_pos - Vec3d (0., 0., MAX_SOARING_HEIGHT)) + Vec3i::replicated (MAP_SIZE / 2)));
+  return positionIsValid (m_pos - Vec3d (0., 0., MAX_SOARING_HEIGHT));
 }
 
 bool Player::tryToMove (Vec3d direction, double moveBy) {
+  // Unstucking
+  while (!positionIsValid (m_pos))
+    m_pos += Vec3d::e3() * MAX_MOVEMENT_DELTA;
+
   while (xAbs (moveBy) > MAX_SOARING_HEIGHT / 4.) {
     double step = xMin (MAX_MOVEMENT_DELTA, moveBy);
     Vec3d newPos = m_pos + direction * step;

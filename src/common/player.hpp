@@ -254,8 +254,8 @@ public:
   static const double FLYING_SPEED_COEFF = 2.;
   static const double AIR_SPEED_COEFF = 0.3;
 
-  static const double MAX_SOARING_HEIGHT = 1e-4;
-  static const double MAX_MOVEMENT_DELTA = 0.1;
+  static const double MAX_SOARING_HEIGHT = 1e-3;
+  static const double MAX_MOVEMENT_DELTA = 1e-2;
 
 
   Player();
