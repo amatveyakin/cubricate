@@ -657,6 +657,9 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
       case Qt::Key_D:
         m_isMovingRight = true;
         break;
+      case Qt::Key_Space:
+        player.jump();
+        break;
       case Qt::Key_X: {
         Vec3d playerPos = player.pos ();
         summonMeteorite ((int) (playerPos[0] + MAP_SIZE / 2.), (int) (playerPos[1] + MAP_SIZE / 2.));
@@ -677,6 +680,9 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
         break;
       case Qt::Key_F:
         m_worldFreezed = !m_worldFreezed;
+        break;
+      case Qt::Key_G:
+        player.setFlying (!player.flying());
         break;
     }
   }
@@ -753,13 +759,13 @@ void GLWidget::timerEvent (QTimerEvent* event) {
 
   double timeElasped = m_time.elapsed () / 1000.;
   if (m_isMovingForward)
-    player.moveForward (17. * timeElasped);
+    player.moveForward (8. * timeElasped);
   if (m_isMovingBackward)
-    player.moveForward (-13. * timeElasped);
+    player.moveForward (-6. * timeElasped);
   if (m_isMovingLeft)
-    player.moveRight (-13. * timeElasped);
+    player.moveRight (-6. * timeElasped);
   if (m_isMovingRight)
-    player.moveRight (13. * timeElasped);
+    player.moveRight (6. * timeElasped);
   m_time.restart ();
 
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;
@@ -787,6 +793,8 @@ void GLWidget::timerEvent (QTimerEvent* event) {
       m_physicsTime.restart ();
     }
   }
+
+  player.processPlayer (timeElasped);
 
   updateGL ();
 }

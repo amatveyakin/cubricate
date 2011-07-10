@@ -240,6 +240,7 @@ public:
   static Vector replicated (ElementT value) { return Vector (value, value); }
   static Vector e1 ()                       { return Vector (1, 0); }
   static Vector e2 ()                       { return Vector (0, 1); }
+  static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
 };
 
 
@@ -273,6 +274,7 @@ public:
   static Vector e1 ()                       { return Vector (1, 0, 0); }
   static Vector e2 ()                       { return Vector (0, 1, 0); }
   static Vector e3 ()                       { return Vector (0, 0, 1); }
+  static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
 };
 
 
@@ -306,6 +308,7 @@ public:
   static Vector e2 ()                       { return Vector (0, 1, 0, 0); }
   static Vector e3 ()                       { return Vector (0, 0, 1, 0); }
   static Vector e4 ()                       { return Vector (0, 0, 0, 1); }
+  static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
 };
 
 

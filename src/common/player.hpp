@@ -246,10 +246,17 @@ protected:
 
 class Player {
 public:
-  // The player is a match
-  static const int BODY_HEIGHT = 1.5;
-  static const int EYE_HEIGHT  = 1.4;
-//   static const int BODY_RADIUS = 0.3;
+  // The player is a box
+  static const double BODY_HEIGHT = 1.5;
+  static const double EYE_HEIGHT  = 1.4;
+  static const double BODY_WIDTH  = 0.7;
+  static const double JUMPING_ACCELERATION = 10.;
+  static const double FLYING_SPEED_COEFF = 2.;
+  static const double AIR_SPEED_COEFF = 0.3;
+
+  static const double MAX_SOARING_HEIGHT = 1e-4;
+  static const double MAX_MOVEMENT_DELTA = 0.1;
+
 
   Player();
   ~Player();
@@ -259,6 +266,7 @@ public:
   void moveForward (double moveBy);
   void moveUp (double moveBy);
   void moveRight (double moveBy);
+  void jump ();
 
   bool flying() const                   { return m_flying; }
   void setFlying (bool flyingState);
@@ -277,11 +285,15 @@ protected:
   Vec3d     m_pos;
   BlockType m_blockInHand;
   bool      m_flying;
+  double    m_upVelocity;
 
   ViewFrame m_viewFrame;
 
-  bool positionIsValid (Vec3d pos);
+  bool inAir();
+  bool tryToMove (Vec3d direction, double moveBy);
   void doMove (Vec3d direction, double moveBy);
+
+  static bool positionIsValid (Vec3d pos);
 };
 
 
