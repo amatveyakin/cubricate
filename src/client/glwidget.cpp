@@ -498,7 +498,7 @@ void GLWidget::initializeGL () {
   m_nPhysicsStepsProcessed = 0;
 
   player.setPos (Vec3d (0.1, 0.1, MAP_SIZE / 8.));
-  player.viewFrame ().rotateLocalX (-M_PI / 2. + 0.01);
+  player.viewFrame ().rotateLocalX (M_PI / 2. - 0.01);
   player.viewFrame ().rotateWorld (M_PI / 2. - 0.1, 0., 0., 1.);
 
   setupRenderContext ();
@@ -753,13 +753,13 @@ void GLWidget::timerEvent (QTimerEvent* event) {
 
   double timeElasped = m_time.elapsed () / 1000.;
   if (m_isMovingForward)
-    player.moveForward (-17. * timeElasped);
+    player.moveForward (17. * timeElasped);
   if (m_isMovingBackward)
-    player.moveForward (13. * timeElasped);
+    player.moveForward (-13. * timeElasped);
   if (m_isMovingLeft)
-    player.moveRight (13. * timeElasped);
-  if (m_isMovingRight)
     player.moveRight (-13. * timeElasped);
+  if (m_isMovingRight)
+    player.moveRight (13. * timeElasped);
   m_time.restart ();
 
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;

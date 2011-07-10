@@ -16,7 +16,7 @@ class ViewFrame {
 public:
   // Default position and orientation. At the origin, looking
   // down the positive Z axis (right handed coordinate system).    // TODO: What???
-  ViewFrame () :
+  ViewFrame() :
     m_origin      (0., 0., 0.),
     m_dirForward  (0., 0.,-1.), // Forward is -Z (default OpenGL)
     m_dirUp       (0., 1., 0.)  // Up is +Y
@@ -25,17 +25,17 @@ public:
 
   void setOrigin (Vec3d newOrigin)                          { m_origin = newOrigin; }
   void setOrigin (double x, double y, double z)             { m_origin.setCoordinates (x, y, z); }
-  const Vec3d& origin () const                              { return m_origin; }
+  const Vec3d& origin() const                               { return m_origin; }
 
   void setDirForward (Vec3d newDirForward)                  { m_dirForward = newDirForward; }
   void setDirForward (double x, double y, double z)         { m_dirForward.setCoordinates (x, y, z); }
-  const Vec3d& dirForward () const                          { return m_dirForward; }
+  const Vec3d& dirForward() const                           { return m_dirForward; }
 
   void setDirUp (Vec3d newDirUp)                            { m_dirUp = newDirUp; }
   void setDirUp (double x, double y, double z)              { m_dirUp.setCoordinates (x, y, z); }
-  const Vec3d& dirUp () const                               { return m_dirUp; }
+  const Vec3d& dirUp() const                                { return m_dirUp; }
 
-  Vec3d dirRight () const                                      { return crossProduct (m_dirUp, m_dirForward); }
+  Vec3d dirRight() const                                    { return crossProduct (m_dirForward, m_dirUp); }
 
 //   void TranslateWorld (float x, float y, float z) {
 //     vOrigin[0] += x;
@@ -57,9 +57,9 @@ public:
 
   // TODO: rewrite
   void getCameraMatrix (M3DMatrix44f result, bool rotationOnly = false) {
-    Vec3d a = Vec3d::zero ();
-    Vec3d z = -m_dirForward;
-    Vec3d x = crossProduct (m_dirUp, z);
+    Vec3d a = Vec3d::zero();
+    Vec3d z = m_dirForward;
+    Vec3d x = crossProduct (-m_dirUp, z);
 
     // Matrix has no translation information and is
     // transposed.... (rows instead of columns)
@@ -68,9 +68,9 @@ public:
     M (0, 1) = x[1];
     M (0, 2) = x[2];
     M (0, 3) = 0.0;
-    M (1, 0) = m_dirUp[0];
-    M (1, 1) = m_dirUp[1];
-    M (1, 2) = m_dirUp[2];
+    M (1, 0) = -m_dirUp[0];
+    M (1, 1) = -m_dirUp[1];
+    M (1, 2) = -m_dirUp[2];
     M (1, 3) = 0.0;
     M (2, 0) = z[0];
     M (2, 1) = z[1];
@@ -105,11 +105,11 @@ public:
     m3dRotationMatrix33 (rotMat, angle, localX[0], localX[1], localX[2]);
 
     // Rotate Y, and Z
-    m3dRotateVector (rotVec.data (), m_dirUp.data (), rotMat);
-    m3dCopyVector3 (m_dirUp.data (), rotVec.data ());
+    m3dRotateVector (rotVec.data(), m_dirUp.data(), rotMat);
+    m3dCopyVector3 (m_dirUp.data(), rotVec.data());
 
-    m3dRotateVector (rotVec.data (), m_dirForward.data (), rotMat);
-    m3dCopyVector3 (m_dirForward.data (), rotVec.data ());
+    m3dRotateVector (rotVec.data(), m_dirForward.data(), rotMat);
+    m3dCopyVector3 (m_dirForward.data(), rotVec.data());
   }
 
 //   // Rotate around local Y
@@ -246,22 +246,23 @@ protected:
 
 class Player {
 public:
-  Player ();
-  ~Player ();
 
-  Vec3d pos () const                    { return m_pos; }
+  Player();
+  ~Player();
+
+  Vec3d pos() const                     { return m_pos; }
   void setPos (Vec3d newPos);
   void moveForward (double moveBy);
   void moveUp (double moveBy);
   void moveRight (double moveBy);
 
-  ViewFrame& viewFrame ()               { return m_viewFrame; }
-  const ViewFrame& viewFrame () const   { return m_viewFrame; }
+  ViewFrame& viewFrame()                { return m_viewFrame; }
+  const ViewFrame& viewFrame() const    { return m_viewFrame; }
 
-  CubeWithFace getHeadOnCube () const;
+  CubeWithFace getHeadOnCube() const;
 
-  BlockType getBlockInHand () const      { return m_blockInHand; }
-  void setBlockInHand (BlockType type)   { m_blockInHand = type; }
+  BlockType getBlockInHand() const      { return m_blockInHand; }
+  void setBlockInHand (BlockType type)  { m_blockInHand = type; }
 
 protected:
   Vec3d     m_pos;

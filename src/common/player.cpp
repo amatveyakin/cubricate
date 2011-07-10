@@ -10,12 +10,12 @@
 
 
 
-Player::Player () {
-  m_pos = m_viewFrame.origin ();
+Player::Player() {
+  m_pos = m_viewFrame.origin();
   m_blockInHand = BT_BRICKS;
 }
 
-Player::~Player () { }
+Player::~Player() { }
 
 
   // TODO: delete that and rewrite normally
@@ -23,11 +23,11 @@ static const int POSITION_CHECK_ITER = 10;
 
 void Player::setPos (Vec3d newPos) {
   m_viewFrame.setOrigin (newPos);
-  m_pos = m_viewFrame.origin ();
+  m_pos = m_viewFrame.origin();
 }
 
 void Player::moveForward (double moveBy) {
-  Vec3d newPos = m_pos + m_viewFrame.dirForward () * moveBy;
+  Vec3d newPos = m_pos + m_viewFrame.dirForward() * moveBy;
   for (int i = 0; i < POSITION_CHECK_ITER; ++i)
     if (!positionIsValid ((m_pos * i + newPos * (POSITION_CHECK_ITER - i)) / double (POSITION_CHECK_ITER)))
       return;
@@ -35,7 +35,7 @@ void Player::moveForward (double moveBy) {
 }
 
 void Player::moveUp (double moveBy) {
-  Vec3d newPos = m_pos + m_viewFrame.dirUp () * moveBy;
+  Vec3d newPos = m_pos + m_viewFrame.dirUp() * moveBy;
   for (int i = 0; i < POSITION_CHECK_ITER; ++i)
     if (!positionIsValid ((m_pos * i + newPos * (POSITION_CHECK_ITER - i)) / double (POSITION_CHECK_ITER)))
       return;
@@ -43,7 +43,7 @@ void Player::moveUp (double moveBy) {
 }
 
 void Player::moveRight (double moveBy) {
-  Vec3d newPos = m_pos + m_viewFrame.dirRight () * moveBy;
+  Vec3d newPos = m_pos + m_viewFrame.dirRight() * moveBy;
   for (int i = 0; i < POSITION_CHECK_ITER; ++i)
     if (!positionIsValid ((m_pos * i + newPos * (POSITION_CHECK_ITER - i)) / double (POSITION_CHECK_ITER)))
       return;
@@ -58,10 +58,10 @@ static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
 }
 
 CubeWithFace Player::getHeadOnCube() const {
-//   return CubeWithFace (worldToCube (m_viewFrame.origin ()), Direction::X_PLUS);
+//   return CubeWithFace (worldToCube (m_viewFrame.origin()), Direction::X_PLUS);
 
-  Vec3d currentPoint = m_viewFrame.origin ();
-  Vec3d forwardVector = -m_viewFrame.dirForward ();  // TODO: ???
+  Vec3d currentPoint = m_viewFrame.origin();
+  Vec3d forwardVector = m_viewFrame.dirForward();  // TODO: ???
   Vec3i mapCenter = Vec3i::replicated (MAP_SIZE / 2);
 
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
