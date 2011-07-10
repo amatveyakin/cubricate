@@ -8,6 +8,7 @@ struct CubeProperties {
   int   normalMapIndex;
 };
 
+const int MAX_RAY_TURNS = 3;
 
 uniform isamplerBuffer   octTree;
 uniform  samplerBuffer   cubeProperties;
@@ -78,7 +79,8 @@ void main(void)
   currCubeMidpoint = vec3 (0., 0., 0.);
   currCubeType = getNodeType (currCubePointer);
   //prevCubeType = currCubeType;
-  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.05) && (pointInCube(currPoint, vec3(0, 0, 0), RENDER_WORLD_SIZE))) {
+  int nRayTurns = 0;
+  while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.01) && (pointInCube(currPoint, vec3(0, 0, 0), RENDER_WORLD_SIZE))) {
 //     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
 //     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
 
@@ -93,12 +95,17 @@ void main(void)
     }
     currCubeProperties = getCubeProperties (currCubeType);
 
-    normal              = colorToVector (texture (cubeNormalMap, vec4 (fract ((currPoint - currCubeMidpoint) + vec111 * currCubeSize) - vec111 / 2, currCubeProperties.normalMapIndex)).xyz);
-    vec3 oldRay = ray;
-    if ((currCubeType != prevCubeType) && (iterOuter > 0))
-      ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
-    if (length (ray) < 0.0001)
-      ray = reflect (oldRay, normal);
+    normal              = colorToVector (texture (cubeNormalMap, vec4 (fract ( (currPoint - currCubeMidpoint) + vec111 * currCubeSize) - vec111 / 2, currCubeProperties.normalMapIndex)).xyz);
+
+    if (nRayTurns < MAX_RAY_TURNS) {
+      vec3 oldRay = ray;
+      if ((currCubeType != prevCubeType) && (iterOuter > 0)) {
+        ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
+        if (length (ray) < 0.0001)
+          ray = reflect (oldRay, normal);
+        nRayTurns++;
+      }
+    }
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = abs ((nextPoint - currPoint) / ray);
