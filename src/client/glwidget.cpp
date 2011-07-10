@@ -764,11 +764,12 @@ void GLWidget::timerEvent (QTimerEvent* event) {
 
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {
-    std::cout << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed << std::endl;
-    std::cout << "Depth pass time: "      << 0.000001 * m_totalDepthPassTime / m_nFramesDrawn
-              << ", Main pass time: "     << 0.000001 * m_totalMainPassTime  / m_nFramesDrawn
-              << ", UI time: "            << 0.000001 * m_totalUITime        / m_nFramesDrawn
-              << ", total drawing time: " << 0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn << std::endl;
+    std::cout << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed
+              << ", video fps =" << std::setw (8) << 1000. / (0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn) << std::endl;
+//     std::cout << "Depth pass time: "      << 0.000001 * m_totalDepthPassTime / m_nFramesDrawn
+//               << ", Main pass time: "     << 0.000001 * m_totalMainPassTime  / m_nFramesDrawn
+//               << ", UI time: "            << 0.000001 * m_totalUITime        / m_nFramesDrawn
+//               << ", total drawing time: " << 0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn << std::endl;
     m_nFramesDrawn = 0;
     m_totalDepthPassTime = 0;
     m_totalMainPassTime = 0;
