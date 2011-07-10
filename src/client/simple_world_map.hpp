@@ -26,6 +26,11 @@ public:
 
   void swapCubes (Vec3i firstPos, Vec3i secondPos);
 
+  void saveToFile () const;
+  void loadFromFile ();
+
+  static const char* WORLD_MAP_FILE_NAME;
+
 protected:
   Array3D <WorldBlock> m_blocks;
   int m_nRepaintLocks;

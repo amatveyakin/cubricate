@@ -23,7 +23,7 @@
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
 const double FPS_MEASURE_INTERVAL         = 1.; // sec
-const double PHYSICS_PROCESSING_INTERVAL  = 0.1; // sec
+const double PHYSICS_PROCESSING_INTERVAL  = 1.; // sec
 
 
 
@@ -597,27 +597,39 @@ void GLWidget::resizeGL (int width, int height) {
 void GLWidget::keyPressEvent (QKeyEvent* event) {
 //   TODO: use this: event->nativeScanCode ()
 
-  switch (event->key ()) {
-    case Qt::Key_W:
-      m_isMovingForward = true;
-      break;
-    case Qt::Key_S:
-      m_isMovingBackward = true;
-      break;
-    case Qt::Key_A:
-      m_isMovingLeft = true;
-      break;
-    case Qt::Key_D:
-      m_isMovingRight = true;
-      break;
-    case Qt::Key_X: {
-      Vec3d playerPos = player.pos ();
-      summonMeteorite ((int) (playerPos[0] + MAP_SIZE / 2.), (int) (playerPos[1] + MAP_SIZE / 2.));
-      break;
+  if (event->modifiers () == Qt::NoModifier) {
+    switch (event->key ()) {
+      case Qt::Key_W:
+        m_isMovingForward = true;
+        break;
+      case Qt::Key_S:
+        m_isMovingBackward = true;
+        break;
+      case Qt::Key_A:
+        m_isMovingLeft = true;
+        break;
+      case Qt::Key_D:
+        m_isMovingRight = true;
+        break;
+      case Qt::Key_X: {
+        Vec3d playerPos = player.pos ();
+        summonMeteorite ((int) (playerPos[0] + MAP_SIZE / 2.), (int) (playerPos[1] + MAP_SIZE / 2.));
+        break;
+      }
+      case Qt::Key_Escape:
+        exit (0);
+        break;
     }
-    case Qt::Key_Escape:
-      exit (0);
-      break;
+  }
+  else if (event->modifiers () == Qt::ControlModifier) {
+    switch (event->key ()) {
+      case Qt::Key_S:
+        simpleWorldMap.saveToFile ();
+        break;
+      case Qt::Key_L:
+        simpleWorldMap.loadFromFile ();
+        break;
+    }
   }
 
   updateGL ();

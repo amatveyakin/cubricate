@@ -12,7 +12,7 @@ public:
     m_sizeX = sizeX;
     m_sizeY = sizeY;
     m_sizeZ = sizeZ;
-    m_elements = new ElementT [sizeX * sizeY * sizeZ];
+    m_elements = new ElementT [totalElements ()];
   }
   Array3D (const Array3D& other) = delete;   // Do you really need it? Ok, do implement
   ~Array3D () {
@@ -21,6 +21,11 @@ public:
 
   const ElementT* data () const                             { return m_elements; }
   ElementT* data ()                                         { return m_elements; }
+
+  int sizeX () const                                        { return m_sizeX; }
+  int sizeY () const                                        { return m_sizeY; }
+  int sizeZ () const                                        { return m_sizeZ; }
+  int totalElements () const                                { return m_sizeX * m_sizeY * m_sizeZ; }
 
   const ElementT& at (int x, int y, int z) const            { return m_elements [x * m_sizeY * m_sizeZ  +  y * m_sizeZ  +  z]; }
   ElementT& at (int x, int y, int z)                        { return m_elements [x * m_sizeY * m_sizeZ  +  y * m_sizeZ  +  z]; }

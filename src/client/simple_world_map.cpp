@@ -1,12 +1,20 @@
+#include <fstream>
+#include <iostream>   // TODO: delete
+
+#include <QDir>
+
 #include "client/glwidget.hpp"
 #include "client/client_world.hpp"
 #include "client/simple_world_map.hpp"
 
 
+const char* SimpleWorldMap::WORLD_MAP_FILE_NAME = "world/map";
+
+
 SimpleWorldMap::SimpleWorldMap (int sizeX, int sizeY, int sizeZ) :
   m_blocks (sizeX, sizeY, sizeZ)
 {
-  std::fill (m_blocks.data (), m_blocks.data () + sizeX * sizeY * sizeZ, BT_AIR);
+  std::fill (m_blocks.data (), m_blocks.data () + m_blocks.totalElements (), BT_AIR);
   m_nRepaintLocks = 0;
 }
 
@@ -56,6 +64,35 @@ void SimpleWorldMap::swapCubes (Vec3i firstPos, Vec3i secondPos) {
   WorldBlock tmp = m_blocks (firstPos);
   set (firstPos, m_blocks (secondPos));
   set (secondPos, tmp);
+}
+
+
+void SimpleWorldMap::loadFromFile () {
+  std::ifstream streamIn (WORLD_MAP_FILE_NAME);
+  assert (streamIn.is_open ());
+  lockRepaint ();
+  for (int x = 0; x < MAP_SIZE; ++x) {
+    for (int y = 0; y < MAP_SIZE; ++y) {
+      for (int z = 0; z < MAP_SIZE; ++z) {
+        WorldBlock block;
+        streamIn.read (reinterpret_cast <char *> (&block), sizeof (WorldBlock));
+        assert (!streamIn.fail ());
+        set (x, y, z, block);
+      }
+    }
+  }
+  std::cout << "Map loaded." << std::endl;
+  unlockRepaint ();
+}
+
+void SimpleWorldMap::saveToFile () const {
+  QDir curDur;
+  bool result = curDur.mkpath ("world");
+  assert (result);
+  std::ofstream streamOut (WORLD_MAP_FILE_NAME);
+  streamOut.write (reinterpret_cast <const char *> (m_blocks.data ()), m_blocks.totalElements () * sizeof (WorldBlock));
+  assert (!streamOut.fail ());
+  std::cout << "Map saved." << std::endl;
 }
 
 

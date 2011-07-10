@@ -5,4 +5,5 @@ build-release
 *.kate-swp
 /resources/*.fp
 /resources/*.vp
+/world
 .kdev_include_paths
