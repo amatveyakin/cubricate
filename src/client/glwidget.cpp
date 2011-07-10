@@ -117,7 +117,7 @@ void GLWidget::lockCubes () {
   glBindBuffer (GL_TEXTURE_BUFFER, m_octTreeBuffer);
   TreeDataT* buffer = (TreeDataT *) glMapBufferRange (GL_TEXTURE_BUFFER, 0,
                                                       cubeOctree.nNodes() * sizeof (TreeNodeT),
-                                                      GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+                                                      GL_MAP_WRITE_BIT);
   cubeOctree.setPointer (buffer);
 }
 
