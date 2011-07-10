@@ -62,6 +62,7 @@ protected:
   bool m_isMovingBackward;
   bool m_isMovingLeft;
   bool m_isMovingRight;
+  bool m_isJumping;
 
   bool m_worldFreezed;
 

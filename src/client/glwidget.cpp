@@ -219,7 +219,7 @@ void GLWidget::initBuffers () {
 }
 
 void GLWidget::initTextures () {
-  const int N_TEXTURES        = 6;
+  const int N_TEXTURES        = N_BLOCK_TYPES;
   const int N_NORMAL_MAPS     = 2;
 
   const int TEXTURE_SIZE      = 16;
@@ -338,14 +338,13 @@ void GLWidget::initTextures () {
 
 
 
-  const float cubeProperties[] = { 0.993, 1,    1,
+  const float cubeProperties[] = { 0.993, 1,     1,
                                    0.85,  1.333, 1,
-//                                    0.,    1.333,
-                                   0,     1,    0,
-                                   0,     1,    0,
-                                   0,     1,    0,
-                                   0,     1,    0,
-                                   0,     1,    0      };
+                                   0,     99,    0,
+                                   0,     99,    0,
+                                   0,     99,    0,
+                                   0,     99,    0,
+                                   0,     0.001, 0  };
 
 
   glGenBuffers (1, &m_cubePropertiesBuffer);
@@ -500,6 +499,7 @@ void GLWidget::initializeGL () {
   player.setPos (Vec3d (0.1, 0.1, MAP_SIZE / 8.));
   player.viewFrame ().rotateLocalX (M_PI / 2. - 0.01);
   player.viewFrame ().rotateWorld (M_PI / 2. - 0.1, 0., 0., 1.);
+  player.setFlying (true);
 
   setupRenderContext ();
   loadGameMap ();
@@ -658,7 +658,7 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
         m_isMovingRight = true;
         break;
       case Qt::Key_Space:
-        player.jump();
+        m_isJumping = true;
         break;
       case Qt::Key_X: {
         Vec3d playerPos = player.pos ();
@@ -705,6 +705,9 @@ void GLWidget::keyReleaseEvent (QKeyEvent* event) {
       break;
     case Qt::Key_D:
       m_isMovingRight = false;
+      break;
+    case Qt::Key_Space:
+      m_isJumping = false;
       break;
   }
 }
@@ -766,6 +769,8 @@ void GLWidget::timerEvent (QTimerEvent* event) {
     player.moveRight (-6. * timeElasped);
   if (m_isMovingRight)
     player.moveRight (6. * timeElasped);
+  if (m_isJumping)
+    player.jump();
   m_time.restart ();
 
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;

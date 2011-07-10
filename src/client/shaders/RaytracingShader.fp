@@ -8,7 +8,8 @@ struct CubeProperties {
   int   normalMapIndex;
 };
 
-const int MAX_RAY_TURNS = 3;
+const float NEXT_POINT_EPSILON = 1e-4;
+const int   MAX_RAY_TURNS = 3;
 
 uniform isamplerBuffer   octTree;
 uniform  samplerBuffer   cubeProperties;
@@ -101,8 +102,11 @@ void main(void)
       vec3 oldRay = ray;
       if ((currCubeType != prevCubeType) && (iterOuter > 0)) {
         ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
-        if (length (ray) < 0.0001)
+        if (length (ray) < 0.0001) {
+          currPoint -= oldRay * 2. * NEXT_POINT_EPSILON;
+          currCubeProperties = getCubeProperties (prevCubeType);
           ray = reflect (oldRay, normal);
+        }
         nRayTurns++;
       }
     }
@@ -147,7 +151,7 @@ void main(void)
     vFragColor.xyz   += baseColor.rgb * vFragColor.w * lightCoef * moisteningCoeff * (1 - transparency);
     vFragColor.w     *= transparency;
 
-    currPoint        += ray * (delta + 0.0001);
+    currPoint        += ray * (delta + NEXT_POINT_EPSILON);
     //normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
     normal     = -colorToVector (texture (cubeNormalMap, vec4 (currPoint - currCubeMidpoint, 0)).xyz);
     //     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);

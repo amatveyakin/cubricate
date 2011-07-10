@@ -16,10 +16,12 @@ enum BlockType : unsigned char {
   BT_DIRT,
   BT_GRASS,
   BT_SNOWY_DIRT,
-  BT_BRICKS
+  BT_BRICKS,
+  BT_MIRROR,
+  BT_INVALID
 };
 
-const int N_BLOCK_TYPES = BT_BRICKS + 1;
+const int N_BLOCK_TYPES = BT_INVALID;
 
 
 struct WorldBlock {
@@ -49,10 +51,16 @@ struct WorldBlock {
       case BT_GRASS:
       case BT_SNOWY_DIRT:
       case BT_BRICKS:
+      case BT_MIRROR:
         parameters = 0;
+        break;
 
       case BT_WATER:
         fluidSaturation = 1.;
+        break;
+
+      case BT_INVALID:
+        break;
     }
   }
 };
