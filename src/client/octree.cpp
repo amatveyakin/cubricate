@@ -239,7 +239,7 @@ int Octree::getChild (int node, int iChild) {
 void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize, int& iChild) const {
   nodeSize /= 2;
 //   std::cout << "x = " << x << ", y = " << y << ", z = " << z << ", nodeSize = " << nodeSize << std::endl;
-  iChild =   (z / nodeSize) * 4
+  iChild =    (z / nodeSize) * 4
             + (y / nodeSize) * 2
             + (x / nodeSize);
 //   std::cout << "iChild = " << iChild << std::endl;
