@@ -9,8 +9,8 @@ const vec3  vec123 = vec3 (1., 2., 3.);
 const vec3  vec124 = vec3 (1., 2., 4.);
 
 const float RENDER_WORLD_SIZE = MAP_SIZE / 2.;
-const int   MAX_ITER_OUTER = 100;
-const int   MAX_ITER_INNER = 100;
+const int   MAX_ITER_OUTER = 30;
+const int   MAX_ITER_INNER = 10;
 
 const int   CUBE_TYPE_AIR     = 0;
 const int   CUBE_TYPE_WATER   = 1;

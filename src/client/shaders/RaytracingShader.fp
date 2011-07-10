@@ -129,7 +129,7 @@ void main(void)
     else
       transparency = pow (materialTransparency, delta);
 //     if ((currCubeType != prevCubeType) && (iterOuter > 0))
-//       transparency *= baseColor.a;
+//       transparency *= 1. - (1. - baseColor.a) * 0.5;
 
     float lightCoef;
     if (currCubeProperties.transparency == 0)
@@ -144,40 +144,15 @@ void main(void)
       moisteningCoeff = 1.;
 
 
-//     switch (currCubeType) {
-//       case CUBE_TYPE_AIR: {
-//         //baseColor = vec3 (1., 1., 1.);
-//         transparency = pow (0.995, delta);
-//         break;
-//       }
-//       case CUBE_TYPE_DIRT: {
-//         //baseColor = texture (cubeTexture, vec4((currPoint - currCubeMidpoint) / currCubeSize, 4)).rgb;
-//         //baseColor = texture (depthTexture, (vec2(1,1) + ((currPoint - currCubeMidpoint) / currCubeSize).xz) / 2).rgb;
-//         //baseColor = texture (depthTexture,((currPoint - currCubeMidpoint) / currCubeSize).xz).rgb;
-//         //baseColor = texture (depthTexture, fPosition).rgb;
-//         //baseColor = vec3(0, 1, 0);
-//         // moistening effect
-//         if (prevCubeType == CUBE_TYPE_WATER)
-//           baseColor *= 0.3;
-//         lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
-//         break;
-//       }
-//       case CUBE_TYPE_WATER: {
-//         baseColor = vec3 (0., 0.1, 0.7);
-//         transparency = pow (0.93, delta);
-//         break;
-//       }
-//     }
-
     vFragColor.xyz   += baseColor.rgb * vFragColor.w * lightCoef * moisteningCoeff * (1 - transparency);
     vFragColor.w     *= transparency;
 
     currPoint        += ray * (delta + 0.0001);
     //normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
-    vec3 cubeNormal     = colorToVector (texture (cubeNormalMap, vec4 (currPoint - currCubeMidpoint, 0)).xyz);
+    normal     = -colorToVector (texture (cubeNormalMap, vec4 (currPoint - currCubeMidpoint, 0)).xyz);
     //     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
 
-    currCubePointer   = getNodeNeighbour (currCubePointer, cubeNormal);
+    currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
     //if (currCubePointer != -1) {
     currCubeSize      = getNodeSize (currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
@@ -194,6 +169,7 @@ void main(void)
 
     iterOuter++;
   }
-  if (iterOuter == MAX_ITER_OUTER) vFragColor = vec4 (1., 0., 0., 1.);
+  //if (iterOuter == MAX_ITER_OUTER) vFragColor = vec4 (1., 0., 0., 1.);
+  vFragColor.xyz *= (1 - vFragColor.w);
 }
 
