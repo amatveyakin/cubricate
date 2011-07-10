@@ -339,13 +339,13 @@ void GLWidget::initTextures () {
 
 
   const float cubeProperties[] = { 0.993, 1,    1,
-                                   0.95,  1.333, 1,
+                                   0.85,  1.333, 1,
 //                                    0.,    1.333,
-                                   0,     1,    1,
-                                   0,     1,    1,
-                                   0,     1,    1,
-                                   0,     1,    1,
-                                   0,     1,    1      };
+                                   0,     1,    0,
+                                   0,     1,    0,
+                                   0,     1,    0,
+                                   0,     1,    0,
+                                   0,     1,    0      };
 
 
   glGenBuffers (1, &m_cubePropertiesBuffer);
