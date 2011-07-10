@@ -5,6 +5,7 @@
 struct CubeProperties {
   float transparency;
   float refractionIndex;
+  int   normalMapIndex;
 };
 
 
@@ -13,6 +14,7 @@ uniform  samplerBuffer   cubeProperties;
 uniform isamplerBuffer   siblingShiftTable;
 uniform sampler2D        depthTexture;
 uniform samplerCubeArray cubeTexture;
+uniform samplerCubeArray cubeNormalMap;
 
 uniform vec3             origin;
 
@@ -30,6 +32,7 @@ CubeProperties getCubeProperties (int cubeType) {
   vec4 fetch = texelFetch (cubeProperties, cubeType);
   result.transparency    = fetch.r;
   result.refractionIndex = fetch.g;
+  result.normalMapIndex  = int (fetch.b);
   return result;
 }
 
@@ -89,6 +92,8 @@ void main(void)
       iterInner++;
     }
     currCubeProperties = getCubeProperties (currCubeType);
+
+    normal              = colorToVector (texture (cubeNormalMap, vec4 (currPoint - currCubeMidpoint, currCubeProperties.normalMapIndex)).xyz);
     vec3 oldRay = ray;
     if ((currCubeType != prevCubeType) && (iterOuter > 0))
       ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
@@ -160,12 +165,12 @@ void main(void)
     vFragColor.xyz   += baseColor.rgb * vFragColor.w * lightCoef * moisteningCoeff * (1 - transparency);
     vFragColor.w     *= transparency;
 
-    currPoint        += ray * (delta + 0.001);
-    normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
+    currPoint        += ray * (delta + 0.0001);
+    //normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
+    vec3 cubeNormal     = colorToVector (texture (cubeNormalMap, vec4 (currPoint - currCubeMidpoint, 0)).xyz);
+    //     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
 
-//     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
-
-    currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
+    currCubePointer   = getNodeNeighbour (currCubePointer, cubeNormal);
     //if (currCubePointer != -1) {
     currCubeSize      = getNodeSize (currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);

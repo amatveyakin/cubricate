@@ -219,36 +219,11 @@ void GLWidget::initBuffers () {
 }
 
 void GLWidget::initTextures () {
-  const int N_TEXTURES    = 6;
-  const int TEXTURE_SIZE  = 16;
+  const int N_TEXTURES        = 6;
+  const int N_NORMAL_MAPS     = 2;
 
-//   glGenTextures (1, &m_squareTextureArray);
-//   glBindTexture (GL_TEXTURE_2D_ARRAY, m_squareTextureArray);
-//   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//   glTexParameteri (GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//
-//   glTexImage3D (GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, N_TEXTURES, 0,
-//                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-//
-//   for (int i = 0; i < N_TEXTURES; i++) {
-//     char textureFileName[256];
-//     sprintf (textureFileName, "resources/textures/tile_%d.tga", i);
-//
-//     QImage rawTexture (textureFileName);
-//     if (rawTexture.isNull ()) {
-//       std::cout << "Cannot open texture file ``" << textureFileName << "''" << std::endl;
-//       exit (1);
-//     }
-//
-//     QImage texture = convertToGLFormat (rawTexture);
-//     assert (!texture.isNull ());
-//
-//     glTexSubImage3D (GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
-//   }
-
+  const int TEXTURE_SIZE      = 16;
+  const int NORMAL_MAP_SIZE   = 16;
 
   QImage imageTarget ("resources/images/target.png");
   assert (!imageTarget.isNull ());
@@ -266,7 +241,6 @@ void GLWidget::initTextures () {
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-//   std::cout << "textureTarget.width () = " << textureTarget.width () << ", textureTarget.height () = " << textureTarget.height () << std::endl;
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureTarget.width (), textureTarget.height (), 0, GL_RGBA, GL_UNSIGNED_BYTE, textureTarget.bits ());
   glBindTexture (GL_TEXTURE_2D, 0);
 
@@ -321,20 +295,57 @@ void GLWidget::initTextures () {
       QMatrix rotateMatrix;
       rotateMatrix.rotate (angles[j]);
       rawTexture =  rawTexture.transformed(rotateMatrix);
-    QImage texture = convertToGLFormat (rawTexture);
-    assert (!texture.isNull ());
-    glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
-  }
+      QImage texture = convertToGLFormat (rawTexture);
+      assert (!texture.isNull ());
+      glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
+    }
   glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
 
-  const float cubeProperties[] = { 0.993, 1,
-                                   0.95,  1.333,
+
+
+  glGenTextures(1, &m_cubeNormalMap);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeNormalMap);
+
+  // Set up texture maps
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  glTexImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_RGBA, NORMAL_MAP_SIZE, NORMAL_MAP_SIZE, 6 * N_NORMAL_MAPS, 0,
+                GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+  // Load Cube Map images
+  for (int i = 0; i < N_NORMAL_MAPS; ++i)
+    for(int j = 0; j < 6; ++j) {
+      char textureFileName[256];
+      sprintf (textureFileName, "resources/textures/cubemaps/normals/%d/%s.tga", i, szCubeFaces[j]);
+      //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
+      QImage rawTexture (textureFileName);
+      if (rawTexture.isNull ()) {
+        std::cout << "Cannot open texture file !!!" << std::endl;
+        exit (1);
+      }
+      QMatrix rotateMatrix;
+      rotateMatrix.rotate (angles[j]);
+      rawTexture =  rawTexture.transformed(rotateMatrix);
+      QImage texture = convertToGLFormat (rawTexture);
+      assert (!texture.isNull ());
+      glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
+    }
+  glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
+
+
+
+  const float cubeProperties[] = { 0.993, 1,    0,
+                                   0.95,  1.333, 0,
 //                                    0.,    1.333,
-                                   0,     1,
-                                   0,     1,
-                                   0,     1,
-                                   0,     1,
-                                   0,     1      };
+                                   0,     1,    0,
+                                   0,     1,    0,
+                                   0,     1,    0,
+                                   0,     1,    0,
+                                   0,     1,    0      };
 
 
   glGenBuffers (1, &m_cubePropertiesBuffer);
@@ -345,7 +356,7 @@ void GLWidget::initTextures () {
   glGenTextures   (1, &m_cubePropertiesTexture);
   glActiveTexture (GL_TEXTURE3);
   glBindTexture   (GL_TEXTURE_BUFFER, m_cubePropertiesTexture);
-  glTexBuffer     (GL_TEXTURE_BUFFER, GL_RG32F, m_cubePropertiesBuffer);
+  glTexBuffer     (GL_TEXTURE_BUFFER, GL_RGB32F, m_cubePropertiesBuffer);
   glBindTexture   (GL_TEXTURE_BUFFER, 0);
 
 
@@ -412,6 +423,7 @@ void GLWidget::initShaders () {
   m_locOrigin                    =  glGetUniformLocation (m_raytracingShader, "origin");
   m_locViewMatrix                =  glGetUniformLocation (m_raytracingShader, "matView");
   m_locCubeTexture               =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
+  m_locCubeNormalMap             =  glGetUniformLocation (m_raytracingShader, "cubeNormalMap");
 
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Vertex,   "resources/UIShader.vp");
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/UIShader.fp");
@@ -562,10 +574,13 @@ void GLWidget::paintGL () {
   glBindTexture (GL_TEXTURE_BUFFER, m_cubePropertiesTexture);
   glUniform1i  (m_locCubePropertiesTexture, 3);
 
-  glActiveTexture(GL_TEXTURE4);
+  glActiveTexture (GL_TEXTURE4);
   glBindTexture (GL_TEXTURE_BUFFER, m_siblingShiftTableTexture);
   glUniform1i  (m_locSiblingShiftTableTexture, 4);
 
+  glActiveTexture (GL_TEXTURE5);
+  glBindTexture (GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeNormalMap);
+  glUniform1i (m_locCubeNormalMap, 5);
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);

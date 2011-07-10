@@ -88,3 +88,7 @@ int getNodeNeighbour (int nodePointer, vec3 direction) {
 bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
   return all (lessThan (abs(point - cubeMidpoint), vec3(cubeSize, cubeSize, cubeSize)));
 }
+
+vec3 colorToVector (vec3 color) {
+  return 2 * color - vec111;
+}
