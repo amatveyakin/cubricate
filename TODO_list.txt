@@ -6,6 +6,7 @@ On next (and I hope, last) repository reset:
 
 Bugs:
 * Exclude the rest of GLTools from project
+* Restore GL_MAP_READ_BIT in GLWidget::lockCubes
 
 Improvements:
 * Find or write a logging system (with message ranking: information, warning, error, etc.)

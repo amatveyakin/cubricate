@@ -477,6 +477,8 @@ GLWidget::GLWidget () {
   m_isMovingBackward  = false;
   m_isMovingLeft      = false;
   m_isMovingRight     = false;
+
+  m_worldFreezed      = true;
 }
 
 GLWidget::~GLWidget () {
@@ -649,6 +651,9 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
       case Qt::Key_L:
         simpleWorldMap.loadFromFile ();
         break;
+      case Qt::Key_F:
+        m_worldFreezed = !m_worldFreezed;
+        break;
     }
   }
 
@@ -741,11 +746,13 @@ void GLWidget::timerEvent (QTimerEvent* event) {
     m_fpsTime.restart ();
   }
 
-  double physicsTimeElapsed = m_physicsTime.elapsed () / 1000.;
-  if (physicsTimeElapsed > PHYSICS_PROCESSING_INTERVAL) {
-    waterEngine.processWater ();
-    m_nPhysicsStepsProcessed++;
-    m_physicsTime.restart ();
+  if (!m_worldFreezed) {
+    double physicsTimeElapsed = m_physicsTime.elapsed () / 1000.;
+    if (physicsTimeElapsed > PHYSICS_PROCESSING_INTERVAL) {
+      waterEngine.processWater ();
+      m_nPhysicsStepsProcessed++;
+      m_physicsTime.restart ();
+    }
   }
 
   updateGL ();

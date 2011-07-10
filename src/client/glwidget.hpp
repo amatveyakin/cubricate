@@ -60,6 +60,8 @@ protected:
   bool m_isMovingLeft;
   bool m_isMovingRight;
 
+  bool m_worldFreezed;
+
   QTime m_time;
   QTime m_fpsTime;
   QTime m_physicsTime;
