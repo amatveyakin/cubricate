@@ -338,14 +338,14 @@ void GLWidget::initTextures () {
 
 
 
-  const float cubeProperties[] = { 0.993, 1,    0,
-                                   0.95,  1.333, 0,
+  const float cubeProperties[] = { 0.993, 1,    1,
+                                   0.95,  1.333, 1,
 //                                    0.,    1.333,
-                                   0,     1,    0,
-                                   0,     1,    0,
-                                   0,     1,    0,
-                                   0,     1,    0,
-                                   0,     1,    0      };
+                                   0,     1,    1,
+                                   0,     1,    1,
+                                   0,     1,    1,
+                                   0,     1,    1,
+                                   0,     1,    1      };
 
 
   glGenBuffers (1, &m_cubePropertiesBuffer);
@@ -403,10 +403,11 @@ void GLWidget::initShaders () {
   m_raytracingDepthPassShader = m_raytracingDepthPassShaderProgram.programId ();
   glLinkProgram (m_raytracingDepthPassShader);
   glUseProgram (m_raytracingDepthPassShader);
-  m_locDepthPassOctTree    = glGetUniformLocation (m_raytracingDepthPassShader, "octTree");
+  m_locDepthPassOctTree       = glGetUniformLocation (m_raytracingDepthPassShader, "octTree");
   m_locDepthPassSiblingShiftTableTexture  =  glGetUniformLocation (m_raytracingDepthPassShader, "siblingShiftTable");
-  m_locDepthPassOrigin     = glGetUniformLocation (m_raytracingDepthPassShader, "origin");
-  m_locDepthPassViewMatrix = glGetUniformLocation (m_raytracingDepthPassShader, "matView");
+  m_locDepthPassOrigin        = glGetUniformLocation (m_raytracingDepthPassShader, "origin");
+  m_locDepthPassViewMatrix    = glGetUniformLocation (m_raytracingDepthPassShader, "matView");
+  m_locDepthPassCubeNormalMap = glGetUniformLocation (m_raytracingDepthPassShader, "cubeNormalMap");
 
   result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/RaytracingShader.vp");
   result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/RaytracingShader.fp");
@@ -539,6 +540,10 @@ void GLWidget::paintGL () {
   glActiveTexture(GL_TEXTURE4);
   glBindTexture (GL_TEXTURE_BUFFER, m_siblingShiftTableTexture);
   glUniform1i  (m_locDepthPassSiblingShiftTableTexture, 4);
+
+//   glActiveTexture (GL_TEXTURE5);
+//   glBindTexture (GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeNormalMap);
+//   glUniform1i (m_locCubeNormalMap, 5);
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);

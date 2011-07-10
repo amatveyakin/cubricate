@@ -93,7 +93,7 @@ void main(void)
     }
     currCubeProperties = getCubeProperties (currCubeType);
 
-    normal              = colorToVector (texture (cubeNormalMap, vec4 (currPoint - currCubeMidpoint, currCubeProperties.normalMapIndex)).xyz);
+    normal              = colorToVector (texture (cubeNormalMap, vec4 (fract ((currPoint - currCubeMidpoint) + vec111 * currCubeSize) - vec111 / 2, currCubeProperties.normalMapIndex)).xyz);
     vec3 oldRay = ray;
     if ((currCubeType != prevCubeType) && (iterOuter > 0))
       ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);

@@ -41,6 +41,7 @@ protected:
   GLuint  m_locCubeTexture, m_locDepthTexture, m_locCubePropertiesTexture, m_locSiblingShiftTableTexture;
   GLuint  m_locCubeNormalMap;
   GLuint  m_locDepthPassOctTree, m_locDepthPassOrigin, m_locDepthPassViewMatrix, m_locDepthPassSiblingShiftTableTexture;
+  GLuint  m_locDepthPassCubeNormalMap;
   GLuint  m_octTreeBuffer,           m_octTreeTexture;
   GLuint  m_cubePropertiesBuffer,    m_cubePropertiesTexture;
   GLuint  m_siblingShiftTableBuffer, m_siblingShiftTableTexture;
