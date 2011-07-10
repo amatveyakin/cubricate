@@ -26,6 +26,8 @@ public:
 
   void swapCubes (Vec3i firstPos, Vec3i secondPos);
 
+//   Vec3d getGroundBeneathPos (Vec3d pos);
+
   void saveToFile () const;
   void loadFromFile ();
 

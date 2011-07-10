@@ -375,7 +375,7 @@ namespace L1 {
 namespace L2 {
   template <int DIMENSION, typename ElementT>
   ElementT normSqr (Vector <DIMENSION, ElementT> a) {
-    return scalarProduct (a, a);
+    return dotProduct (a, a);
   }
 
   template <int DIMENSION, typename ElementT>

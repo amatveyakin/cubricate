@@ -11,8 +11,9 @@
 
 
 Player::Player() {
-  m_pos = m_viewFrame.origin();
+  setPos (Vec3d::zero());
   m_blockInHand = BT_BRICKS;
+  m_flying = true;
 }
 
 Player::~Player() { }
@@ -22,32 +23,34 @@ Player::~Player() { }
 static const int POSITION_CHECK_ITER = 10;
 
 void Player::setPos (Vec3d newPos) {
-  m_viewFrame.setOrigin (newPos);
-  m_pos = m_viewFrame.origin();
+  m_pos = newPos;
+  m_viewFrame.setOrigin (m_pos + Vec3d (0., 0., EYE_HEIGHT));
 }
 
 void Player::moveForward (double moveBy) {
-  Vec3d newPos = m_pos + m_viewFrame.dirForward() * moveBy;
-  for (int i = 0; i < POSITION_CHECK_ITER; ++i)
-    if (!positionIsValid ((m_pos * i + newPos * (POSITION_CHECK_ITER - i)) / double (POSITION_CHECK_ITER)))
-      return;
-  setPos (newPos);
+  if (m_flying)
+    doMove (m_viewFrame.dirForward(), moveBy);
+  else
+    doMove (L2::normalize (Vec3d (m_viewFrame.dirForward().x(), m_viewFrame.dirForward().y(), 0.)), moveBy);
 }
 
 void Player::moveUp (double moveBy) {
-  Vec3d newPos = m_pos + m_viewFrame.dirUp() * moveBy;
-  for (int i = 0; i < POSITION_CHECK_ITER; ++i)
-    if (!positionIsValid ((m_pos * i + newPos * (POSITION_CHECK_ITER - i)) / double (POSITION_CHECK_ITER)))
-      return;
-  setPos (newPos);
+  if (m_flying)
+    doMove (m_viewFrame.dirUp(), moveBy);
 }
 
 void Player::moveRight (double moveBy) {
-  Vec3d newPos = m_pos + m_viewFrame.dirRight() * moveBy;
-  for (int i = 0; i < POSITION_CHECK_ITER; ++i)
-    if (!positionIsValid ((m_pos * i + newPos * (POSITION_CHECK_ITER - i)) / double (POSITION_CHECK_ITER)))
-      return;
-  setPos (newPos);
+  if (m_flying)
+    doMove (m_viewFrame.dirRight(), moveBy);
+  else
+    doMove (L2::normalize (Vec3d (m_viewFrame.dirRight().x(), m_viewFrame.dirRight().y(), 0.)), moveBy);
+}
+
+
+void Player::setFlying (bool flyingState) {
+  m_flying = flyingState;
+//   if (!m_flying)
+//     setPos (simpleWorldMap.getGroundBeneathPos (m_pos));
 }
 
 
@@ -94,6 +97,25 @@ CubeWithFace Player::getHeadOnCube() const {
 #endif // CLIENT_APP
 
 
-bool Player::positionIsValid (Vec3d pos) {
+void Player::processPlayer (double timeDelta) {
+  if (m_flying)
+    return;
+
+}
+
+
+static inline bool blockIsFree (Vec3d pos) {
   return !BlockInfo::isSolid (simpleWorldMap.get (worldToCube (pos) + Vec3i::replicated (MAP_SIZE / 2)).type);
+}
+
+bool Player::positionIsValid (Vec3d pos) {
+  return blockIsFree (pos) && blockIsFree (pos + Vec3d (0., 0., BODY_HEIGHT));
+}
+
+void Player::doMove (Vec3d direction, double moveBy) {
+  Vec3d newPos = m_pos + direction * moveBy;
+  for (int i = 0; i < POSITION_CHECK_ITER; ++i)
+    if (!positionIsValid ((m_pos * i + newPos * (POSITION_CHECK_ITER - i)) / double (POSITION_CHECK_ITER)))
+      return;
+  setPos (newPos);
 }

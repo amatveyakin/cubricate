@@ -246,6 +246,10 @@ protected:
 
 class Player {
 public:
+  // The player is a match
+  static const int BODY_HEIGHT = 1.5;
+  static const int EYE_HEIGHT  = 1.4;
+//   static const int BODY_RADIUS = 0.3;
 
   Player();
   ~Player();
@@ -256,6 +260,9 @@ public:
   void moveUp (double moveBy);
   void moveRight (double moveBy);
 
+  bool flying() const                   { return m_flying; }
+  void setFlying (bool flyingState);
+
   ViewFrame& viewFrame()                { return m_viewFrame; }
   const ViewFrame& viewFrame() const    { return m_viewFrame; }
 
@@ -264,13 +271,17 @@ public:
   BlockType getBlockInHand() const      { return m_blockInHand; }
   void setBlockInHand (BlockType type)  { m_blockInHand = type; }
 
+  void processPlayer (double timeDelta);
+
 protected:
   Vec3d     m_pos;
   BlockType m_blockInHand;
+  bool      m_flying;
 
   ViewFrame m_viewFrame;
 
   bool positionIsValid (Vec3d pos);
+  void doMove (Vec3d direction, double moveBy);
 };
 
 

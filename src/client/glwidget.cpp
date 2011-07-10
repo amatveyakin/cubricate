@@ -541,7 +541,7 @@ void GLWidget::paintGL () {
 
   glUseProgram (m_raytracingDepthPassShader);
 
-  glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
+  glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin()).data());
   glUniformMatrix4fv (m_locDepthPassViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
@@ -573,7 +573,7 @@ void GLWidget::paintGL () {
 
   glUseProgram (m_raytracingShader);
 
-  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted(player.pos()).data());
+  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin()).data());
   glUniformMatrix4fv (m_locViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);

@@ -66,6 +66,15 @@ void SimpleWorldMap::swapCubes (Vec3i firstPos, Vec3i secondPos) {
   set (secondPos, tmp);
 }
 
+// Vec3d SimpleWorldMap::getGroundBeneathPos (Vec3d pos) {
+//   pos.z() = floor (pos.z()) + 1e-5;  // TODO: declare a const
+//   while (!BlockInfo::isSolid (m_blocks (worldToCube (pos)).type))
+//     pos.z()--;
+//   std::cout << "pos = " << pos << std::endl;
+//   return pos;
+// }
+
+
 
 void SimpleWorldMap::loadFromFile () {
   std::ifstream streamIn (WORLD_MAP_FILE_NAME);
