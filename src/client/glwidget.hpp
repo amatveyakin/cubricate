@@ -47,7 +47,10 @@ protected:
   GLuint  m_siblingShiftTableBuffer, m_siblingShiftTableTexture;
   GLuint  m_raytracingFirstPassResult;
   GLuint  m_raytracingVAO,  m_raytracingVBO,   m_raytracingFBO;
-  GLuint  m_cubeTexture, m_cubeNormalMap
+  GLuint  m_cubeTexture, m_cubeNormalMap;
+
+  GLuint  m_renderTimeQuery[3];
+  GLuint  m_totalDepthPassTime, m_totalMainPassTime, m_totalUITime
 ;
 
   QGLShaderProgram m_UIShaderProgram;
@@ -72,6 +75,7 @@ protected:
   void initBuffers ();
   void initTextures ();
   void initShaders ();
+  void initQueries ();
   void setupRenderContext ();
   void shutdownRenderContext ();
 

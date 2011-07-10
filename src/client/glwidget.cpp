@@ -437,12 +437,17 @@ void GLWidget::initShaders () {
   m_locUITexture                 =  glGetUniformLocation (m_UIShader, "UITexture");
 }
 
+void GLWidget::initQueries () {
+  glGenQueries (3, m_renderTimeQuery);
+}
+
 void GLWidget::setupRenderContext () {
   glClearColor  (0.0f, 0.0f, 0.0f, 1.0f);
 
-  initShaders ();
-  initBuffers ();
-  initTextures ();
+  initShaders();
+  initBuffers();
+  initTextures();
+  initQueries();
 }
 
 void GLWidget::shutdownRenderContext () {
@@ -464,6 +469,8 @@ void GLWidget::shutdownRenderContext () {
   glDeleteBuffers (1, &m_raytracingFBO);
 
   glDeleteVertexArrays (1, &m_raytracingVAO);
+
+  glDeleteQueries (3, m_renderTimeQuery);
 }
 
 
@@ -513,6 +520,7 @@ void GLWidget::initializeGL () {
   startTimer (1);
 }
 
+
 void GLWidget::paintGL () {
 
   GLenum windowBuff[] = {GL_BACK_LEFT};
@@ -524,6 +532,7 @@ void GLWidget::paintGL () {
   M3DMatrix44f matView;
   player.viewFrame().getCameraMatrix (matView, true);
 
+  glBeginQuery (GL_TIME_ELAPSED, m_renderTimeQuery[0]);
   //Depth-pass of raytracing
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_raytracingFBO);
   //glDrawBuffers(1, fboBuffs);
@@ -550,7 +559,9 @@ void GLWidget::paintGL () {
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
 
+  glEndQuery (GL_TIME_ELAPSED);
 
+  glBeginQuery (GL_TIME_ELAPSED, m_renderTimeQuery[1]);
   //Window-pass of raytracing
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_raytracingFBO);
@@ -592,7 +603,20 @@ void GLWidget::paintGL () {
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
 
+  glEndQuery (GL_TIME_ELAPSED);
+
+  glBeginQuery (GL_TIME_ELAPSED, m_renderTimeQuery[2]);
   renderUI ();
+  glEndQuery (GL_TIME_ELAPSED);
+
+  GLuint depthPassTime, mainPassTime, UITime;
+  glGetQueryObjectuiv(m_renderTimeQuery[0], GL_QUERY_RESULT, &depthPassTime);
+  glGetQueryObjectuiv(m_renderTimeQuery[1], GL_QUERY_RESULT, &mainPassTime);
+  glGetQueryObjectuiv(m_renderTimeQuery[2], GL_QUERY_RESULT, &UITime);
+
+  m_totalDepthPassTime += depthPassTime;
+  m_totalMainPassTime  += mainPassTime;
+  m_totalUITime        += UITime;
   m_nFramesDrawn++;
 }
 
@@ -741,7 +765,15 @@ void GLWidget::timerEvent (QTimerEvent* event) {
   double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {
     std::cout << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed << std::endl;
+    std::cout << "Depth pass time: "      << 0.000001 * m_totalDepthPassTime / m_nFramesDrawn
+              << ", Main pass time: "     << 0.000001 * m_totalMainPassTime  / m_nFramesDrawn
+              << ", UI time: "            << 0.000001 * m_totalUITime        / m_nFramesDrawn
+              << ", total drawing time: " << 0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn << std::endl;
     m_nFramesDrawn = 0;
+    m_totalDepthPassTime = 0;
+    m_totalMainPassTime = 0;
+    m_totalUITime = 0;
+
     m_nPhysicsStepsProcessed = 0;
     m_fpsTime.restart ();
   }
