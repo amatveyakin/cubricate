@@ -18,7 +18,7 @@
 #include "client/client_world.hpp"
 #include "client/glwidget.hpp"
 
-
+const int GL_TIME_ELAPSED = 35007;
 
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
