@@ -38,7 +38,7 @@ const int SIBLING_SHIFT_TABLE_Z_MINUS = 0;
 // };
 
 
-Octree::Octree (int height) {
+Octree::Octree (int height, int heightOffset) {
   m_height = height;
   m_nNodes = 0;
   for (int i = 0; i <= height; ++i)
@@ -53,7 +53,7 @@ Octree::Octree (int height) {
   for (int i = 0; i <= height; ++i) {
     nodeEnd += 1 << (i * 3);
     for (int j = nodeBegin; j < nodeEnd; ++j)
-      m_nodes[j].height () = i;
+      m_nodes[j].height () = i + heightOffset;
     nodeBegin = nodeEnd;
   }
   m_nodesArrayIsOriginal = true;

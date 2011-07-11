@@ -28,7 +28,7 @@ class Octree {
 public:
   static const int N_NODE_CHILDREN = 8;
 
-  Octree (int height);
+  Octree (int height, int heightOffset);
   Octree (const Octree&) = delete;
   ~Octree ();
 

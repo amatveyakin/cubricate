@@ -246,7 +246,7 @@ void GLWidget::initTextures () {
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureTarget.width (), textureTarget.height (), 0, GL_RGBA, GL_UNSIGNED_BYTE, textureTarget.bits ());
   glBindTexture (GL_TEXTURE_2D, 0);
 
-  Octree octSubcube (1);
+  Octree octSubcube (1, TREE_HEIGHT);
   octSubcube.set (0, 0, 0, WorldBlock (BT_BRICKS), true);
   octSubcube.computeNeighbours();
 
@@ -256,6 +256,7 @@ void GLWidget::initTextures () {
   glBufferData (GL_TEXTURE_BUFFER, (cubeOctree.nNodes() + octSubcube.nNodes()) * sizeof (TreeNodeT), 0, GL_STATIC_DRAW);  // TODO: STATIC ?
   glBufferSubData (GL_TEXTURE_BUFFER, 0,                                        cubeOctree.nNodes() * sizeof (TreeNodeT), cubeOctree.nodes());
   glBufferSubData (GL_TEXTURE_BUFFER, cubeOctree.nNodes() * sizeof (TreeNodeT), octSubcube.nNodes() * sizeof (TreeNodeT), octSubcube.nodes());
+
   glBindBuffer (GL_TEXTURE_BUFFER, 0);
   int ads = octSubcube.nNodes();
   for (int i = 0; i < octSubcube.nNodes(); ++i) {

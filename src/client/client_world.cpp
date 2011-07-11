@@ -7,6 +7,6 @@
 // WorldMap        worldMap;
 SimpleWorldMap  simpleWorldMap (MAP_SIZE, MAP_SIZE, MAP_SIZE);
 Player          player;
-Octree          cubeOctree (TREE_HEIGHT);
+Octree          cubeOctree (TREE_HEIGHT, 0);
 WaterEngine     waterEngine;
 GLWidget*       renderingEngine;

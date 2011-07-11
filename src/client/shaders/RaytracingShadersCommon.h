@@ -92,3 +92,7 @@ bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {
 vec3 colorToVector (vec3 color) {
   return 2 * color - vec111;
 }
+
+vec3 getNormalizedCubemapCoordinates (vec3 centralVector, float cubeSize, float texturingCoeff) {
+  return fract (texturingCoeff * (centralVector + vec111 * cubeSize)) - vec111 / 2;
+}

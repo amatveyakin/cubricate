@@ -50,6 +50,8 @@ void main(void)
   vec3  currCubeMidpoint;
   float currCubeSize;
 
+  float textureCoeff = 1;
+
   vec3  ray = normalize (fDirection);
   float currT, nextT, delta;
   vec3  deltaVector;
@@ -88,21 +90,24 @@ void main(void)
 //     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
     int iterInner = 0;
     while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255 || currCubeType < 0) {  // that means "no-leaf node"
+      if (currCubeType < 0) {
+        currTreeOffset = -currCubeType;
+        prevCubePointer = currCubePointer;
+        currCubePointer = 0;
+        textureCoeff    = 2; //TODO Must be changed
+      }
       currCubeSize /= 2.;
       vec3 s = step (currCubeMidpoint, currPoint);
       currCubeMidpoint += (2 * s - vec111) * currCubeSize;
       currCubePointer = getNodeChild (currCubePointer, int (dot (s, vec124)));
       currCubeType = getNodeType (currTreeOffset + currCubePointer);
-      if (currCubeType < 0) {
-        currTreeOffset = -currCubeType;
-        prevCubePointer = currCubePointer;
-        currCubePointer = 0;
-      }
       iterInner++;
     }
     currCubeProperties = getCubeProperties (currCubeType);
 
-    normal              = colorToVector (texture (cubeNormalMap, vec4 (fract ( (currPoint - currCubeMidpoint) + vec111 * currCubeSize) - vec111 / 2, currCubeProperties.normalMapIndex)).xyz);
+    normal              = colorToVector (texture (cubeNormalMap, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
+                                                                                  currCubeSize,
+                                                                                  textureCoeff), currCubeProperties.normalMapIndex)).xyz);
 
     if (nRayTurns < MAX_RAY_TURNS) {
       vec3 oldRay = ray;
@@ -124,7 +129,10 @@ void main(void)
 
 //     EXIT_IF (delta < 0, 0.5, 0., 1.);
 
-    vec4 baseColor = texture (cubeTexture, vec4 (fract ((currPoint - currCubeMidpoint) + vec111 * currCubeSize) - vec111 / 2, currCubeType));
+    vec4 baseColor = texture (cubeTexture, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
+                                                                                  currCubeSize,
+                                                                                  textureCoeff),
+                                                                                                               currCubeType));
     float materialTransparency = currCubeProperties.transparency;
 
 //     if (currCubeType == CUBE_TYPE_WATER)
@@ -167,7 +175,7 @@ void main(void)
       //EXIT_IF (true, 0, 1, 0);
       currTreeOffset = 0;
       currCubePointer   = getNodeNeighbour (prevCubePointer, -normal);
-
+      textureCoeff = 1;
     }
     currCubeSize      = getNodeSize (currTreeOffset + currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
