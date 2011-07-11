@@ -42,6 +42,7 @@ CubeProperties getCubeProperties (int cubeType) {
 void main(void)
 {
   int   currCubePointer = 0;
+  int   currTreeOffset  = 0;
   int   currCubeType;
   int   prevCubeType = 0;
   CubeProperties currCubeProperties, prevCubeProperties;
@@ -78,20 +79,24 @@ void main(void)
   currCubePointer = 0;
   currCubeSize = RENDER_WORLD_SIZE;
   currCubeMidpoint = vec3 (0., 0., 0.);
-  currCubeType = getNodeType (currCubePointer);
+  currCubeType = getNodeType (currCubePointer + currTreeOffset);
   //prevCubeType = currCubeType;
   int nRayTurns = 0;
   while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.01) && (pointInCube(currPoint, vec3(0, 0, 0), RENDER_WORLD_SIZE))) {
 //     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
 //     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
-
+    currTreeOffset = 0;
     int iterInner = 0;
     while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
       currCubeSize /= 2.;
       vec3 s = step (currCubeMidpoint, currPoint);
       currCubeMidpoint += (2 * s - vec111) * currCubeSize;
       currCubePointer = getNodeChild (currCubePointer, int (dot (s, vec124)));
-      currCubeType = getNodeType (currCubePointer);
+      currCubeType = getNodeType (currTreeOffset + currCubePointer);
+      if (currCubeType < 0) {
+        currTreeOffset = -currCubeType;
+        currCubePointer = 0;
+      }
       iterInner++;
     }
     currCubeProperties = getCubeProperties (currCubeType);
@@ -124,7 +129,7 @@ void main(void)
 //     if (currCubeType == CUBE_TYPE_WATER)
 //       baseColor.xyz = vec111 - (vec111 - baseColor.xyz) * getNodeParameter (currCubePointer) / float (MAX_FLUID_SATURATION);
     if (currCubeType == CUBE_TYPE_WATER)
-      materialTransparency = 1 - getNodeParameter (currCubePointer) / float (MAX_FLUID_SATURATION) * (1 - materialTransparency);
+      materialTransparency = 1 - getNodeParameter (currTreeOffset + currCubePointer) / float (MAX_FLUID_SATURATION) * (1 - materialTransparency);
 
 
     float transparency;
@@ -158,14 +163,14 @@ void main(void)
 
     currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
     //if (currCubePointer != -1) {
-    currCubeSize      = getNodeSize (currCubePointer);
+    currCubeSize      = getNodeSize (currTreeOffset + currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
 
 //     EXIT_IF (!pointInCube(currPoint, currCubeMidpoint, currCubeSize),  0., 1., 0.);
 
     prevCubeType       = currCubeType;
     prevCubeProperties = currCubeProperties;
-    currCubeType      = getNodeType (currCubePointer);
+    currCubeType      = getNodeType (currTreeOffset + currCubePointer);
   //}
 
     // make epsilon constant
