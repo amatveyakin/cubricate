@@ -2,6 +2,9 @@
 #define WORLD_BLOCK_HPP
 
 
+#include <cassert>
+
+
 enum BlockType : unsigned char {
   // Gases
   BT_AIR = 0,
@@ -60,6 +63,7 @@ struct WorldBlock {
         break;
 
       case BT_INVALID:
+//         assert (false);
         break;
     }
   }
