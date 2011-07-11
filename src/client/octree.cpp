@@ -103,22 +103,23 @@ TreeDataT Octree::get (int x, int y, int z) const {
 
 // TODO: speed up local neighbour update
 void Octree::set (int x, int y, int z, WorldBlock block, bool updateNeighboursFlag) {
+  TreeDataT treeTypeRecord = BlockInfo::isSubobject (block.type) ? (-nNodes() /* TODO:  + subobject_offset */) : block.type;
   checkCoordinates (x, y, z);
 //   std::cout << "set (" << x << ", " << y << ", " << z << ")" << std::endl;
   int nodeSize;
   int curNode = getDeepestNode (x, y, z, nodeSize);
-  if  (m_nodes [curNode].type () != block.type) {
+  if  (m_nodes [curNode].type () != treeTypeRecord) {
     if  (nodeSize > 1) {
       while  (nodeSize > 1) {
         splitNode (curNode);
         stepDownOneLevel (x, y, z, curNode, nodeSize);
       }
-      m_nodes [curNode].type () = block.type;
+      m_nodes [curNode].type () = treeTypeRecord;
       if (updateNeighboursFlag)
         computeNeighbours ();
     }
     else {
-      m_nodes [curNode].type () = block.type;
+      m_nodes [curNode].type () = treeTypeRecord;
       int newNode = uniteNodesRecursively (curNode);
       if (updateNeighboursFlag && newNode != curNode)
         computeNeighbours ();

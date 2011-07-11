@@ -42,6 +42,7 @@ CubeProperties getCubeProperties (int cubeType) {
 void main(void)
 {
   int   currCubePointer = 0;
+  int   prevCubePointer;
   int   currTreeOffset  = 0;
   int   currCubeType;
   int   prevCubeType = 0;
@@ -85,9 +86,8 @@ void main(void)
   while (iterOuter < MAX_ITER_OUTER && (vFragColor.w > 0.01) && (pointInCube(currPoint, vec3(0, 0, 0), RENDER_WORLD_SIZE))) {
 //     EXIT_IF (currCubePointer < 0,  1., 1., 0.);
 //     EXIT_IF (currCubePointer > 8,  0., 1., 1.);
-    currTreeOffset = 0;
     int iterInner = 0;
-    while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255) {  // that means "no-leaf node"
+    while (/*iterInner < MAX_ITER_INNER &&*/ currCubeType == 255 || currCubeType < 0) {  // that means "no-leaf node"
       currCubeSize /= 2.;
       vec3 s = step (currCubeMidpoint, currPoint);
       currCubeMidpoint += (2 * s - vec111) * currCubeSize;
@@ -95,6 +95,7 @@ void main(void)
       currCubeType = getNodeType (currTreeOffset + currCubePointer);
       if (currCubeType < 0) {
         currTreeOffset = -currCubeType;
+        prevCubePointer = currCubePointer;
         currCubePointer = 0;
       }
       iterInner++;
@@ -162,7 +163,12 @@ void main(void)
     //     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
 
     currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
-    //if (currCubePointer != -1) {
+    if (currCubePointer == -1) {
+      //EXIT_IF (true, 0, 1, 0);
+      currTreeOffset = 0;
+      currCubePointer   = getNodeNeighbour (prevCubePointer, -normal);
+
+    }
     currCubeSize      = getNodeSize (currTreeOffset + currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
 

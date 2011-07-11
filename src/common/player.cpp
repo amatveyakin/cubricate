@@ -71,7 +71,7 @@ CubeWithFace Player::getHeadOnCube() const {
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
   Vec3i prevCube = cube;
   while  (   cubeIsValid (cube + mapCenter)
-          && !BlockInfo::isSolid (simpleWorldMap.get (cube + mapCenter))) {
+          && !BlockInfo::isFirm (simpleWorldMap.get (cube + mapCenter))) {
     Vec3d parameter;
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
@@ -143,7 +143,7 @@ void Player::doMove (Vec3d direction, double moveBy) {
 
 
 static inline bool blockIsFree (Vec3d pos) {
-  return !BlockInfo::isSolid (simpleWorldMap.get (worldToCube (pos) + Vec3i::replicated (MAP_SIZE / 2)));
+  return !BlockInfo::isFirm (simpleWorldMap.get (worldToCube (pos) + Vec3i::replicated (MAP_SIZE / 2)));
 }
 
 bool Player::positionIsValid (Vec3d pos) {

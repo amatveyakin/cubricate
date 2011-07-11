@@ -21,6 +21,9 @@ enum BlockType : unsigned char {
   BT_SNOWY_DIRT,
   BT_BRICKS,
   BT_MIRROR,
+
+  BT_TEST_SUBOBJECT,
+
   BT_INVALID
 };
 
@@ -55,6 +58,7 @@ struct WorldBlock {
       case BT_SNOWY_DIRT:
       case BT_BRICKS:
       case BT_MIRROR:
+      case BT_TEST_SUBOBJECT:
         parameters = 0;
         break;
 
@@ -63,7 +67,7 @@ struct WorldBlock {
         break;
 
       case BT_INVALID:
-//         assert (false);
+        assert (false);
         break;
     }
   }
@@ -73,35 +77,44 @@ struct WorldBlock {
 // static_assert (sizeof (WorldBlock) == sizeof (unsigned char [2]), "Is this assertion fails, it's a good reason to check that WorldBlock::parameters didn't become too fat.");
 
 
+// TODO: use masks instead (?)
 namespace BlockInfo {
 
-  namespace BlockInfoPrivate {
-    const BlockType firstGas                  = BT_AIR;
-    const BlockType firstLiquid               = BT_WATER;
-    const BlockType firstSemitransparentSolid = BT_DIRT;
-    const BlockType firstOpaqueSolid          = BT_DIRT;
-  }
+  const BlockType firstGas                  = BT_AIR;
+  const BlockType firstLiquid               = BT_WATER;
+  const BlockType firstSemitransparentSolid = BT_DIRT;
+  const BlockType firstOpaqueSolid          = BT_DIRT;
+  const BlockType firstSubobject            = BT_TEST_SUBOBJECT;
 
 
   static inline bool isGas (BlockType type) {
-    return /*BlockInfoPrivate::firstGas <= type &&*/ type < BlockInfoPrivate::firstLiquid;
+    return /*firstGas <= type &&*/ type < firstLiquid;
   }
 
   static inline bool isLiquid (BlockType type) {
-    return BlockInfoPrivate::firstLiquid <= type && type < BlockInfoPrivate::firstSemitransparentSolid;
+    return firstLiquid <= type && type < firstSemitransparentSolid;
   }
 
   static inline bool isSolid (BlockType type) {
-    return BlockInfoPrivate::firstSemitransparentSolid <= type && type < N_BLOCK_TYPES;
+    return firstSemitransparentSolid <= type && type < firstSubobject;
+  }
+
+  static inline bool isSubobject (BlockType type) {
+    return firstSubobject <= type && type < N_BLOCK_TYPES;
+  }
+
+  static inline bool isFirm (BlockType type) {
+    return isSolid (type) || isSubobject (type);
   }
 
 
+  // TODO: what about subobjects?
   static inline bool isSemitransparent (BlockType type) {
-    return /*BlockInfoPrivate::firstGas <= type &&*/ type < BlockInfoPrivate::firstOpaqueSolid;
+    return /*firstGas <= type &&*/ type < firstOpaqueSolid;
   }
 
   static inline bool isOpaque (BlockType type) {
-    return BlockInfoPrivate::firstOpaqueSolid <= type;
+    return firstOpaqueSolid <= type;
   }
 
 
@@ -118,6 +131,14 @@ namespace BlockInfo {
     return isSolid (block.type);
   }
 
+  static inline bool isSubobject (WorldBlock block) {
+    return isSubobject (block.type);
+  }
+
+  static inline bool isFirm (WorldBlock block) {
+    return isFirm (block.type);
+  }
+
 
   static inline bool isSemitransparent (WorldBlock block) {
     return isSemitransparent (block.type);
@@ -126,7 +147,6 @@ namespace BlockInfo {
   static inline bool isOpaque (WorldBlock block) {
     return isOpaque (block.type);
   }
-
 
 }
 

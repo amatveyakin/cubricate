@@ -63,7 +63,7 @@ int loadGameMap () {
         peak = Vec3i (x, y, height);
     }
   }
-//   cubeOctree.set (peak.x(), peak.y(), peak.z(), /* TODO: remove this DIRTY cheat */ WorldBlock (BlockType (-cubeOctree.nNodes())), false);
+  cubeOctree.set (peak.x(), peak.y(), peak.z(), /* TODO: remove this DIRTY cheat */ WorldBlock (BlockType (-cubeOctree.nNodes())), false);
   simpleWorldMap.unlockRepaint ();
 
 //   int MAX_NODE_VALUE = 256;
@@ -246,19 +246,23 @@ void GLWidget::initTextures () {
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureTarget.width (), textureTarget.height (), 0, GL_RGBA, GL_UNSIGNED_BYTE, textureTarget.bits ());
   glBindTexture (GL_TEXTURE_2D, 0);
 
-  Octree octSubcube (2);
+  Octree octSubcube (1);
   octSubcube.set (0, 0, 0, WorldBlock (BT_BRICKS), true);
   octSubcube.computeNeighbours();
 
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers (1, &m_octTreeBuffer);
   glBindBuffer (GL_TEXTURE_BUFFER, m_octTreeBuffer);
-  glBufferData (GL_TEXTURE_BUFFER, cubeOctree.nNodes() * sizeof (TreeNodeT), cubeOctree.nodes(), GL_STATIC_DRAW);  // TODO: STATIC ?
-//   glBufferData (GL_TEXTURE_BUFFER, (cubeOctree.nNodes() + octSubcube.nNodes()) * sizeof (TreeNodeT), 0, GL_STATIC_DRAW);  // TODO: STATIC ?
-//   glBufferSubData (GL_TEXTURE_BUFFER, 0,                                        cubeOctree.nNodes() * sizeof (TreeNodeT), cubeOctree.nodes());
-//   glBufferSubData (GL_TEXTURE_BUFFER, cubeOctree.nNodes() * sizeof (TreeNodeT), octSubcube.nNodes() * sizeof (TreeNodeT), octSubcube.nodes());
+  glBufferData (GL_TEXTURE_BUFFER, (cubeOctree.nNodes() + octSubcube.nNodes()) * sizeof (TreeNodeT), 0, GL_STATIC_DRAW);  // TODO: STATIC ?
+  glBufferSubData (GL_TEXTURE_BUFFER, 0,                                        cubeOctree.nNodes() * sizeof (TreeNodeT), cubeOctree.nodes());
+  glBufferSubData (GL_TEXTURE_BUFFER, cubeOctree.nNodes() * sizeof (TreeNodeT), octSubcube.nNodes() * sizeof (TreeNodeT), octSubcube.nodes());
   glBindBuffer (GL_TEXTURE_BUFFER, 0);
-
+  int ads = octSubcube.nNodes();
+  for (int i = 0; i < octSubcube.nNodes(); ++i) {
+    for (int j = 0; j < NODE_STRUCT_SIZE; ++j)
+      std::cout << octSubcube.nodes()[NODE_STRUCT_SIZE * i + j] << " ";
+    std::cout << std::endl;
+  }
   glGenTextures(1, &m_octTreeTexture);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_BUFFER, m_octTreeTexture);
@@ -298,7 +302,7 @@ void GLWidget::initTextures () {
       //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
       QImage rawTexture (textureFileName);
       if (rawTexture.isNull ()) {
-        std::cout << "Cannot open texture file !!!" << std::endl;
+        std::cout << "Cannot open texture file ``" << textureFileName << "''!" << std::endl;
         exit (1);
       }
       QMatrix rotateMatrix;
@@ -333,7 +337,7 @@ void GLWidget::initTextures () {
       //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
       QImage rawTexture (textureFileName);
       if (rawTexture.isNull ()) {
-        std::cout << "Cannot open texture file !!!" << std::endl;
+        std::cout << "Cannot open texture file ``" << textureFileName << "''!" << std::endl;
         exit (1);
       }
       QMatrix rotateMatrix;
