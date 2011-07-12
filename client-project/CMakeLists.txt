@@ -12,7 +12,7 @@ add_definitions (-DCLIENT_APP)
 set (Cubricate_client_SRCS ${src_dir}/client/main.cpp ${src_dir}/client/client_world.cpp
      ${src_dir}/client/visible_cube_set.cpp ${src_dir}/client/glwidget.cpp
      ${src_dir}/common/world_chunk.cpp ${src_dir}/common/world_map.cpp ${src_dir}/common/simple_world_map.cpp
-     ${src_dir}/common/player.cpp ${src_dir}/common/physics/water_engine.cpp
+     ${src_dir}/common/simple_light_map.cpp ${src_dir}/common/player.cpp ${src_dir}/common/physics/water_engine.cpp
      ${src_dir}/client/octree.cpp ${src_dir}/client/GLTools/math3d.cpp)
 
 qt4_automoc (${Cubricate_client_SRCS})

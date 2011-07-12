@@ -6,6 +6,7 @@
 
 // WorldMap        worldMap;
 SimpleWorldMap  simpleWorldMap (MAP_SIZE, MAP_SIZE, MAP_SIZE);
+SimpleLightMap  simpleLightMap (MAP_SIZE + 1, MAP_SIZE + 1, MAP_SIZE + 1);
 Player          player;
 Octree          cubeOctree (TREE_HEIGHT, 0);
 WaterEngine     waterEngine;

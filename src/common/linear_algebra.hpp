@@ -457,6 +457,10 @@ struct LexicographicCompareVectors {
 
 
 
+typedef Vector <2, unsigned char> Vec2uc;
+typedef Vector <3, unsigned char> Vec3uc;
+typedef Vector <4, unsigned char> Vec4uc;
+
 typedef Vector <2, int>     Vec2i;
 typedef Vector <3, int>     Vec3i;
 typedef Vector <4, int>     Vec4i;
