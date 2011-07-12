@@ -6,12 +6,15 @@
 #include "common/multidim_array.hpp"
 
 
-// The first 3 components are total (r, b, g) values from various light sources.
-// The 4-th component is the sunlight intensity.
-class SimpleLightMap : public Array3D <Vec4uc> {
+class SimpleLightMap {
 public:
   SimpleLightMap (int sizeX, int sizeY, int sizeZ);
   ~SimpleLightMap();
+
+protected:
+  // The first 3 components are total (r, b, g) values from various light sources.
+  // The 4-th component is the sunlight intensity.
+  Array3D <Vec4uc>  m_luminosity;
 };
 
 
