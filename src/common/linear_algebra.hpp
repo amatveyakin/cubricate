@@ -264,6 +264,13 @@ public:
   ElementT z () const                       { return Parent::at (2); }
   ElementT& z ()                            { return Parent::at (2); }
 
+  ElementT r () const                       { return Parent::at (0); }
+  ElementT& r ()                            { return Parent::at (0); }
+  ElementT g () const                       { return Parent::at (1); }
+  ElementT& g ()                            { return Parent::at (1); }
+  ElementT b () const                       { return Parent::at (2); }
+  ElementT& b ()                            { return Parent::at (2); }
+
   void setCoordinates (ElementT x__, ElementT y__, ElementT z__)  { x () = x__;  y () = y__;  z () = z__; }
 
   // TODO: generate other subsets and permutations
@@ -299,6 +306,15 @@ public:
   ElementT& z ()                            { return Parent::at (2); }
   ElementT w () const                       { return Parent::at (3); }
   ElementT& w ()                            { return Parent::at (3); }
+
+  ElementT r () const                       { return Parent::at (0); }
+  ElementT& r ()                            { return Parent::at (0); }
+  ElementT g () const                       { return Parent::at (1); }
+  ElementT& g ()                            { return Parent::at (1); }
+  ElementT b () const                       { return Parent::at (2); }
+  ElementT& b ()                            { return Parent::at (2); }
+  ElementT a () const                       { return Parent::at (3); }
+  ElementT& a ()                            { return Parent::at (3); }
 
   void setCoordinates (ElementT x__, ElementT y__, ElementT z__, ElementT w__)  { x () = x__;  y () = y__;  z () = z__;  w () = w__; }
 
