@@ -103,7 +103,7 @@ TreeDataT Octree::get (int x, int y, int z) const {
 
 // TODO: speed up local neighbour update
 void Octree::set (int x, int y, int z, WorldBlock block, bool updateNeighboursFlag) {
-  TreeDataT treeTypeRecord = BlockInfo::isSubobject (block.type) ? (-nNodes() /* TODO:  + subobject_offset */) : block.type;
+  TreeDataT treeTypeRecord = blockTypeToTreeDataT (block.type);
   checkCoordinates (x, y, z);
 //   std::cout << "set (" << x << ", " << y << ", " << z << ")" << std::endl;
   int nodeSize;
@@ -216,6 +216,15 @@ void Octree::computeNeighbours () {
 
 
 
+TreeDataT Octree::blockTypeToTreeDataT (BlockType blockType) const {
+  return BlockInfo::isSubobject (blockType) ? (-nNodes() /* TODO:  + subobject_offset */) : static_cast <TreeDataT> (blockType);
+}
+
+BlockType Octree::TreeDataTToBlockType (TreeDataT treeDataT) const {
+  return (treeDataT < 0) ? BT_TEST_SUBOBJECT /* TODO: fix */ : static_cast <BlockType> (treeDataT);
+}
+
+
 void Octree::checkCoordinates (int x, int y, int z) const {
   assert (x >= 0);
   assert (y >= 0);
@@ -285,6 +294,8 @@ void Octree::splitNode (int node) {
 }
 
 int Octree::uniteNodesRecursively (int node) {
+  if (!blockShouldBeUnited (TreeDataTToBlockType (m_nodes [node].type ())))
+    return node;
   while  (node > 0) {
     int parent = getParent (node);
     TreeDataT type = m_nodes [node].type ();
@@ -327,3 +338,8 @@ bool Octree::tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neig
 //
 //   }
 // }
+
+
+bool Octree::blockShouldBeUnited (BlockType type) {
+  return BlockInfo::isFluid (type);
+}

@@ -95,6 +95,10 @@ namespace BlockInfo {
     return firstLiquid <= type && type < firstSemitransparentSolid;
   }
 
+  static inline bool isFluid (BlockType type) {
+    return isGas (type) || isLiquid (type);
+  }
+
   static inline bool isSolid (BlockType type) {
     return firstSemitransparentSolid <= type && type < firstSubobject;
   }
@@ -125,6 +129,10 @@ namespace BlockInfo {
 
   static inline bool isLiquid (WorldBlock block) {
     return isLiquid (block.type);
+  }
+
+  static inline bool isFluid (WorldBlock block) {
+    return isFluid (block.type);
   }
 
   static inline bool isSolid (WorldBlock block) {

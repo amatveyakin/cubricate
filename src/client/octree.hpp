@@ -55,6 +55,9 @@ protected:
   int         m_nLeaves;
   bool        m_nodesArrayIsOriginal;  // TODO: delete, use videomemory from the very beginning
 
+  TreeDataT   blockTypeToTreeDataT (BlockType blockType) const;
+  BlockType   TreeDataTToBlockType (TreeDataT treeDataT) const;
+
   void        checkCoordinates (int x, int y, int z) const;
 
   static int  getParent (int node);
@@ -72,6 +75,8 @@ protected:
 
   bool        tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ);
 //   void        doComputeNeighboursRecursively (int node, int x, int y, int z, int nodeSize);
+
+  static bool blockShouldBeUnited (BlockType type);
 };
 
 
