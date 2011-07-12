@@ -248,8 +248,21 @@ void GLWidget::initTextures () {
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureTarget.width (), textureTarget.height (), 0, GL_RGBA, GL_UNSIGNED_BYTE, textureTarget.bits ());
   glBindTexture (GL_TEXTURE_2D, 0);
 
-  Octree octSubcube (1, TREE_HEIGHT);
-  octSubcube.set (0, 0, 0, WorldBlock (BT_BRICKS), false);
+//   Octree octSubcube (2, TREE_HEIGHT);
+//   octSubcube.set (0, 0, 0, WorldBlock (BT_BRICKS), false);
+//   octSubcube.set (1, 1, 1, WorldBlock (BT_DIRT), false);
+//   octSubcube.set (2, 2, 2, WorldBlock (BT_GRASS), false);
+//   octSubcube.set (3, 3, 3, WorldBlock (BT_MIRROR), false);
+
+  Octree octSubcube (5, TREE_HEIGHT);
+  int subobjectSize = octSubcube.size();
+  Vec3d subobjectCenter = Vec3d::replicated ((subobjectSize - 1.) / 2.);
+  double radius = 0.4;
+  for (int x = 0; x < subobjectSize; ++x)
+    for (int y = 0; y < subobjectSize; ++y)
+      for (int z = 0; z < subobjectSize; ++z)
+        if (L2::norm (Vec3d (x, y, z) - subobjectCenter) / double (subobjectSize) < radius)
+          octSubcube.set (x, y, z, WorldBlock (BT_SNOWY_DIRT), false);
   octSubcube.computeNeighbours();
 
   //here we go! EPIC TEXTURE BUFFERS!

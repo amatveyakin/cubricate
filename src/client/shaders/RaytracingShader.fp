@@ -94,7 +94,7 @@ void main(void)
         currTreeOffset = -currCubeType;
         prevCubePointer = currCubePointer;
         currCubePointer = 0;
-        textureCoeff    = 2; //TODO Must be changed
+        textureCoeff    = 64; //TODO Must be changed
       }
       currCubeSize /= 2.;
       vec3 s = step (currCubeMidpoint, currPoint);
