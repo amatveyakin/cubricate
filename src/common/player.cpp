@@ -10,6 +10,17 @@
 
 
 
+const double Player::BODY_HEIGHT = 1.5;
+const double Player::EYE_HEIGHT  = 1.4;
+const double Player::BODY_WIDTH  = 0.7;
+const double Player::JUMPING_ACCELERATION = 10.;
+const double Player::FLYING_SPEED_COEFF = 2.;
+const double Player::AIR_SPEED_COEFF = 0.3;
+
+const double Player::MAX_SOARING_HEIGHT = 1e-3;
+const double Player::MAX_MOVEMENT_DELTA = 1e-2;
+
+
 Player::Player() {
   setPos (Vec3d::zero());
   m_blockInHand = BT_BRICKS;
@@ -147,9 +158,8 @@ static inline bool blockIsFree (Vec3d pos) {
 }
 
 bool Player::positionIsValid (Vec3d pos) {
-  double bodyWidth = BODY_WIDTH;
-  return    blockIsFree (pos + Vec3d ( bodyWidth / 2.,  bodyWidth / 2., 0)) && blockIsFree (pos + Vec3d ( bodyWidth / 2.,  bodyWidth / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
-         && blockIsFree (pos + Vec3d ( bodyWidth / 2., -bodyWidth / 2., 0)) && blockIsFree (pos + Vec3d ( bodyWidth / 2., -bodyWidth / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
-         && blockIsFree (pos + Vec3d (-bodyWidth / 2.,  bodyWidth / 2., 0)) && blockIsFree (pos + Vec3d (-bodyWidth / 2.,  bodyWidth / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
-         && blockIsFree (pos + Vec3d (-bodyWidth / 2., -bodyWidth / 2., 0)) && blockIsFree (pos + Vec3d (-bodyWidth / 2., -bodyWidth / 2., 0) + Vec3d (0., 0., BODY_HEIGHT));
+  return    blockIsFree (pos + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
+         && blockIsFree (pos + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
+         && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
+         && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT));
 }

@@ -247,15 +247,15 @@ protected:
 class Player {
 public:
   // The player is a box
-  static const double BODY_HEIGHT = 1.5;
-  static const double EYE_HEIGHT  = 1.4;
-  static const double BODY_WIDTH  = 0.7;
-  static const double JUMPING_ACCELERATION = 10.;
-  static const double FLYING_SPEED_COEFF = 2.;
-  static const double AIR_SPEED_COEFF = 0.3;
+  static const double BODY_HEIGHT;
+  static const double EYE_HEIGHT;
+  static const double BODY_WIDTH;
+  static const double JUMPING_ACCELERATION;
+  static const double FLYING_SPEED_COEFF;
+  static const double AIR_SPEED_COEFF;
 
-  static const double MAX_SOARING_HEIGHT = 1e-3;
-  static const double MAX_MOVEMENT_DELTA = 1e-2;
+  static const double MAX_SOARING_HEIGHT;
+  static const double MAX_MOVEMENT_DELTA;
 
 
   Player();
