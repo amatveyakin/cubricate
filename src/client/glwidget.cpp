@@ -255,7 +255,7 @@ void GLWidget::initTextures () {
   //here we go! EPIC TEXTURE BUFFERS!
   glGenBuffers (1, &m_octTreeBuffer);
   glBindBuffer (GL_TEXTURE_BUFFER, m_octTreeBuffer);
-  glBufferData (GL_TEXTURE_BUFFER, (cubeOctree.nNodes() + octSubcube.nNodes()) * sizeof (TreeNodeT), 0, GL_STATIC_DRAW);  // TODO: STATIC ?
+  glBufferData (GL_TEXTURE_BUFFER, (cubeOctree.nNodes() + octSubcube.nNodes()) * sizeof (TreeNodeT), 0, GL_STATIC_DRAW);  // TODO: STATIC or DYNAMIC?
   glBufferSubData (GL_TEXTURE_BUFFER, 0,                                        cubeOctree.nNodes() * sizeof (TreeNodeT), cubeOctree.nodes());
   glBufferSubData (GL_TEXTURE_BUFFER, cubeOctree.nNodes() * sizeof (TreeNodeT), octSubcube.nNodes() * sizeof (TreeNodeT), octSubcube.nodes());
 
@@ -301,7 +301,7 @@ void GLWidget::initTextures () {
       // Load this texture map
       //pBytes = gltReadTGABits(("resources/textures" + std::string(szCubeFaces[i])).c_str(), &iWidth, &iHeight, &iComponents, &eFormat);
       char textureFileName[256];
-      sprintf (textureFileName, "resources/textures/cubemaps/%d/%s.tga", i, szCubeFaces[j]);
+      sprintf (textureFileName, "resources/textures/blocks/%d/%s.tga", i, szCubeFaces[j]);
       //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
       QImage rawTexture (textureFileName);
       if (rawTexture.isNull ()) {
@@ -336,7 +336,7 @@ void GLWidget::initTextures () {
   for (int i = 0; i < N_NORMAL_MAPS; ++i)
     for(int j = 0; j < 6; ++j) {
       char textureFileName[256];
-      sprintf (textureFileName, "resources/textures/cubemaps/normals/%d/%s.tga", i, szCubeFaces[j]);
+      sprintf (textureFileName, "resources/textures/normals/%d/%s.tga", i, szCubeFaces[j]);
       //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
       QImage rawTexture (textureFileName);
       if (rawTexture.isNull ()) {
