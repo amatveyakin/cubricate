@@ -105,9 +105,8 @@ void main(void)
     }
     currCubeProperties = getCubeProperties (currCubeType);
 
-    normal              = colorToVector (texture (cubeNormalMap, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
-                                                                                  currCubeSize,
-                                                                                  textureCoeff), currCubeProperties.normalMapIndex)).xyz);
+    normal = colorToVector (texture (cubeNormalMap, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint, currCubeSize, textureCoeff),
+                                                          currCubeProperties.normalMapIndex)).xyz);
 
     if (nRayTurns < MAX_RAY_TURNS) {
       vec3 oldRay = ray;
