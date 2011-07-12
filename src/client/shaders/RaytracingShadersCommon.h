@@ -68,7 +68,7 @@ int getNodeParameter (int nodePointer) {
   return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_PARAMETER).r;
 }
 
-int getNodeNeighbour (int nodePointer, vec3 direction) {
+int getNodeNeighbour (int treeOffset, int nodePointer, vec3 direction) {
   int iChild = (nodePointer - 1) % 8;
   int directionIndex123 = int (round (dot (direction, vec123)));
   int directionIndex124 = int (round (dot (direction, vec124)));
@@ -82,7 +82,7 @@ int getNodeNeighbour (int nodePointer, vec3 direction) {
             ^ int (directionIndex124 > 0)                  )) // Current direction is positive
     return nodePointer + (iChild ^ abs (directionIndex124)) - iChild;
   else
-    return texelFetch (octTree, NODE_STRUCT_SIZE * nodePointer + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
+    return texelFetch (octTree, NODE_STRUCT_SIZE * (treeOffset + nodePointer) + NODE_OFFSET_NEIGHBOURS + abs (directionIndex123)).r;
 }
 
 bool pointInCube (vec3 point, vec3 cubeMidpoint, float cubeSize) {

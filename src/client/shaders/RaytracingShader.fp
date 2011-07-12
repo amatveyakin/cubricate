@@ -169,11 +169,11 @@ void main(void)
     normal     = -colorToVector (texture (cubeNormalMap, vec4 (currPoint - currCubeMidpoint, 0)).xyz);
     //     EXIT_IF (length (normal) > 2.01,  1., 0., 1.);
 
-    currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
+    currCubePointer   = getNodeNeighbour (currTreeOffset, currCubePointer, -normal);
     if (currCubePointer == -1) {
       //EXIT_IF (true, 0, 1, 0);
       currTreeOffset = 0;
-      currCubePointer   = getNodeNeighbour (prevCubePointer, -normal);
+      currCubePointer   = getNodeNeighbour (0, prevCubePointer, -normal);
       textureCoeff = 1;
     }
     currCubeSize      = getNodeSize (currTreeOffset + currCubePointer);

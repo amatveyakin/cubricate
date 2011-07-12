@@ -59,7 +59,7 @@ void main(void)
 
     currPoint        += ray * (delta + 0.001);
     normal            = -trunc((currPoint - currCubeMidpoint) / currCubeSize);
-    currCubePointer   = getNodeNeighbour (currCubePointer, -normal);
+    currCubePointer   = getNodeNeighbour (0, currCubePointer, -normal);
     currCubeSize      = getNodeSize (currCubePointer);
     currCubeMidpoint  = getNodeMidpoint (currPoint, currCubeSize);
     currCubeType      = getNodeType (currCubePointer);
