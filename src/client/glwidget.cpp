@@ -260,12 +260,6 @@ void GLWidget::initTextures () {
   glBufferSubData (GL_TEXTURE_BUFFER, cubeOctree.nNodes() * sizeof (TreeNodeT), octSubcube.nNodes() * sizeof (TreeNodeT), octSubcube.nodes());
 
   glBindBuffer (GL_TEXTURE_BUFFER, 0);
-  int ads = octSubcube.nNodes();
-  for (int i = 0; i < octSubcube.nNodes(); ++i) {
-    for (int j = 0; j < NODE_STRUCT_SIZE; ++j)
-      std::cout << octSubcube.nodes()[NODE_STRUCT_SIZE * i + j] << " ";
-    std::cout << std::endl;
-  }
   glGenTextures(1, &m_octTreeTexture);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_BUFFER, m_octTreeTexture);
