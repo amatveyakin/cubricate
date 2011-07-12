@@ -4,8 +4,9 @@
 #include <QDir>
 
 #include "client/glwidget.hpp"
+#include "common/simple_world_map.hpp"
+
 #include "client/client_world.hpp"
-#include "client/simple_world_map.hpp"
 
 
 const char* SimpleWorldMap::WORLD_MAP_FILE_NAME = "world/map";
