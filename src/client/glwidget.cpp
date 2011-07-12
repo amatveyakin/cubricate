@@ -249,7 +249,7 @@ void GLWidget::initTextures () {
   glBindTexture (GL_TEXTURE_2D, 0);
 
   Octree octSubcube (1, TREE_HEIGHT);
-  octSubcube.set (0, 0, 0, WorldBlock (BT_BRICKS), true);
+  octSubcube.set (0, 0, 0, WorldBlock (BT_BRICKS), false);
   octSubcube.computeNeighbours();
 
   //here we go! EPIC TEXTURE BUFFERS!
