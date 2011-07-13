@@ -27,6 +27,7 @@ Player::Player() {
   m_blockInHand = BT_BRICKS;
   m_flying = false;
   m_upVelocity = 0.;
+  m_lastSelectedCube = Vec3i (-1, -1, -1);
 }
 
 Player::~Player() { }
@@ -114,6 +115,7 @@ void Player::processPlayer (double timeDelta) {
     if (!tryToMove (Vec3d::e3 (), m_upVelocity * timeDelta))
       m_upVelocity = 0.;
   }
+  updateCubeSelection();  // TODO: is it good to call it here?
 }
 
 
@@ -149,6 +151,28 @@ void Player::doMove (Vec3d direction, double moveBy) {
 //   tryToMove (direction, moveBy);
   for (int coord = 0; coord < 3; ++coord)
     tryToMove (Vec3d::e_i (coord), direction[coord] * moveBy);
+//   updateCubeSelection();
+}
+
+
+void Player::updateCubeSelection() {
+  // Deselecting previous cube
+  if (cubeIsValid (m_lastSelectedCube)) {
+    WorldBlock headOnBlock = simpleWorldMap.get (m_lastSelectedCube);
+    headOnBlock.parameters = 0;
+    simpleWorldMap.set (m_lastSelectedCube, headOnBlock);
+  }
+
+  // Selecting current cube
+  Vec3i selectedCube = getHeadOnCube().cube + Vec3i::replicated (MAP_SIZE / 2);
+  if (cubeIsValid (selectedCube)) {
+    WorldBlock headOnBlock = simpleWorldMap.get (selectedCube);
+    headOnBlock.parameters = 1;
+    simpleWorldMap.set (selectedCube, headOnBlock);
+    m_lastSelectedCube = selectedCube;
+  }
+  else
+    m_lastSelectedCube = INVALID_CUBE;
 }
 
 

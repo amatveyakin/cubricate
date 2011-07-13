@@ -267,6 +267,9 @@ static inline void worldToChunk (/* in */ Vec3d pos, /* out */ Vec2i& chunk, Vec
 
 
 
+// A cube that is guaranteed to be invalid
+static const Vec3i INVALID_CUBE (-1, -1, -1);
+
 static inline bool cubeIsValid (int x, int y, int z) {
   return    (x >= 0) && (x < MAP_SIZE)
          && (y >= 0) && (y < MAP_SIZE)

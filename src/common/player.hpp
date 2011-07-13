@@ -286,12 +286,15 @@ protected:
   BlockType m_blockInHand;
   bool      m_flying;
   double    m_upVelocity;
+  Vec3i     m_lastSelectedCube;
 
   ViewFrame m_viewFrame;
 
   bool inAir();
   bool tryToMove (Vec3d direction, double moveBy);
   void doMove (Vec3d direction, double moveBy);
+
+  void updateCubeSelection ();
 
   static bool positionIsValid (Vec3d pos);
 };

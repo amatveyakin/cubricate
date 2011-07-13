@@ -784,22 +784,8 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
   int centerX = width ()  / 2;
   int centerY = height () / 2;
 
-  // TODO: Move to Player class and fix
-  //this way of changing parameter is VERY VERY VERY shitty
-  Vec3i headOnCube = player.getHeadOnCube().cube + Vec3i::replicated (MAP_SIZE / 2);
-  if (cubeIsValid (headOnCube)) {
-    WorldBlock headOnBlock = simpleWorldMap.get(headOnCube);
-    headOnBlock.parameters = 0;
-    simpleWorldMap.set (headOnCube, headOnBlock);
-  }
   player.viewFrame ().rotateWorld ((event->x () - centerX) / 100., 0., 0., 1.);
   player.viewFrame ().rotateLocalX (-(event->y () - centerY) / 100.);
-  headOnCube = player.getHeadOnCube().cube + Vec3i::replicated (MAP_SIZE / 2);
-  if (cubeIsValid (headOnCube)) {
-    WorldBlock headOnBlock = simpleWorldMap.get(headOnCube);
-    headOnBlock.parameters = 1;
-    simpleWorldMap.set (headOnCube, headOnBlock);
-  }
 
   cursor ().setPos (mapToGlobal (QPoint (centerX, centerY)));
   isLocked = false;
