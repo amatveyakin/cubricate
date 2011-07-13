@@ -134,19 +134,22 @@ void main(void)
                                                                                   currCubeSize,
                                                                                   textureCoeff), currCubeType));
 
-    
-    //float materialTransparency = currCubeProperties.transparency;
 
+    float materialTransparency = currCubeProperties.transparency;
+
+    //float materialTransparency =  baseColor.a;
+    int parameter = getNodeParameter (currTreeOffset + currCubePointer);
     if (currCubeType == CUBE_TYPE_WATER)
-      materialTransparency = 1 - getNodeParameter (currTreeOffset + currCubePointer) / float (MAX_FLUID_SATURATION) * (1 - materialTransparency)
+      materialTransparency = 1 - parameter / float (MAX_FLUID_SATURATION) * (1 - materialTransparency);
     else {
-      vec4 decalColor = texture (cubeDecal,  vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
-                                                                                    currCubeSize,
-                                                                                    textureCoeff), getNodeParameter (currTreeOffset + currCubePointer)));                                                                                                              ));
-      baseColor = (1 - decalColor.a) * decalColor + decalColor.a * baseColor;
+      if (parameter > 0) {
+        vec4 decalColor = texture (cubeDecal,  vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
+                                                                                      currCubeSize,
+                                                                                      textureCoeff), parameter));
+        baseColor = decalColor.a * decalColor + (1 - decalColor.a) * baseColor;
+      }
     }
-    
-    float materialTransparency = 1 - baseColor.a;
+
     float transparency;
     if (materialTransparency == 0.)
       transparency = 0.;

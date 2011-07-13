@@ -129,10 +129,10 @@ void Octree::set (int x, int y, int z, WorldBlock block, bool updateNeighboursFl
       curNode = newNode;
     }
   }
-  if (block.type == BT_WATER)
+  if (BlockInfo::isLiquid (block.type))
     m_nodes [curNode].parameter () = block.fluidSaturation * MAX_FLUID_SATURATION;
   else
-    m_nodes [curNode].parameter () = 0;
+    m_nodes [curNode].parameter () = block.parameters;
 }
 
 
