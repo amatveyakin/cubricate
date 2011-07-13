@@ -1,12 +1,13 @@
 #include <cassert>
 
+#include "common/world_block.hpp"
+#include "common/player.hpp"
+
 #ifdef CLIENT_APP
   #include "client/client_world.hpp"
 #else // !CLIENT_APP
   #include "server/server_world.hpp"
 #endif // !CLIENT_APP
-
-#include "common/player.hpp"
 
 
 

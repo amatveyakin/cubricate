@@ -2,7 +2,7 @@
 #define MULTIDIM_ARRAY_HPP
 
 
-#include "linear_algebra.hpp"
+#include "common/linear_algebra.hpp"
 
 
 template <typename ElementT>
