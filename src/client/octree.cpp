@@ -9,7 +9,7 @@
 #include "client/octree.hpp"
 
 
-// Returns the difference (myNumber - siblingNumber) for every direction, 0 if there is not sibling there
+// Returns the difference (myNumber - siblingNumber) for every direction, 0 if there is not a sibling there
 const int siblingShiftTable[8][7] = {
   /* Z-  Y-  X-      X+  Y+  Z+ */
   {  0,  0,  0,  0,  1,  2,  4  },  /* 0 */
@@ -22,12 +22,14 @@ const int siblingShiftTable[8][7] = {
   { -4, -2, -1,  0,  0,  0,  0  }   /* 7 */
 };
 
-const int SIBLING_SHIFT_TABLE_X_PLUS  = 4;
-const int SIBLING_SHIFT_TABLE_Y_PLUS  = 5;
-const int SIBLING_SHIFT_TABLE_Z_PLUS  = 6;
-const int SIBLING_SHIFT_TABLE_X_MINUS = 2;
-const int SIBLING_SHIFT_TABLE_Y_MINUS = 1;
-const int SIBLING_SHIFT_TABLE_Z_MINUS = 0;
+enum SiblingTableDirection {
+  SIBLING_SHIFT_TABLE_X_PLUS  = 4,
+  SIBLING_SHIFT_TABLE_Y_PLUS  = 5,
+  SIBLING_SHIFT_TABLE_Z_PLUS  = 6,
+  SIBLING_SHIFT_TABLE_X_MINUS = 2,
+  SIBLING_SHIFT_TABLE_Y_MINUS = 1,
+  SIBLING_SHIFT_TABLE_Z_MINUS = 0
+};
 
 // const int directionToSiblingShiftTable = {
 //   4, /* X_PLUS  */
@@ -149,73 +151,7 @@ void Octree::computeNeighbours () {
     for (int j = 0; j < 3; ++j)
       m_nodes[i].neighbour (j) = -1;
 
-  for (int x = 0; x < m_size; ++x) {
-    for (int y = 0; y < m_size; ++y) {
-      for (int z = 0; z < m_size; ++z) {
-        int nodeSize, iChild;
-        int xTmp = x, yTmp = y, zTmp = z;
-        int node = getDeepestNode (xTmp, yTmp, zTmp, nodeSize, iChild);
-
-//         std::cout << "(" << x << ", " << y << ", " << z << "): node = " << node << ", nodeSize = " << nodeSize << std::endl;
-
-        if (m_nodes[node].neighbour (0) >= 0 || m_nodes[node].neighbour (1) >= 0 || m_nodes[node].neighbour (2) >= 0)
-          continue;
-
-        if (siblingShiftTable [iChild][SIBLING_SHIFT_TABLE_X_PLUS] == 0) {
-          for (int neighbourX = x + 1; neighbourX < m_size; ++neighbourX)
-            if (tryToAddNeighbour (node, nodeSize, 0, neighbourX, y, z))
-              break;
-        }
-        else {
-          for (int neighbourX = x - 1; neighbourX >= 0; --neighbourX)
-            if (tryToAddNeighbour (node, nodeSize, 0, neighbourX, y, z))
-              break;
-        }
-
-        if (siblingShiftTable [iChild][SIBLING_SHIFT_TABLE_Y_PLUS] == 0) {
-          for (int neighbourY = y + 1; neighbourY < m_size; ++neighbourY)
-            if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
-              break;
-        }
-        else {
-          for (int neighbourY = y - 1; neighbourY >= 0; --neighbourY)
-            if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
-              break;
-        }
-
-        if (siblingShiftTable [iChild][SIBLING_SHIFT_TABLE_Z_PLUS] == 0) {
-          for (int neighbourZ = z + 1; neighbourZ < m_size; ++neighbourZ)
-            if (tryToAddNeighbour (node, nodeSize, 2, x, y, neighbourZ))
-              break;
-        }
-        else {
-          for (int neighbourZ = z - 1; neighbourZ >= 0; --neighbourZ)
-            if (tryToAddNeighbour (node, nodeSize, 2, x, y, neighbourZ))
-              break;
-        }
-
-//         for (int neighbourZ = z - 1; neighbourZ >= 0; --neighbourZ)
-//           if (tryToAddNeighbour (node, nodeSize, 0, x, y, neighbourZ))
-//             break;
-//         for (int neighbourY = y - 1; neighbourY >= 0; --neighbourY)
-//           if (tryToAddNeighbour (node, nodeSize, 1, x, neighbourY, z))
-//             break;
-//         for (int neighbourX = x - 1; neighbourX >= 0; --neighbourX)
-//           if (tryToAddNeighbour (node, nodeSize, 2, neighbourX, y, z))
-//             break;
-//
-//         for (int neighbourX = x + 1; neighbourX < m_size; ++neighbourX)
-//           if (tryToAddNeighbour (node, nodeSize, 3, neighbourX, y, z))
-//             break;
-//         for (int neighbourY = y + 1; neighbourY < m_size; ++neighbourY)
-//           if (tryToAddNeighbour (node, nodeSize, 4, x, neighbourY, z))
-//             break;
-//         for (int neighbourZ = z + 1; neighbourZ < m_size; ++neighbourZ)
-//           if (tryToAddNeighbour (node, nodeSize, 5, x, y, neighbourZ))
-//             break;
-      }
-    }
-  }
+  doComputeNeighboursRecursively (0, -1, m_size, 0, 0, 0);
 
   std::cout << "neighbours time: " << time.elapsed() << " ms" << std::endl;
 }
@@ -238,6 +174,12 @@ void Octree::checkCoordinates (int x, int y, int z) const {
   assert (x < m_size);
   assert (y < m_size);
   assert (z < m_size);
+}
+
+bool Octree::coordinatesValid (int x, int y, int z) const {
+  return   (x >= 0) && (x < m_size)
+        && (y >= 0) && (y < m_size)
+        && (z >= 0) && (z < m_size);
 }
 
 
@@ -320,30 +262,62 @@ int Octree::uniteNodesRecursively (int node) {
 }
 
 
-bool Octree::tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ) {
+// bool Octree::tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ) {
+//   int neighbourSize;
+//   int neighbour = getDeepestNode (neighbourX, neighbourY, neighbourZ, neighbourSize);
+//   assert (neighbourSize > 0);
+//   if (neighbour != node) {
+//     while (neighbourSize < nodeSize) {
+//       neighbour = getParent (neighbour);
+//       neighbourSize *= 2;
+//     }
+//     m_nodes[node].neighbour (iNeighbour) = neighbour;
+//     return true;
+//   }
+//   return false;
+// }
+
+void Octree::tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ) {
+  if (!coordinatesValid (neighbourX, neighbourY, neighbourZ))
+    return;
   int neighbourSize;
   int neighbour = getDeepestNode (neighbourX, neighbourY, neighbourZ, neighbourSize);
   assert (neighbourSize > 0);
-  if (neighbour != node) {
-    while (neighbourSize < nodeSize) {
-      neighbour = getParent (neighbour);
-      neighbourSize *= 2;
-    }
-    m_nodes[node].neighbour (iNeighbour) = neighbour;
-    return true;
+  while (neighbourSize < nodeSize) {
+    neighbour = getParent (neighbour);
+    neighbourSize *= 2;
   }
-  return false;
+  m_nodes[node].neighbour (iNeighbour) = neighbour;
 }
 
-// void Octree::doComputeNeighboursRecursively (int node, int x, int y, int z, int nodeSize) {
-//   if (m_nodes [node] == MIXED_TYPE) {
-//     for (int i = 0; i < N_NODE_CHILDREN; ++i)
-//       doComputeNeighboursRecursively (getChild (node, i));
-//   }
-//   else {
-//
-//   }
-// }
+void Octree::doComputeNeighboursRecursively (int node, int indexInParent, int nodeSize, int cornerX, int cornerY, int cornerZ) {
+  if (m_nodes [node].type() == MIXED_TYPE) {
+    for (int i = 0; i < N_NODE_CHILDREN; ++i) {
+      int childSize = nodeSize / 2;
+      doComputeNeighboursRecursively (getChild (node, i), i, childSize,
+                                      cornerX + ( i      % 2) * childSize,
+                                      cornerY + ((i / 2) % 2) * childSize,
+                                      cornerZ + ((i / 4) % 2) * childSize);
+    }
+  }
+  else if (indexInParent >= 0) {
+    if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_X_MINUS] == 0)
+      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_X, cornerX - 1, cornerY, cornerZ);
+    else
+      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_X, cornerX + nodeSize, cornerY, cornerZ);
+
+    if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_Y_MINUS] == 0)
+      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Y, cornerX, cornerY - 1, cornerZ);
+    else
+      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Y, cornerX, cornerY + nodeSize, cornerZ);
+
+    if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_Z_MINUS] == 0)
+      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Z, cornerX, cornerY, cornerZ - 1);
+    else
+      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Z, cornerX, cornerY, cornerZ + nodeSize);
+  }
+}
+
 
 
 bool Octree::blockShouldBeUnited (BlockType type) {

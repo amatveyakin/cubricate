@@ -12,6 +12,10 @@
 typedef int TreeDataT;
 
 struct TreeNodeT {
+  static const int NEIGHBOUR_X = 0;
+  static const int NEIGHBOUR_Y = 1;
+  static const int NEIGHBOUR_Z = 2;
+
   TreeDataT& type ()              { return data [NODE_OFFSET_TYPE]; }
   TreeDataT& neighbour (int i)    { return data [NODE_OFFSET_NEIGHBOURS + i + 1]; }
   TreeDataT& height ()            { return data [NODE_OFFSET_HEIGHT]; }
@@ -59,6 +63,7 @@ protected:
   BlockType   TreeDataTToBlockType (TreeDataT treeDataT) const;
 
   void        checkCoordinates (int x, int y, int z) const;
+  bool        coordinatesValid (int x, int y, int z) const;
 
   static int  getParent (int node);
   static int  getChild  (int node, int iChild);   // iChild = 0, 1, ..., 7
@@ -73,8 +78,8 @@ protected:
   void        splitNode (int node);
   int         uniteNodesRecursively (int node);
 
-  bool        tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ);
-//   void        doComputeNeighboursRecursively (int node, int x, int y, int z, int nodeSize);
+  void        tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ);
+  void        doComputeNeighboursRecursively (int node, int indexInParent, int nodeSize, int cornerX, int cornerY, int cornerZ);
 
   static bool blockShouldBeUnited (BlockType type);
 };
