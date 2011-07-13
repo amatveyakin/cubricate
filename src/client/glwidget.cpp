@@ -224,10 +224,13 @@ void GLWidget::initBuffers () {
 
 void GLWidget::initTextures () {
   const int N_TEXTURES        = N_BLOCK_TYPES;
-  const int N_NORMAL_MAPS     = 2;
-
   const int TEXTURE_SIZE      = 16;
+  
+  const int N_NORMAL_MAPS     = 2;
   const int NORMAL_MAP_SIZE   = 16;
+  
+  const int N_DECALS          = 2;
+  const int DECAL_SIZE        = 16;
 
   QImage imageTarget ("resources/images/target.png");
   assert (!imageTarget.isNull ());
@@ -359,7 +362,39 @@ void GLWidget::initTextures () {
     }
   glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
 
+  
+  glGenTextures(1, &m_cubeDecal);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeDecal);
 
+  // Set up texture maps
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  glTexImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_RGBA, DECAL_SIZE, DECAL_SIZE, 6 * N_DECALS, 0,
+                GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+  // Load Cube Map images
+  for (int i = 0; i < N_DECALS; ++i)
+    for(int j = 0; j < 6; ++j) {
+      char textureFileName[256];
+      sprintf (textureFileName, "resources/textures/decals/%d/%s.tga", i, szCubeFaces[j]);
+      //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
+      QImage rawTexture (textureFileName);
+      if (rawTexture.isNull ()) {
+        std::cout << "Cannot open texture file ``" << textureFileName << "''!" << std::endl;
+        exit (1);
+      }
+      QMatrix rotateMatrix;
+      rotateMatrix.rotate (angles[j]);
+      rawTexture =  rawTexture.transformed(rotateMatrix);
+      QImage texture = convertToGLFormat (rawTexture);
+      assert (!texture.isNull ());
+      glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
+    }
+  glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
 
   const float cubeProperties[] = { 0.993, 1,     1,
                                    0.85,  1.333, 1,
@@ -447,7 +482,7 @@ void GLWidget::initShaders () {
   m_locViewMatrix                =  glGetUniformLocation (m_raytracingShader, "matView");
   m_locCubeTexture               =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
   m_locCubeNormalMap             =  glGetUniformLocation (m_raytracingShader, "cubeNormalMap");
-
+  m_locCubeDecals                =  glGetUniformLocation (m_raytracingShader, "cubeDecal");
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Vertex,   "resources/UIShader.vp");
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/UIShader.fp");
   m_UIShaderProgram.bindAttributeLocation ("vPosition",  0);
@@ -623,6 +658,11 @@ void GLWidget::paintGL () {
   glActiveTexture (GL_TEXTURE5);
   glBindTexture (GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeNormalMap);
   glUniform1i (m_locCubeNormalMap, 5);
+  
+  glActiveTexture (GL_TEXTURE6);
+  glBindTexture (GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeDecal);
+  glUniform1i (m_locCubeNormalMap, 6);
+
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
@@ -743,8 +783,17 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
   isLocked = true;
   int centerX = width ()  / 2;
   int centerY = height () / 2;
+  
+  //this way of changing parameter is VERY VERY VERY shitty
+  WorldBlock headOnBlock = simpleWorldMap.get(player.getHeadOnCube ().cube);
+  headOnBlock.parameters = 0;
+  simpleWorldMap.set(player.getHeadOnCube ().cube, headOnBlock);
   player.viewFrame ().rotateWorld ((event->x () - centerX) / 100., 0., 0., 1.);
   player.viewFrame ().rotateLocalX (-(event->y () - centerY) / 100.);
+  headOnBlock = simpleWorldMap.get(player.getHeadOnCube ().cube);
+  headOnBlock.parameters = 1;
+  simpleWorldMap.set(player.getHeadOnCube ().cube, headOnBlock);
+
   cursor ().setPos (mapToGlobal (QPoint (centerX, centerY)));
   isLocked = false;
   updateGL ();

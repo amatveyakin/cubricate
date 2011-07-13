@@ -1,6 +1,7 @@
 #version 140
 #extension GL_ARB_texture_cube_map_array : enable
 
+const int N_BLOCK_TYPES = 10;
 
 struct CubeProperties {
   float transparency;
@@ -17,6 +18,7 @@ uniform isamplerBuffer   siblingShiftTable;
 uniform sampler2D        depthTexture;
 uniform samplerCubeArray cubeTexture;
 uniform samplerCubeArray cubeNormalMap;
+uniform samplerCubeArray cubeDecal;
 
 uniform vec3             origin;
 
@@ -123,23 +125,28 @@ void main(void)
 
     nextPoint = currCubeMidpoint + currCubeSize * sign (ray);
     deltaVector = abs ((nextPoint - currPoint) / ray);
-    //deltaVector = mix (deltaVector, 128 * vec111, isinf(deltaVector));
     delta = min (min (deltaVector.x, deltaVector.y), deltaVector.z);
 
 //     EXIT_IF (delta < 0, 0.5, 0., 1.);
-
-    vec4 baseColor = texture (cubeTexture, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
+    //it must be optimized: currCubeSize now always equals 1 for solid block, and non-solid blocks (like water and air)
+    //have homogenous texture
+    vec4 baseColor  = texture (cubeTexture, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
                                                                                   currCubeSize,
-                                                                                  textureCoeff),
-                                                                                                               currCubeType));
-    float materialTransparency = currCubeProperties.transparency;
+                                                                                  textureCoeff), currCubeType));
 
-//     if (currCubeType == CUBE_TYPE_WATER)
-//       baseColor.xyz = vec111 - (vec111 - baseColor.xyz) * getNodeParameter (currCubePointer) / float (MAX_FLUID_SATURATION);
+    
+    //float materialTransparency = currCubeProperties.transparency;
+
     if (currCubeType == CUBE_TYPE_WATER)
-      materialTransparency = 1 - getNodeParameter (currTreeOffset + currCubePointer) / float (MAX_FLUID_SATURATION) * (1 - materialTransparency);
-
-
+      materialTransparency = 1 - getNodeParameter (currTreeOffset + currCubePointer) / float (MAX_FLUID_SATURATION) * (1 - materialTransparency)
+    else {
+      vec4 decalColor = texture (cubeDecal,  vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint,
+                                                                                    currCubeSize,
+                                                                                    textureCoeff), getNodeParameter (currTreeOffset + currCubePointer)));                                                                                                              ));
+      baseColor = (1 - decalColor.a) * decalColor + decalColor.a * baseColor;
+    }
+    
+    float materialTransparency = 1 - baseColor.a;
     float transparency;
     if (materialTransparency == 0.)
       transparency = 0.;
