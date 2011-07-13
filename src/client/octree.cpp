@@ -1,4 +1,5 @@
 // TODO: delete
+#include <QtCore/QTime>
 #include <iostream>
 
 
@@ -141,6 +142,9 @@ bool Octree::hasChildren (int node) const {
 void Octree::computeNeighbours () {
 //   doComputeNeighboursRecursively (0);
 
+  QTime time;
+  time.start();
+
   for (int i = 0; i < m_nNodes; ++i)
     for (int j = 0; j < 3; ++j)
       m_nodes[i].neighbour (j) = -1;
@@ -212,6 +216,8 @@ void Octree::computeNeighbours () {
       }
     }
   }
+
+  std::cout << "neighbours time: " << time.elapsed() << " ms" << std::endl;
 }
 
 
