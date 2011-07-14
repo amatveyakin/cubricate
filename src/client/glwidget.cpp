@@ -38,7 +38,6 @@ int loadGameMap () {
   }
 
   simpleWorldMap.lockRepaint ();
-  Vec3i peak = Vec3i::zero();
   for (int x = 0; x < MAP_SIZE; ++x) {
     for (int y = 0; y < MAP_SIZE; ++y) {
       int height;
@@ -61,11 +60,8 @@ int loadGameMap () {
       for (int z = height; z < MAP_SIZE / 2; ++z) {
         simpleWorldMap.set (x, y, z, BT_WATER);
       }
-      if (height > peak.z())
-        peak = Vec3i (x, y, height);
     }
   }
-  cubeOctree.set (peak.x(), peak.y(), peak.z(), /* TODO: remove this DIRTY cheat */ WorldBlock (BlockType (-cubeOctree.nNodes())), false);
   simpleWorldMap.unlockRepaint ();
 
 //   int MAX_NODE_VALUE = 256;
