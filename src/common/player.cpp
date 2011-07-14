@@ -181,8 +181,13 @@ static inline bool blockIsFree (Vec3d pos) {
 }
 
 bool Player::positionIsValid (Vec3d pos) {
-  return    blockIsFree (pos + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
-         && blockIsFree (pos + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
-         && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT))
-         && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., 0)) && blockIsFree (pos + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., 0) + Vec3d (0., 0., BODY_HEIGHT));
+  const int N_VERTICAL_SEGMENTS = int (BODY_HEIGHT + 1.);
+  for (int i = 0; i <= N_VERTICAL_SEGMENTS; ++i) {
+    if (    !blockIsFree (pos + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
+         || !blockIsFree (pos + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
+         || !blockIsFree (pos + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
+         || !blockIsFree (pos + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS))))
+      return false;
+  }
+  return true;
 }
