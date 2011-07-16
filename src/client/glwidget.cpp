@@ -149,6 +149,11 @@ void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
   while  (meteoriteZ > 0 && simpleWorldMap.get (meteoriteX, meteoriteY, meteoriteZ).type == BT_AIR)
     meteoriteZ--;
   explosion (meteoriteX, meteoriteY, meteoriteZ, METEORITE_RADIUS);
+  Vec3i lightPos = Vec3i (meteoriteX, meteoriteY, meteoriteZ - METEORITE_RADIUS + 1);
+  simpleLightMap.calculateLight(lightPos, -1);
+  simpleWorldMap.set (lightPos, WorldBlock(BT_TEST_LIGHT));
+  simpleLightMap.calculateLight(lightPos,  1);
+  simpleLightMap.loadSubLightMapToTexture(m_lightMapTexture, lightPos);
 }
 
 //           up
