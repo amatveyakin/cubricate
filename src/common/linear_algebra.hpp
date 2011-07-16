@@ -376,7 +376,7 @@ ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT
 
 template <int DIMENSION, typename ElementT>
 ElementT positiveDotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
-  return xMax (dotProduct (a, b), 0);
+  return xMax (dotProduct (a, b), ElementT (0));
 }
 // template <int DIMENSION, typename ElementT>
 // Vector <2, ElementT> crossProduct (Vector <2, ElementT> a) {

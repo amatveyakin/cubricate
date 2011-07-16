@@ -125,53 +125,64 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
   for (int i = 0; i < N_ITERATIONS / 2; ++i)
     for (int j = 0; j < 2; ++j)
       for (int x = 0; x < diagonal.x(); ++x)
-        for (int y = 0; y < diagonal.y(); ++y)
-          for (int z = (x + y + j) % 2; z < diagonal.z(); z += 2) { //"chessboard"-like iterations
-            Vec3i currentCube (x, y, z);
-            float currCubeTransparency = blockTransparency [simpleWorldMap.get (currentCube + firstCorner).type];
-            SHCoefficients resultSH (0, 0, 0, 0);
+        for (int y = 0; y < diagonal.y(); ++y) {
+          if (i > 0 || j > 0) {
+            for (int z = (x + y + j + 1) % 2; z < diagonal.z(); z += 2) //removing old neighbours
+              changedLuminosity (x, y, z) = Vec4f (0, 0, 0, 0);
+          }
 
+          for (int z = (x + y + j) % 2; z < diagonal.z(); z += 2) { //"chessboard"-like iterations
             for (int iNeighbour = 0; iNeighbour < 6; ++iNeighbour) {
+
+              Vec3i currCube (x, y, z);
+
+              SHCoefficients transferedSH  (0, 0, 0, 0);
+              SHCoefficients accumulatedSH (0, 0, 0, 0);
+
               Vec3f currNeighbourVector (neighbourVector [iNeighbour % 3]);
               if (iNeighbour >= 3) currNeighbourVector = -currNeighbourVector;
-              Vec3i currNeighbour = currentCube + Vec3i::fromVectorConverted (currNeighbourVector);
+
+              Vec3i currNeighbour = currCube + Vec3i::fromVectorConverted (currNeighbourVector);
+
               if (currNeighbour.x() < 0 || currNeighbour.y() < 0 || currNeighbour.z() < 0 ||
                   currNeighbour.x() >= diagonal.x() || currNeighbour.y() >= diagonal.y() || currNeighbour.z() >= diagonal.z()) continue;
 
-              SHCoefficients neighbourSH = changedLuminosity (currNeighbour);
-              SHCoefficients mainDirDeltaFunctionSH = deltaFunctionSH (-currNeighbourVector); // - because we using collecting schema now
-              SHCoefficients mainDirCosineLobeSh    = cosineLobeSH (-currNeighbourVector);
+              float neighbourTransparency = blockTransparency [simpleWorldMap.get (currNeighbour + firstCorner).type];
 
-              SHCoefficients accumulatedSH (0, 0, 0, 0);
+              //SHCoefficients neighbourSH = changedLuminosity (currNeighbour);
+              SHCoefficients currCubeSH = changedLuminosity (currCube);
 
-              SHCoefficients fluxThroughFaceVPLEquivalent = dotProduct (neighbourSH, mainDirDeltaFunctionSH) * mainDirCosineLobeSh;
+              SHCoefficients mainDirDeltaFunctionSH = deltaFunctionSH (currNeighbourVector); // - because we using collecting schema now
+              SHCoefficients mainDirCosineLobeSh    = cosineLobeSH (currNeighbourVector);
 
-              if (currCubeTransparency > 0.) {
-                resultSH += MAIN_DIRECTION_SOLID_ANGLE * fluxThroughFaceVPLEquivalent;
+              SHCoefficients fluxThroughFaceVPLEquivalent = dotProduct (currCubeSH, mainDirDeltaFunctionSH) * mainDirCosineLobeSh;
+
+              if (neighbourTransparency > 0.) {
+                transferedSH += MAIN_DIRECTION_SOLID_ANGLE * fluxThroughFaceVPLEquivalent;
 
                 for (int iFace = 0; iFace < 4; ++iFace) {
                   int faceIndex = (iNeighbour % 3) * 4 + iFace;
                   Vec3f currNeighbourFaceVector = neigbourFaceVector [faceIndex];
                   Vec3f currReprojVector = reprojVector [faceIndex];
-                  if (iNeighbour < 3) {
+                  if (iNeighbour >= 3) {
                     currNeighbourFaceVector = -currNeighbourFaceVector; // < 3 - collecting schema
                     currReprojVector        = -currReprojVector;
                   }
 
                   SHCoefficients sideDirDeltaFunctionSH = deltaFunctionSH (currNeighbourFaceVector);
                   SHCoefficients sideDirCosineLobeSH    = cosineLobeSH    (currReprojVector);
-                  resultSH += SIDE_DIRECTION_SOLID_ANGLE * dotProduct (neighbourSH, sideDirDeltaFunctionSH) * sideDirCosineLobeSH;
+                  transferedSH += SIDE_DIRECTION_SOLID_ANGLE * dotProduct (currCubeSH, sideDirDeltaFunctionSH) * sideDirCosineLobeSH;
                 }
               }
 
-              accumulatedSH = NEAREST_FACE_SOLID_ANGLE * fluxThroughFaceVPLEquivalent * (1 - currCubeTransparency);
-              m_luminosity (currNeighbour + firstCorner) += multiplier * accumulatedSH;
+              accumulatedSH = NEAREST_FACE_SOLID_ANGLE * fluxThroughFaceVPLEquivalent * (1 - neighbourTransparency);
+              m_luminosity (currCube + firstCorner) += multiplier * accumulatedSH;
+
+              changedLuminosity (currNeighbour) += transferedSH * neighbourTransparency;
+
             }
-            if ((i == 0) && (j == 0))
-              changedLuminosity (currentCube) += resultSH * currCubeTransparency;  // on first iteration we don't want
-            else                                                                   // delete our light sources
-              changedLuminosity (currentCube)  = resultSH * currCubeTransparency;
           }
+        }
 }
 
 void SimpleLightMap::calculateLight (Vec3i modifiedCube, float multiplier) {
