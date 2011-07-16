@@ -22,9 +22,10 @@ enum BlockType : unsigned char {
   BT_BRICKS,
   BT_MIRROR,
 
+  BT_TEST_LIGHT,
+
   BT_TEST_SUBOBJECT,
 
-  BT_TEST_LIGHT,
 
   BT_INVALID
 };

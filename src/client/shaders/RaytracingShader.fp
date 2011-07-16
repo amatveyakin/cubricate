@@ -19,6 +19,7 @@ uniform sampler2D        depthTexture;
 uniform samplerCubeArray cubeTexture;
 uniform samplerCubeArray cubeNormalMap;
 uniform samplerCubeArray cubeDecal;
+uniform sampler3D        lightMap;
 
 uniform vec3             origin;
 
@@ -160,7 +161,8 @@ void main(void)
 
     float lightCoef;
     if (currCubeProperties.transparency == 0)
-      lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
+      //lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
+      lightCoef = texture (lightMap, (currPoint + vec111 * RENDER_WORLD_SIZE) / (2 * RENDER_WORLD_SIZE)).r;
     else
       lightCoef = 1.0;
 

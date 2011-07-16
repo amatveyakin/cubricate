@@ -142,13 +142,13 @@ public:
 
   VectorT& applyDivFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().at (i) = ::divFloored (derived ().at (i), q);
+      derived ()[i] = ::divFloored (derived ()[i], q);
     return derived ();
   }
 
   VectorT& applyModFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().at (i) = ::modFloored (derived ().at (i), q);
+      derived ()[i] = ::modFloored (derived ()[i], q);
     return derived ();
   }
 
@@ -176,13 +176,13 @@ class VectorConversations {
 public:
   void copyFromArray (const ElementT* elements) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().at (i) = elements[i];
+      derived ()[i] = elements[i];
   }
 
   template <typename OtherElementT>
   void copyFromArrayConverted (const OtherElementT* elements) {
     for (int i = 0; i < DIMENSION; ++i)
-      derived ().at (i) = elements[i];
+      derived ()[i] = elements[i];
   }
 
   template <typename OtherVectorT>
@@ -192,7 +192,7 @@ public:
 
   void copyToArray (ElementT* elements) const {
     for (int i = 0; i < DIMENSION; ++i)
-      elements[i] = derived ().at (i);
+      elements[i] = derived ()[i];
   }
 
 
@@ -339,12 +339,29 @@ public:
 
 
 template <int DIMENSION, typename ElementT>
+Vector <DIMENSION, ElementT> xMin (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+  Vector <DIMENSION, ElementT> result;
+  for (int i = 0; i < DIMENSION; ++i)
+    result[i] = xMin (a[i], b[i]);
+  return result;
+}
+
+template <int DIMENSION, typename ElementT>
+Vector <DIMENSION, ElementT> xMax (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+  Vector <DIMENSION, ElementT> result;
+  for (int i = 0; i < DIMENSION; ++i)
+    result[i] = xMax (a[i], b[i]);
+  return result;
+}
+
+
+template <int DIMENSION, typename ElementT>
 Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
   static_assert (!std::numeric_limits <ElementT>::is_integer,
                  "Are you sure your want to apply floor function to an integer type?");
   Vector <DIMENSION, ElementT> result;
   for (int i = 0; i < DIMENSION; ++i)
-    result.at (i) = floor (a.at (i));
+    result[i] = floor (a[i]);
   return result;
 }
 
@@ -353,10 +370,14 @@ template <int DIMENSION, typename ElementT>
 ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   ElementT sum = 0;
   for (int i = 0; i < DIMENSION; ++i)
-    sum += a.at (i) * b.at (i);
+    sum += a[i] * b[i];
   return sum;
 }
 
+template <int DIMENSION, typename ElementT>
+ElementT positiveDotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+  return xMax (dotProduct (a, b), 0);
+}
 // template <int DIMENSION, typename ElementT>
 // Vector <2, ElementT> crossProduct (Vector <2, ElementT> a) {
 //   return Vector <2, ElementT> (-a.y, a.x);
@@ -373,7 +394,7 @@ namespace L1 {
   ElementT norm (Vector <DIMENSION, ElementT> a) {
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      sum += xAbs (a.at (i));
+      sum += xAbs (a[i]);
     return sum;
   }
 
@@ -381,7 +402,7 @@ namespace L1 {
   ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      sum += xAbs (a.at (i) - b.at (i));
+      sum += xAbs (a[i] - b[i]);
     return sum;
   }
 
@@ -407,7 +428,7 @@ namespace L2 {
   //   return euclideanNormSqr (a - b);
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      sum += xSqr (a.at (i) - b.at (i));
+      sum += xSqr (a[i] - b[i]);
     return sum;
   }
 
@@ -427,7 +448,7 @@ namespace Linf {
   ElementT norm (Vector <DIMENSION, ElementT> a) {
     ElementT max = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      max = xMax (max, xAbs (a.at (i)));
+      max = xMax (max, xAbs (a[i]));
     return max;
   }
 
@@ -435,7 +456,7 @@ namespace Linf {
   ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
     ElementT max = 0;
     for (int i = 0; i < DIMENSION; ++i)
-      max = xMax (max, xAbs (a.at (i) - b.at (i)));
+      max = xMax (max, xAbs (a[i] - b[i]));
     return max;
   }
 
@@ -462,9 +483,9 @@ struct LexicographicCompareVectors {
   bool operator() (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) const {
 //     for (int i = 0; i < DIMENSION; ++i) {
     for (int i = DIMENSION - 1; i >= 0; --i) {
-      if (a.at (i) < b.at (i))
+      if (a[i] < b[i])
         return true;
-      else if (a.at (i) > b.at (i))
+      else if (a[i] > b[i])
         return false;
     }
     return false;

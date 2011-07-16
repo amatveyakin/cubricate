@@ -436,6 +436,21 @@ void GLWidget::initTextures () {
   glBindTexture   (GL_TEXTURE_BUFFER, 0);
 
 
+
+  glGenTextures(1, &m_lightMapTexture);
+  glBindTexture(GL_TEXTURE_3D, m_lightMapTexture);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  glTexImage3D (GL_TEXTURE_3D, 0, GL_RGBA, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0,
+                GL_RGBA, GL_FLOAT, nullptr);
+  simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i (0, 0, 0), Vec3i (MAP_SIZE-1, MAP_SIZE-1, MAP_SIZE-1));
+
+
 }
 
 // TODO: rename shader program files
@@ -478,7 +493,8 @@ void GLWidget::initShaders () {
   m_locViewMatrix                =  glGetUniformLocation (m_raytracingShader, "matView");
   m_locCubeTexture               =  glGetUniformLocation (m_raytracingShader, "cubeTexture");
   m_locCubeNormalMap             =  glGetUniformLocation (m_raytracingShader, "cubeNormalMap");
-  m_locCubeDecal                =  glGetUniformLocation (m_raytracingShader, "cubeDecal");
+  m_locCubeDecal                 =  glGetUniformLocation (m_raytracingShader, "cubeDecal");
+  m_locLightMap                  =  glGetUniformLocation (m_raytracingShader, "lightMap");
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Vertex,   "resources/UIShader.vp");
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/UIShader.fp");
   m_UIShaderProgram.bindAttributeLocation ("vPosition",  0);
@@ -659,6 +675,9 @@ void GLWidget::paintGL () {
   glBindTexture (GL_TEXTURE_CUBE_MAP_ARRAY, m_cubeDecal);
   glUniform1i (m_locCubeDecal, 6);
 
+  glActiveTexture (GL_TEXTURE7);
+  glBindTexture (GL_TEXTURE_3D, m_lightMapTexture);
+  glUniform1i (m_locLightMap, 7);
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
@@ -795,7 +814,11 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       if (!cubeIsValid (headOnCube))
         break;
 //       explosion (XYZ_LIST (cube), 2);
-      simpleWorldMap.set (XYZ_LIST (headOnCube), BT_AIR);
+
+      simpleLightMap.calculateLight (headOnCube, -1.);
+      simpleWorldMap.set (headOnCube, BT_AIR);
+      simpleLightMap.calculateLight (headOnCube, 1.);
+      simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, headOnCube);
       break;
     }
     case Qt::RightButton: {
@@ -806,7 +829,12 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       Vec3i newCube = getAdjacentCube (headOnCube).cube;
       if (!cubeIsValid (newCube))
         break;
-      simpleWorldMap.set (XYZ_LIST (newCube), player.getBlockInHand ());
+      simpleLightMap.calculateLight (newCube, -1.);
+      simpleWorldMap.set (newCube, player.getBlockInHand ());
+      simpleLightMap.calculateLight (newCube, 1.);
+      //simpleLightMap.lightThatCubePlease(newCube);
+      simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, newCube);
+      std::cout << "Cube N " << player.getBlockInHand () << " set" << std::endl;
       break;
     }
     default:

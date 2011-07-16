@@ -24,7 +24,7 @@ const double Player::MAX_MOVEMENT_DELTA = 1e-2;
 
 Player::Player() {
   setPos (Vec3d::zero());
-  m_blockInHand = BT_BRICKS;
+  m_blockInHand = BT_TEST_LIGHT;
   m_flying = false;
   m_upVelocity = 0.;
   m_lastSelectedCube = Vec3i (-1, -1, -1);
