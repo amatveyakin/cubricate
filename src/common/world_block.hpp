@@ -24,6 +24,8 @@ enum BlockType : unsigned char {
 
   BT_TEST_SUBOBJECT,
 
+  BT_TEST_LIGHT,
+
   BT_INVALID
 };
 
@@ -59,6 +61,7 @@ struct WorldBlock {
       case BT_BRICKS:
       case BT_MIRROR:
       case BT_TEST_SUBOBJECT:
+      case BT_TEST_LIGHT:
         parameters = 0;
         break;
 

@@ -4,18 +4,24 @@
 
 #include "common/linear_algebra.hpp"
 #include "common/multidim_array.hpp"
-
+#include "client/client_world.hpp"
+typedef Vec4f SHCoefficients;
 
 class SimpleLightMap {
 public:
   SimpleLightMap (int sizeX, int sizeY, int sizeZ);
   ~SimpleLightMap();
 
-protected:
-  // The first 3 components are total (r, b, g) values from various light sources.
-  // The 4-th component is the sunlight intensity.
-  Array3D <Vec4uc>  m_luminosity;
-};
+  void calculateLight (Vec3i firstCorner, Vec3i secondCorner, float multiplier);
+  //void recalculateLight (Vec3i changedCube);
 
+protected:
+  //Vec4f consists of 4 SH coefficients
+  Array3D <SHCoefficients>  m_luminosity;
+
+  SHCoefficients cosineLobeSH    (Vec3f direction);
+  SHCoefficients deltaFunctionSH (Vec3f direction);
+
+};
 
 #endif

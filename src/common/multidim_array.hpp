@@ -14,7 +14,7 @@ public:
     m_sizeZ = sizeZ;
     m_elements = new ElementT [totalElements ()];
   }
-  Array3D (const Array3D& other) = delete;   // Do you really need it? Ok, do implement
+  Array3D (const Array3D& other) = delete;   // Do you really need it? Ok, do implement WUT IT IS? HOW ITS WORKS? O_o
   ~Array3D () {
     delete[] m_elements;
   }
