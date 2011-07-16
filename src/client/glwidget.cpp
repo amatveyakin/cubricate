@@ -746,7 +746,7 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
         break;
       case Qt::Key_X: {
         Vec3d playerPos = player.pos ();
-        summonMeteorite ((int) (playerPos[0] + MAP_SIZE / 2.), (int) (playerPos[1] + MAP_SIZE / 2.));
+        summonMeteorite ((int) (playerPos[0]), (int) (playerPos[1]));
         break;
       }
       case Qt::Key_Escape:
