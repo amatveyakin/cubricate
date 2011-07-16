@@ -32,15 +32,15 @@
 template <int DIMENSION, typename ElementT>
 class VectorBase {
 public:
-  ElementT at (size_t index) const          { return m_elements [index]; }
-  ElementT& at (size_t index)               { return m_elements [index]; }
-  ElementT operator[] (size_t index) const  { return m_elements [index]; }
-  ElementT& operator[] (size_t index)       { return m_elements [index]; }
+  inline ElementT at (size_t index) const          { return m_elements [index]; }
+  inline ElementT& at (size_t index)               { return m_elements [index]; }
+  inline ElementT operator[] (size_t index) const  { return m_elements [index]; }
+  inline ElementT& operator[] (size_t index)       { return m_elements [index]; }
 
-  const ElementT* data () const             { return m_elements; }
-  ElementT* data ()                         { return m_elements; }
+  inline const ElementT* data () const             { return m_elements; }
+  inline ElementT* data ()                         { return m_elements; }
 
-  bool operator== (const VectorBase& a) {
+  inline bool operator== (const VectorBase& a) {
     static_assert (std::numeric_limits <ElementT>::is_integer, "Comparing floating point vectors with operator== is strongly discouraged!");
     for (int i = 0; i < DIMENSION; ++i)
       if (m_elements[i] != a.m_elements[i])
@@ -61,31 +61,31 @@ class CommonVectorLinearOperations {
 public:
   // in-place operators
 
-  VectorT& operator+= (VectorT a) {
+  inline VectorT& operator+= (VectorT a) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ().m_elements[i] += a.m_elements[i];
     return derived ();
   }
 
-  VectorT& operator-= (VectorT a) {
+  inline VectorT& operator-= (VectorT a) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ().m_elements[i] -= a.m_elements[i];
     return derived ();
   }
 
-  VectorT& operator*= (ElementT q) {
+  inline VectorT& operator*= (ElementT q) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ().m_elements[i] *= q;
     return derived ();
   }
 
-  VectorT& operator/= (ElementT q) {
+  inline VectorT& operator/= (ElementT q) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ().m_elements[i] /= q;
     return derived ();
   }
 
-  VectorT& operator%= (ElementT q) {
+  inline VectorT& operator%= (ElementT q) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ().m_elements[i] %= q;
     return derived ();
@@ -94,44 +94,44 @@ public:
 
   // unary operators
 
-  VectorT operator- () const {
+  inline VectorT operator- () const {
     return VectorT::zero () - derived ();
   }
 
 
   // binary operators
 
-  VectorT operator+ (VectorT a) const {
+  inline VectorT operator+ (VectorT a) const {
     VectorT result (derived ());
     result += a;
     return result;
   }
 
-  VectorT operator- (VectorT a) const {
+  inline VectorT operator- (VectorT a) const {
     VectorT result (derived ());
     result -= a;
     return result;
   }
 
-  VectorT operator* (ElementT q) const {
+  inline VectorT operator* (ElementT q) const {
     VectorT result (derived ());
     result *= q;
     return result;
   }
 
-  VectorT operator/ (ElementT q) const {
+  inline VectorT operator/ (ElementT q) const {
     VectorT result (derived ());
     result /= q;
     return result;
   }
 
-  VectorT operator% (ElementT q) const {
+  inline VectorT operator% (ElementT q) const {
     VectorT result (derived ());
     result %= q;
     return result;
   }
 
-  friend VectorT operator* (ElementT q, VectorT a) {
+  inline friend VectorT operator* (ElementT q, VectorT a) {
     return a * q;
   }
 
@@ -148,13 +148,13 @@ public:
 
   // in-place operators
 
-  VectorT& applyDivFloored (int q) {
+  inline VectorT& applyDivFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ()[i] = ::divFloored (derived ()[i], q);
     return derived ();
   }
 
-  VectorT& applyModFloored (int q) {
+  inline VectorT& applyModFloored (int q) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ()[i] = ::modFloored (derived ()[i], q);
     return derived ();
@@ -163,13 +163,13 @@ public:
 
   // binary operators
 
-  VectorT divFloored (int q) const {
+  inline VectorT divFloored (int q) const {
     VectorT result (derived ());
     result.applyDivFloored (q);
     return result;
   }
 
-  VectorT modFloored (int q) const {
+  inline VectorT modFloored (int q) const {
     VectorT result (derived ());
     result.applyModFloored (q);
     return result;
@@ -182,30 +182,30 @@ public:
 template <int DIMENSION, typename VectorT, typename ElementT>
 class VectorConversations {
 public:
-  void copyFromArray (const ElementT* elements) {
+  inline void copyFromArray (const ElementT* elements) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ()[i] = elements[i];
   }
 
   template <typename OtherElementT>
-  void copyFromArrayConverted (const OtherElementT* elements) {
+  inline void copyFromArrayConverted (const OtherElementT* elements) {
     for (int i = 0; i < DIMENSION; ++i)
       derived ()[i] = elements[i];
   }
 
   template <typename OtherVectorT>
-  void copyFromVectorConverted (OtherVectorT source) {
+  inline void copyFromVectorConverted (OtherVectorT source) {
     copyFromArrayConverted (source.data ());
   }
 
-  void copyToArray (ElementT* elements) const {
+  inline void copyToArray (ElementT* elements) const {
     for (int i = 0; i < DIMENSION; ++i)
       elements[i] = derived ()[i];
   }
 
 
   template <typename OtherVectorT>
-  static VectorT fromVectorConverted (OtherVectorT source) {
+  inline static VectorT fromVectorConverted (OtherVectorT source) {
     VectorT result;
     result.copyFromVectorConverted (source);
     return result;
@@ -233,22 +233,22 @@ private:
   typedef VectorBase <2, ElementT> Parent;
 
 public:
-  Vector ()                                 { }
-  Vector (ElementT x__, ElementT y__)       { setCoordinates (x__, y__); }
-  Vector (ElementT* coords__)               { fromArray (coords__); }
+  inline Vector ()                                 { }
+  inline Vector (ElementT x__, ElementT y__)       { setCoordinates (x__, y__); }
+  inline Vector (ElementT* coords__)               { fromArray (coords__); }
 
-  ElementT x () const                       { return Parent::at (0); }
-  ElementT& x ()                            { return Parent::at (0); }
-  ElementT y () const                       { return Parent::at (1); }
-  ElementT& y ()                            { return Parent::at (1); }
+  inline ElementT x () const                       { return Parent::at (0); }
+  inline ElementT& x ()                            { return Parent::at (0); }
+  inline ElementT y () const                       { return Parent::at (1); }
+  inline ElementT& y ()                            { return Parent::at (1); }
 
-  void setCoordinates (ElementT x__, ElementT y__)  { x () = x__;  y () = y__; }
+  inline void setCoordinates (ElementT x__, ElementT y__)  { x () = x__;  y () = y__; }
 
-  static Vector zero ()                     { return Vector (0, 0); }
-  static Vector replicated (ElementT value) { return Vector (value, value); }
-  static Vector e1 ()                       { return Vector (1, 0); }
-  static Vector e2 ()                       { return Vector (0, 1); }
-  static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
+  inline static Vector zero ()                     { return Vector (0, 0); }
+  inline static Vector replicated (ElementT value) { return Vector (value, value); }
+  inline static Vector e1 ()                       { return Vector (1, 0); }
+  inline static Vector e2 ()                       { return Vector (0, 1); }
+  inline static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
 };
 
 
@@ -261,35 +261,35 @@ private:
   typedef VectorBase <3, ElementT> Parent;
 
 public:
-  Vector ()                                           { }
-  Vector (ElementT x__, ElementT y__, ElementT z__)   { setCoordinates (x__, y__, z__); }
-  Vector (ElementT* coords__)                         { fromArray (coords__); }
+  inline Vector ()                                           { }
+  inline Vector (ElementT x__, ElementT y__, ElementT z__)   { setCoordinates (x__, y__, z__); }
+  inline Vector (ElementT* coords__)                         { fromArray (coords__); }
 
-  ElementT x () const                       { return Parent::at (0); }
-  ElementT& x ()                            { return Parent::at (0); }
-  ElementT y () const                       { return Parent::at (1); }
-  ElementT& y ()                            { return Parent::at (1); }
-  ElementT z () const                       { return Parent::at (2); }
-  ElementT& z ()                            { return Parent::at (2); }
+  inline ElementT x () const                       { return Parent::at (0); }
+  inline ElementT& x ()                            { return Parent::at (0); }
+  inline ElementT y () const                       { return Parent::at (1); }
+  inline ElementT& y ()                            { return Parent::at (1); }
+  inline ElementT z () const                       { return Parent::at (2); }
+  inline ElementT& z ()                            { return Parent::at (2); }
 
-  ElementT r () const                       { return Parent::at (0); }
-  ElementT& r ()                            { return Parent::at (0); }
-  ElementT g () const                       { return Parent::at (1); }
-  ElementT& g ()                            { return Parent::at (1); }
-  ElementT b () const                       { return Parent::at (2); }
-  ElementT& b ()                            { return Parent::at (2); }
+  inline ElementT r () const                       { return Parent::at (0); }
+  inline ElementT& r ()                            { return Parent::at (0); }
+  inline ElementT g () const                       { return Parent::at (1); }
+  inline ElementT& g ()                            { return Parent::at (1); }
+  inline ElementT b () const                       { return Parent::at (2); }
+  inline ElementT& b ()                            { return Parent::at (2); }
 
-  void setCoordinates (ElementT x__, ElementT y__, ElementT z__)  { x () = x__;  y () = y__;  z () = z__; }
+  inline void setCoordinates (ElementT x__, ElementT y__, ElementT z__)  { x () = x__;  y () = y__;  z () = z__; }
 
   // TODO: generate other subsets and permutations
-  Vector <2, ElementT> xy () const          { return Vector <2, ElementT> (x (), y ()); }
+  inline Vector <2, ElementT> xy () const          { return Vector <2, ElementT> (x (), y ()); }
 
-  static Vector zero ()                     { return Vector (0, 0, 0); }
-  static Vector replicated (ElementT value) { return Vector (value, value, value); }
-  static Vector e1 ()                       { return Vector (1, 0, 0); }
-  static Vector e2 ()                       { return Vector (0, 1, 0); }
-  static Vector e3 ()                       { return Vector (0, 0, 1); }
-  static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
+  inline static Vector zero ()                     { return Vector (0, 0, 0); }
+  inline static Vector replicated (ElementT value) { return Vector (value, value, value); }
+  inline static Vector e1 ()                       { return Vector (1, 0, 0); }
+  inline static Vector e2 ()                       { return Vector (0, 1, 0); }
+  inline static Vector e3 ()                       { return Vector (0, 0, 1); }
+  inline static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
 };
 
 
@@ -302,37 +302,37 @@ private:
   typedef VectorBase <4, ElementT> Parent;
 
 public:
-  Vector ()                                                         { }
-  Vector (ElementT x__, ElementT y__, ElementT z__, ElementT w__)   { setCoordinates (x__, y__, z__, w__); }
-  Vector (ElementT* coords__)                                       { fromArray (coords__); }
+  inline Vector ()                                                         { }
+  inline Vector (ElementT x__, ElementT y__, ElementT z__, ElementT w__)   { setCoordinates (x__, y__, z__, w__); }
+  inline Vector (ElementT* coords__)                                       { fromArray (coords__); }
 
-  ElementT x () const                       { return Parent::at (0); }
-  ElementT& x ()                            { return Parent::at (0); }
-  ElementT y () const                       { return Parent::at (1); }
-  ElementT& y ()                            { return Parent::at (1); }
-  ElementT z () const                       { return Parent::at (2); }
-  ElementT& z ()                            { return Parent::at (2); }
-  ElementT w () const                       { return Parent::at (3); }
-  ElementT& w ()                            { return Parent::at (3); }
+  inline ElementT x () const                       { return Parent::at (0); }
+  inline ElementT& x ()                            { return Parent::at (0); }
+  inline ElementT y () const                       { return Parent::at (1); }
+  inline ElementT& y ()                            { return Parent::at (1); }
+  inline ElementT z () const                       { return Parent::at (2); }
+  inline ElementT& z ()                            { return Parent::at (2); }
+  inline ElementT w () const                       { return Parent::at (3); }
+  inline ElementT& w ()                            { return Parent::at (3); }
 
-  ElementT r () const                       { return Parent::at (0); }
-  ElementT& r ()                            { return Parent::at (0); }
-  ElementT g () const                       { return Parent::at (1); }
-  ElementT& g ()                            { return Parent::at (1); }
-  ElementT b () const                       { return Parent::at (2); }
-  ElementT& b ()                            { return Parent::at (2); }
-  ElementT a () const                       { return Parent::at (3); }
-  ElementT& a ()                            { return Parent::at (3); }
+  inline ElementT r () const                       { return Parent::at (0); }
+  inline ElementT& r ()                            { return Parent::at (0); }
+  inline ElementT g () const                       { return Parent::at (1); }
+  inline ElementT& g ()                            { return Parent::at (1); }
+  inline ElementT b () const                       { return Parent::at (2); }
+  inline ElementT& b ()                            { return Parent::at (2); }
+  inline ElementT a () const                       { return Parent::at (3); }
+  inline ElementT& a ()                            { return Parent::at (3); }
 
-  void setCoordinates (ElementT x__, ElementT y__, ElementT z__, ElementT w__)  { x () = x__;  y () = y__;  z () = z__;  w () = w__; }
+  inline void setCoordinates (ElementT x__, ElementT y__, ElementT z__, ElementT w__)  { x () = x__;  y () = y__;  z () = z__;  w () = w__; }
 
-  static Vector zero ()                     { return Vector (0, 0, 0, 0); }
-  static Vector replicated (ElementT value) { return Vector (value, value, value, value); }
-  static Vector e1 ()                       { return Vector (1, 0, 0, 0); }
-  static Vector e2 ()                       { return Vector (0, 1, 0, 0); }
-  static Vector e3 ()                       { return Vector (0, 0, 1, 0); }
-  static Vector e4 ()                       { return Vector (0, 0, 0, 1); }
-  static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
+  inline static Vector zero ()                     { return Vector (0, 0, 0, 0); }
+  inline static Vector replicated (ElementT value) { return Vector (value, value, value, value); }
+  inline static Vector e1 ()                       { return Vector (1, 0, 0, 0); }
+  inline static Vector e2 ()                       { return Vector (0, 1, 0, 0); }
+  inline static Vector e3 ()                       { return Vector (0, 0, 1, 0); }
+  inline static Vector e4 ()                       { return Vector (0, 0, 0, 1); }
+  inline static Vector e_i (int i)                 { Vector result = Vector::zero ();  result[i] = 1;  return result; }
 };
 
 
@@ -347,7 +347,7 @@ public:
 
 
 template <int DIMENSION, typename ElementT>
-Vector <DIMENSION, ElementT> xMin (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+inline Vector <DIMENSION, ElementT> xMin (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   Vector <DIMENSION, ElementT> result;
   for (int i = 0; i < DIMENSION; ++i)
     result[i] = xMin (a[i], b[i]);
@@ -355,7 +355,7 @@ Vector <DIMENSION, ElementT> xMin (Vector <DIMENSION, ElementT> a, Vector <DIMEN
 }
 
 template <int DIMENSION, typename ElementT>
-Vector <DIMENSION, ElementT> xMax (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+inline Vector <DIMENSION, ElementT> xMax (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   Vector <DIMENSION, ElementT> result;
   for (int i = 0; i < DIMENSION; ++i)
     result[i] = xMax (a[i], b[i]);
@@ -364,7 +364,7 @@ Vector <DIMENSION, ElementT> xMax (Vector <DIMENSION, ElementT> a, Vector <DIMEN
 
 
 template <int DIMENSION, typename ElementT>
-Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
+inline Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
   static_assert (!std::numeric_limits <ElementT>::is_integer,
                  "Are you sure your want to apply floor function to an integer type?");
   Vector <DIMENSION, ElementT> result;
@@ -375,7 +375,7 @@ Vector <DIMENSION, ElementT> floor (Vector <DIMENSION, ElementT> a) {
 
 
 template <int DIMENSION, typename ElementT>
-ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+inline ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   ElementT sum = 0;
   for (int i = 0; i < DIMENSION; ++i)
     sum += a[i] * b[i];
@@ -383,7 +383,7 @@ ElementT dotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT
 }
 
 template <int DIMENSION, typename ElementT>
-ElementT positiveDotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+inline ElementT positiveDotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   return xMax (dotProduct (a, b), ElementT (0));
 }
 // template <int DIMENSION, typename ElementT>
@@ -392,14 +392,14 @@ ElementT positiveDotProduct (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, 
 // }
 
 template <typename ElementT>
-Vector <3, ElementT> crossProduct (Vector <3, ElementT> a, Vector <3, ElementT> b) {
+inline Vector <3, ElementT> crossProduct (Vector <3, ElementT> a, Vector <3, ElementT> b) {
   return Vector <3, ElementT> (a.y() * b.z() - a.z() * b.y(),  a.z() * b.x() - a.x() * b.z(),  a.x() * b.y() - a.y() * b.x());
 }
 
 
 namespace L1 {
   template <int DIMENSION, typename ElementT>
-  ElementT norm (Vector <DIMENSION, ElementT> a) {
+  inline ElementT norm (Vector <DIMENSION, ElementT> a) {
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
       sum += xAbs (a[i]);
@@ -407,7 +407,7 @@ namespace L1 {
   }
 
   template <int DIMENSION, typename ElementT>
-  ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+  inline ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
       sum += xAbs (a[i] - b[i]);
@@ -415,24 +415,24 @@ namespace L1 {
   }
 
   template <int DIMENSION, typename ElementT>
-  Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
+  inline Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
     return a / norm (a);
   }
 }
 
 namespace L2 {
   template <int DIMENSION, typename ElementT>
-  ElementT normSqr (Vector <DIMENSION, ElementT> a) {
+  inline ElementT normSqr (Vector <DIMENSION, ElementT> a) {
     return dotProduct (a, a);
   }
 
   template <int DIMENSION, typename ElementT>
-  ElementT norm (Vector <DIMENSION, ElementT> a) {
+  inline ElementT norm (Vector <DIMENSION, ElementT> a) {
     return std::sqrt (normSqr (a));
   }
 
   template <int DIMENSION, typename ElementT>
-  ElementT distanceSqr (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+  inline ElementT distanceSqr (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
   //   return euclideanNormSqr (a - b);
     ElementT sum = 0;
     for (int i = 0; i < DIMENSION; ++i)
@@ -441,19 +441,19 @@ namespace L2 {
   }
 
   template <int DIMENSION, typename ElementT>
-  ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+  inline ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
     return std::sqrt (distanceSqr (a, b));
   }
 
   template <int DIMENSION, typename ElementT>
-  Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
+  inline Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
     return a / norm (a);
   }
 }
 
 namespace Linf {
   template <int DIMENSION, typename ElementT>
-  ElementT norm (Vector <DIMENSION, ElementT> a) {
+  inline ElementT norm (Vector <DIMENSION, ElementT> a) {
     ElementT max = 0;
     for (int i = 0; i < DIMENSION; ++i)
       max = xMax (max, xAbs (a[i]));
@@ -461,7 +461,7 @@ namespace Linf {
   }
 
   template <int DIMENSION, typename ElementT>
-  ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
+  inline ElementT distance (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) {
     ElementT max = 0;
     for (int i = 0; i < DIMENSION; ++i)
       max = xMax (max, xAbs (a[i] - b[i]));
@@ -469,7 +469,7 @@ namespace Linf {
   }
 
   template <int DIMENSION, typename ElementT>
-  Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
+  inline Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
     return a / norm (a);
   }
 }
@@ -488,7 +488,7 @@ template <int DIMENSION, typename ElementT>
 struct LexicographicCompareVectors {
   static_assert (std::numeric_limits <ElementT>::is_integer,
                  "Using floating-point values as keys for a set or a map is almost certainly a bad idea.");
-  bool operator() (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) const {
+  inline bool operator() (Vector <DIMENSION, ElementT> a, Vector <DIMENSION, ElementT> b) const {
 //     for (int i = 0; i < DIMENSION; ++i) {
     for (int i = DIMENSION - 1; i >= 0; --i) {
       if (a[i] < b[i])
@@ -537,13 +537,13 @@ private:
   static const int N_ELEMENTS = N_ROWS * N_COLS;
 
 public:
-  const ElementT* elements () const             { return m_elements; }
-  ElementT* elements ()                         { return m_elements; }
+  inline const ElementT* elements () const             { return m_elements; }
+  inline ElementT* elements ()                         { return m_elements; }
 
-  ElementT operator() (int row, int col) const  { return m_elements [col * N_ROWS + row]; }
-  ElementT& operator() (int row, int col)       { return m_elements [col * N_ROWS + row]; }
-  ElementT at (int row, int col) const          { return m_elements [col * N_ROWS + row]; }
-  ElementT& at (int row, int col)               { return m_elements [col * N_ROWS + row]; }
+  inline ElementT operator() (int row, int col) const  { return m_elements [col * N_ROWS + row]; }
+  inline ElementT& operator() (int row, int col)       { return m_elements [col * N_ROWS + row]; }
+  inline ElementT at (int row, int col) const          { return m_elements [col * N_ROWS + row]; }
+  inline ElementT& at (int row, int col)               { return m_elements [col * N_ROWS + row]; }
 
 protected:
   ElementT m_elements [N_ELEMENTS];
