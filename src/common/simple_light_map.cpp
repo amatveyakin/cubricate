@@ -5,9 +5,9 @@
 #include "client/client_world.hpp"
 
 
-const float blockTransparency[] = { 1, 1, 0, 0, 0, 0, 1, 1}; //TODO move?
+const float blockTransparency[] = { 0.95, 0.5, 0, 0, 0, 0, 1, 1}; //TODO move?
 
-const int N_ITERATIONS = 8;
+const int N_ITERATIONS = 16;
 
 // #define GRAFA_KAK_V_KRUZISE
 
@@ -114,7 +114,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
     for (int y = 0; y < diagonal.y(); ++y)
       for (int z = 0; z < diagonal.z(); ++z)
         if (simpleWorldMap.get (firstCorner + Vec3i (x, y, z)).type == BT_TEST_LIGHT) {
-          changedLuminosity (x, y, z) = SHCoefficients (100, 0, 0, 0);  //TODO change it
+          changedLuminosity (x, y, z) = SHCoefficients (300, 0, 0, 0);  //TODO change it
         }
         else {
           changedLuminosity (x, y, z) = SHCoefficients (0, 0, 0, 0);  //TODO change it
