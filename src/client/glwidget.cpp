@@ -397,7 +397,7 @@ void GLWidget::initTextures () {
     }
   glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
 
-  const float cubeProperties[] = { 0.993, 1,     1,
+  const float cubeProperties[] = { 1,     1,     1,
                                    0.85,  1.333, 1,
                                    0,     99,    0,
                                    0,     99,    0,
