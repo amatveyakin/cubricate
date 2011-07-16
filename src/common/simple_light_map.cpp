@@ -159,7 +159,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
                   }
 
                   SHCoefficients sideDirDeltaFunctionSH = deltaFunctionSH (currNeighbourFaceVector);
-                  SHCoefficients sideDirCosineLobeSH    = cosineLobeSH    (reprojVector [faceIndex]);
+                  SHCoefficients sideDirCosineLobeSH    = cosineLobeSH    (currReprojVector);
                   resultSH += SIDE_DIRECTION_SOLID_ANGLE * dotProduct (neighbourSH, sideDirDeltaFunctionSH) * sideDirCosineLobeSH;
                 }
               }
