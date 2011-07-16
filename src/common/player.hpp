@@ -87,7 +87,7 @@ public:
 
     // Apply translation too
     M3DMatrix44f trans, M;
-    m3dTranslationMatrix44 (trans, -m_origin[0], -m_origin[1], -m_origin[2]);
+    m3dTranslationMatrix44 (trans, -m_origin[0] - MAP_SIZE / 2., -m_origin[1] - MAP_SIZE / 2., -m_origin[2] - MAP_SIZE / 2.);
 
     m3dMatrixMultiply44 (M, result, trans);
 
@@ -276,12 +276,16 @@ public:
 
   CubeWithFace getHeadOnCube() const;
 
+  bool intersectsCube (Vec3i cube) const;
+
   BlockType getBlockInHand() const      { return m_blockInHand; }
   void setBlockInHand (BlockType type)  { m_blockInHand = type; }
 
   void processPlayer (double timeDelta);
 
 protected:
+  static const int N_VERTICAL_SEGMENTS;
+
   Vec3d     m_pos;
   BlockType m_blockInHand;
   bool      m_flying;

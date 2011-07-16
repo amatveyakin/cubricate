@@ -40,6 +40,14 @@ public:
   const ElementT* data () const             { return m_elements; }
   ElementT* data ()                         { return m_elements; }
 
+  bool operator== (const VectorBase& a) {
+    static_assert (std::numeric_limits <ElementT>::is_integer, "Comparing floating point vectors with operator== is strongly discouraged!");
+    for (int i = 0; i < DIMENSION; ++i)
+      if (m_elements[i] != a.m_elements[i])
+        return false;
+    return true;
+  }
+
 protected:
   ElementT m_elements [DIMENSION];
 

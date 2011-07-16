@@ -21,6 +21,8 @@ const double Player::AIR_SPEED_COEFF = 0.3;
 const double Player::MAX_SOARING_HEIGHT = 1e-3;
 const double Player::MAX_MOVEMENT_DELTA = 1e-2;
 
+const int    Player::N_VERTICAL_SEGMENTS = int (BODY_HEIGHT + 1.);
+
 
 Player::Player() {
   setPos (Vec3d::zero());
@@ -77,12 +79,11 @@ static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
 CubeWithFace Player::getHeadOnCube() const {
   Vec3d currentPoint = m_viewFrame.origin();
   Vec3d forwardVector = m_viewFrame.dirForward();
-  Vec3i mapCenter = Vec3i::replicated (MAP_SIZE / 2);
 
   Vec3i cube = getCubeByPoint (currentPoint, forwardVector);
   Vec3i prevCube = cube;
-  while  (   cubeIsValid (cube + mapCenter)
-          && !BlockInfo::isFirm (simpleWorldMap.get (cube + mapCenter))) {
+  while  (   cubeIsValid (cube)
+          && !BlockInfo::isFirm (simpleWorldMap.get (cube))) {
     Vec3d parameter;
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
@@ -107,6 +108,18 @@ CubeWithFace Player::getHeadOnCube() const {
 }
 
 #endif // CLIENT_APP
+
+
+bool Player::intersectsCube (Vec3i cube) const {
+  for (int i = 0; i <= N_VERTICAL_SEGMENTS; ++i) {
+    if (   worldToCube (m_pos + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS))) == cube
+        || worldToCube (m_pos + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS))) == cube
+        || worldToCube (m_pos + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS))) == cube
+        || worldToCube (m_pos + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS))) == cube)
+      return true;
+  }
+  return false;
+}
 
 
 void Player::processPlayer (double timeDelta) {
@@ -164,7 +177,7 @@ void Player::updateCubeSelection() {
   }
 
   // Selecting current cube
-  Vec3i selectedCube = getHeadOnCube().cube + Vec3i::replicated (MAP_SIZE / 2);
+  Vec3i selectedCube = getHeadOnCube().cube;
   if (cubeIsValid (selectedCube)) {
     WorldBlock headOnBlock = simpleWorldMap.get (selectedCube);
     headOnBlock.parameters = 1;
@@ -176,17 +189,16 @@ void Player::updateCubeSelection() {
 }
 
 
-static inline bool blockIsFree (Vec3d pos) {
-  return !BlockInfo::isFirm (simpleWorldMap.get (worldToCube (pos) + Vec3i::replicated (MAP_SIZE / 2)));
+static inline bool blockIsFree (Vec3d position) {
+  return !BlockInfo::isFirm (simpleWorldMap.get (worldToCube (position)));
 }
 
-bool Player::positionIsValid (Vec3d pos) {
-  const int N_VERTICAL_SEGMENTS = int (BODY_HEIGHT + 1.);
+bool Player::positionIsValid (Vec3d position) {
   for (int i = 0; i <= N_VERTICAL_SEGMENTS; ++i) {
-    if (    !blockIsFree (pos + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
-         || !blockIsFree (pos + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
-         || !blockIsFree (pos + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
-         || !blockIsFree (pos + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS))))
+    if (   !blockIsFree (position + Vec3d ( BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
+        || !blockIsFree (position + Vec3d ( BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
+        || !blockIsFree (position + Vec3d (-BODY_WIDTH / 2.,  BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS)))
+        || !blockIsFree (position + Vec3d (-BODY_WIDTH / 2., -BODY_WIDTH / 2., BODY_HEIGHT * i / double (N_VERTICAL_SEGMENTS))))
       return false;
   }
   return true;

@@ -572,7 +572,7 @@ void GLWidget::initializeGL () {
   m_nFramesDrawn = 0;
   m_nPhysicsStepsProcessed = 0;
 
-  player.setPos (Vec3d (0.1, 0.1, MAP_SIZE / 8.));
+  player.setPos (Vec3d (0.1, 0.1, MAP_SIZE / 8.) + Vec3d::replicated (MAP_SIZE / 2.));
   player.viewFrame ().rotateLocalX (M_PI / 2. - 0.01);
   player.viewFrame ().rotateWorld (M_PI / 2. - 0.1, 0., 0., 1.);
   player.setFlying (true);
@@ -617,7 +617,7 @@ void GLWidget::paintGL () {
 
   glUseProgram (m_raytracingDepthPassShader);
 
-  glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin()).data());
+  glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin() - Vec3d::replicated (MAP_SIZE / 2.)).data());
   glUniformMatrix4fv (m_locDepthPassViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
@@ -649,7 +649,7 @@ void GLWidget::paintGL () {
 
   glUseProgram (m_raytracingShader);
 
-  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin()).data());
+  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin() - Vec3d::replicated (MAP_SIZE / 2.)).data());
   glUniformMatrix4fv (m_locViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
@@ -815,7 +815,7 @@ void GLWidget::mouseMoveEvent (QMouseEvent* event) {
 void GLWidget::mousePressEvent (QMouseEvent* event) {
   switch (event->button ()) {
     case Qt::LeftButton: {
-      Vec3i headOnCube = player.getHeadOnCube ().cube + Vec3i::replicated (MAP_SIZE / 2);
+      Vec3i headOnCube = player.getHeadOnCube ().cube;
       if (!cubeIsValid (headOnCube))
         break;
 //       explosion (XYZ_LIST (cube), 2);
@@ -828,18 +828,21 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
     }
     case Qt::RightButton: {
       CubeWithFace headOnCube = player.getHeadOnCube ();
-      if (!directionIsValid (headOnCube.face))
+      if (!directionIsValid (headOnCube.face)) {
+        std::cout << "Invalid cube position" << std::endl;
         break;
-      headOnCube.cube += Vec3i::replicated (MAP_SIZE / 2);
+      }
       Vec3i newCube = getAdjacentCube (headOnCube).cube;
-      if (!cubeIsValid (newCube))
+      if (!cubeIsValid (newCube) || player.intersectsCube (newCube)) {
+        std::cout << "Invalid cube position" << std::endl;
         break;
+      }
       simpleLightMap.calculateLight (newCube, -1.);
       simpleWorldMap.set (newCube, player.getBlockInHand ());
       simpleLightMap.calculateLight (newCube, 1.);
       //simpleLightMap.lightThatCubePlease(newCube);
       simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, newCube);
-      std::cout << "Cube N " << player.getBlockInHand () << " set" << std::endl;
+      std::cout << "Cube " << player.getBlockInHand () << " set" << std::endl;
       break;
     }
     default:
@@ -848,8 +851,8 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
 }
 
 void GLWidget::wheelEvent (QWheelEvent* event) {
-  std::cout << event->delta () << std::endl;
   player.setBlockInHand (static_cast <BlockType> ((player.getBlockInHand () + xSgn (event->delta()) + N_BLOCK_TYPES) % N_BLOCK_TYPES));
+  std::cout << "Cur cube type: " << player.getBlockInHand () << std::endl;
 }
 
 void GLWidget::timerEvent (QTimerEvent* event) {
