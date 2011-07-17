@@ -31,6 +31,13 @@ out vec4    vFragColor;
 
 include(`RaytracingShadersCommon.h')
 
+vec4 evaluateSH( vec3 direction ) {
+  const float band0Factor = 0.282094792f;
+  const float band1Factor = 0.488602512f;
+
+  return vec4( band0Factor, band1Factor * direction.x, band1Factor * direction.y, band1Factor * direction.z );
+}
+
 
 CubeProperties getCubeProperties (int cubeType) {
   CubeProperties result;
@@ -60,7 +67,7 @@ void main(void)
   vec3  deltaVector;
   vec3  currPoint, nextPoint;
   vec3  normal = ray;
-
+  vec3  normalDisturbed = ray;
   //vec2 samplingPosition = floor (fPosition * SCREEN_WIDTH / RAY_PACKET_WIDTH) * RAY_PACKET_WIDTH  * (1. / SCREEN_WIDTH);
   vec2 samplingPosition = fPosition;
   float samplingShift = 0.5 * RAY_PACKET_WIDTH / SCREEN_WIDTH;
@@ -108,17 +115,17 @@ void main(void)
     }
     currCubeProperties = getCubeProperties (currCubeType);
 
-    normal = colorToVector (texture (cubeNormalMap, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint, currCubeSize, textureCoeff),
+    normalDisturbed = colorToVector (texture (cubeNormalMap, vec4 (getNormalizedCubemapCoordinates (currPoint - currCubeMidpoint, currCubeSize, textureCoeff),
                                                           currCubeProperties.normalMapIndex)).xyz);
 
     if (nRayTurns < MAX_RAY_TURNS) {
       vec3 oldRay = ray;
       if ((currCubeType != prevCubeType) && (iterOuter > 0)) {
-        ray = refract (oldRay, normal, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
+        ray = refract (oldRay, normalDisturbed, prevCubeProperties.refractionIndex / currCubeProperties.refractionIndex);
         if (length (ray) < 0.0001) {
           currPoint -= oldRay * 2. * NEXT_POINT_EPSILON;
           currCubeProperties = getCubeProperties (prevCubeType);
-          ray = reflect (oldRay, normal);
+          ray = reflect (oldRay, normalDisturbed);
         }
         nRayTurns++;
       }
@@ -161,8 +168,11 @@ void main(void)
 
     float lightCoef;
     if (currCubeProperties.transparency == 0) {
-      lightCoef = dot (normal, vec3 (3, -1, 7)) / 30 + 0.05;
-      lightCoef += texture (lightMap, (currPoint + vec111 * RENDER_WORLD_SIZE) / (2 * RENDER_WORLD_SIZE)).r;
+      //lightCoef = dot (normal, vec3 (3, -1, 7)) / 30 + 0.05;
+      lightCoef = 0.0;
+      vec4 surfaceSH = evaluateSH (-normal);
+      vec3 lightMapSamplingPoint = (currPoint + normal * 0.5 + vec111 * (RENDER_WORLD_SIZE)) / (2 * RENDER_WORLD_SIZE);
+      lightCoef += max (dot (surfaceSH, texture (lightMap, lightMapSamplingPoint)), 0);
     }
     else
       lightCoef = 1.0;

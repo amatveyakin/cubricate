@@ -451,7 +451,7 @@ void GLWidget::initTextures () {
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-  glTexImage3D (GL_TEXTURE_3D, 0, GL_RGBA, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0,
+  glTexImage3D (GL_TEXTURE_3D, 0, GL_RGBA16F_ARB, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0,
                 GL_RGBA, GL_FLOAT, nullptr);
   simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i (0, 0, 0), Vec3i (MAP_SIZE-1, MAP_SIZE-1, MAP_SIZE-1));
 

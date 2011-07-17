@@ -1,6 +1,7 @@
 // TODO: delete
 #include <QtCore/QTime>
 #include <iostream>
+#include <iomanip>
 
 
 
@@ -123,7 +124,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
     for (int y = 0; y < diagonal.y(); ++y)
       for (int z = 0; z < diagonal.z(); ++z)
         if (simpleWorldMap.get (firstCorner + Vec3i (x, y, z)).type == BT_TEST_LIGHT) {
-          changedLuminosity (x, y, z) = SHCoefficients (300, 0, 0, 0);  //TODO change it
+          changedLuminosity (x, y, z) = SHCoefficients (200, 0, 0, 0);  //TODO change it
         }
         else {
           changedLuminosity (x, y, z) = SHCoefficients (0, 0, 0, 0);  //TODO change it
@@ -199,9 +200,18 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
         }
       }
     }
-  }
 
-  std::cout << "light time: " << time.elapsed() << " ms" << std::endl;
+
+  }
+    for (int y = 7; y >= 0; --y) {
+      for (int x = 0; x < 8; ++x)
+        std::cout  <<  "("  << std::setw (7) << m_luminosity (x, y, 1).r() << ","
+                            << std::setw (7) << m_luminosity (x, y, 1).g() << ","
+                            << std::setw (7) << m_luminosity (x, y, 1).b() << ","
+                            << std::setw (7) << m_luminosity (x, y, 1).a() << ")";
+      std::cout << std::endl;
+    }
+std::cout << "light time: " << time.elapsed() << " ms" << std::endl;
 }
 
 void SimpleLightMap::calculateLight (Vec3i modifiedCube, float multiplier) {
