@@ -61,7 +61,7 @@ void Player::moveRight (double moveBy) {
 
 void Player::jump () {
   if (!m_flying && !inAir())
-    m_upVelocity += JUMPING_ACCELERATION;
+    m_upVelocity = xMax (m_upVelocity, JUMPING_ACCELERATION);
 }
 
 
