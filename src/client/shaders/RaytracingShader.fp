@@ -160,9 +160,10 @@ void main(void)
 //       transparency *= 1. - (1. - baseColor.a) * 0.5;
 
     float lightCoef;
-    if (currCubeProperties.transparency == 0)
-      //lightCoef = dot (normal, vec3 (3, -1, 7)) / 12 + 0.3;
-      lightCoef = texture (lightMap, (currPoint + vec111 * RENDER_WORLD_SIZE) / (2 * RENDER_WORLD_SIZE)).r;
+    if (currCubeProperties.transparency == 0) {
+      lightCoef = dot (normal, vec3 (3, -1, 7)) / 30 + 0.05;
+      lightCoef += texture (lightMap, (currPoint + vec111 * RENDER_WORLD_SIZE) / (2 * RENDER_WORLD_SIZE)).r;
+    }
     else
       lightCoef = 1.0;
 
