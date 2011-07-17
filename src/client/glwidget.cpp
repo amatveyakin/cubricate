@@ -579,6 +579,8 @@ void GLWidget::initializeGL () {
 
   setupRenderContext ();
   loadGameMap ();
+  simpleLightMap.calculateLight (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE), 1.);
+  simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
 
 //   glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
 //   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
@@ -761,6 +763,8 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
         break;
       case Qt::Key_L:
         simpleWorldMap.loadFromFile ();
+        simpleLightMap.calculateLight (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE), 1.);
+        simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
         break;
       case Qt::Key_F:
         m_worldFreezed = !m_worldFreezed;
