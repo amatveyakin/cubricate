@@ -44,7 +44,7 @@ void Player::moveForward (double moveBy) {
   if (m_flying)
     doMove (m_viewFrame.dirForward(), moveBy * FLYING_SPEED_COEFF);
   else
-    doMove (L2::normalize (Vec3d (m_viewFrame.dirForward().x(), m_viewFrame.dirForward().y(), 0.)), inAir() ? moveBy * AIR_SPEED_COEFF : moveBy);
+    doMove (Vec3d (m_viewFrame.dirForward().x(), m_viewFrame.dirForward().y(), 0.), inAir() ? moveBy * AIR_SPEED_COEFF : moveBy);
 }
 
 void Player::moveUp (double moveBy) {
@@ -56,7 +56,7 @@ void Player::moveRight (double moveBy) {
   if (m_flying)
     doMove (m_viewFrame.dirRight(), moveBy * FLYING_SPEED_COEFF);
   else
-    doMove (L2::normalize (Vec3d (m_viewFrame.dirRight().x(), m_viewFrame.dirRight().y(), 0.)), inAir() ? moveBy * AIR_SPEED_COEFF : moveBy);
+    doMove (Vec3d (m_viewFrame.dirRight().x(), m_viewFrame.dirRight().y(), 0.), inAir() ? moveBy * AIR_SPEED_COEFF : moveBy);
 }
 
 void Player::jump () {
@@ -138,8 +138,10 @@ bool Player::inAir() {
 
 bool Player::tryToMove (Vec3d direction, double moveBy) {
   // Unstucking
-  while (!positionIsValid (m_pos))
-    m_pos += Vec3d::e3() * MAX_MOVEMENT_DELTA;
+//   while (!positionIsValid (m_pos))
+//     m_pos += Vec3d::e3() * MAX_MOVEMENT_DELTA;
+
+  direction = L2::normalize (direction);
 
   while (xAbs (moveBy) > MAX_SOARING_HEIGHT / 4.) {
     double step = xMin (MAX_MOVEMENT_DELTA, moveBy);
