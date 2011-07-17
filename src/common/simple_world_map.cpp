@@ -89,6 +89,7 @@ void SimpleWorldMap::loadFromFile () {
 void SimpleWorldMap::saveToFile () const {
   QDir curDur;
   bool result = curDur.mkpath ("world");
+  FIX_UNUSED (result);
   assert (result);
   std::ofstream streamOut (WORLD_MAP_FILE_NAME);
   streamOut.write (reinterpret_cast <const char *> (m_blocks.data ()), m_blocks.totalElements () * sizeof (WorldBlock));

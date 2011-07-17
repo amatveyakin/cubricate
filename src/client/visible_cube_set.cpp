@@ -72,6 +72,9 @@ void CubeArray::removeCube (int x, int y, int z) {
 
 
 void CubeArray::checkCoordinates (int x, int y, int z) const {
+  FIX_UNUSED (x);
+  FIX_UNUSED (y);
+  FIX_UNUSED (z);
   assert (x >= 0);
   assert (y >= 0);
   assert (z >= 0);

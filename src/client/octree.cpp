@@ -6,6 +6,8 @@
 
 #include <cassert>
 
+#include "common/utils.hpp"
+
 #include "client/octree.hpp"
 
 
@@ -168,6 +170,9 @@ BlockType Octree::TreeDataTToBlockType (TreeDataT treeDataT) const {
 
 
 void Octree::checkCoordinates (int x, int y, int z) const {
+  FIX_UNUSED (x);
+  FIX_UNUSED (y);
+  FIX_UNUSED (z);
   assert (x >= 0);
   assert (y >= 0);
   assert (z >= 0);
