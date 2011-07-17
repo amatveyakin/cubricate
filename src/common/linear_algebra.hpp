@@ -488,7 +488,10 @@ namespace Linf {
 
 template <int DIMENSION, typename ElementT>
 std::ostream& operator<< (std::ostream& os, Vector <DIMENSION, ElementT> a) {
-  os << "(" << a.x () << ", " << a.y () << ", " << a.z () << ")";
+  os << "(";
+  for (int i = 0; i < DIMENSION - 1; ++i)
+    os << a[i] << ", ";
+  os << a[DIMENSION - 1] << ")";
   return os;
 }
 
