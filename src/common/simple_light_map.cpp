@@ -1,3 +1,9 @@
+// TODO: delete
+#include <QtCore/QTime>
+#include <iostream>
+
+
+
 #include <cmath>
 
 #include "common/simple_light_map.hpp"
@@ -105,6 +111,9 @@ SimpleLightMap::~SimpleLightMap() { }
 
 // now i consider that secondCorner > firstCorner
 void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, float multiplier) {
+  QTime time;
+  time.start();
+
   Vec3i   diagonal = secondCorner - firstCorner;
   // "1-based" array, zeroes on the border
   Array3D <SHCoefficients> changedLuminosity (diagonal.x(), diagonal.y(), diagonal.z());
@@ -191,6 +200,8 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
       }
     }
   }
+
+  std::cout << "light time: " << time.elapsed() << " ms" << std::endl;
 }
 
 void SimpleLightMap::calculateLight (Vec3i modifiedCube, float multiplier) {
