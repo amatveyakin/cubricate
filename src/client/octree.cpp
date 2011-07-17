@@ -106,35 +106,47 @@ TreeDataT Octree::get (int x, int y, int z) const {
   return m_nodes [getDeepestNode (x, y, z)].type ();
 }
 
-// TODO: speed up local neighbour update
 void Octree::set (int x, int y, int z, WorldBlock block, bool updateNeighboursFlag) {
   TreeDataT treeTypeRecord = blockTypeToTreeDataT (block.type);
   checkCoordinates (x, y, z);
-//   std::cout << "set (" << x << ", " << y << ", " << z << ")" << std::endl;
+  int tmp;
+  Vec3i nodeCorner;
   int nodeSize;
-  int curNode = getDeepestNode (x, y, z, nodeSize);
+  int newX = x, newY = y, newZ = z;
+  int curNode = getDeepestNode (newX, newY, newZ, nodeSize, tmp, XYZ_LIST (nodeCorner));
+  int newNodeSize = nodeSize;
+  int newNode = curNode;
   if  (m_nodes [curNode].type () != treeTypeRecord) {
-    if  (nodeSize > 1) {
-      while  (nodeSize > 1) {
-        splitNode (curNode);
-        stepDownOneLevel (x, y, z, curNode, nodeSize);
+    if  (newNodeSize > 1) {
+      while  (newNodeSize > 1) {
+        splitNode (newNode);
+        stepDownOneLevel (newX, newY, newZ, newNode, newNodeSize);
       }
-      m_nodes [curNode].type () = treeTypeRecord;
-      if (updateNeighboursFlag)
-        computeNeighbours ();
+      m_nodes [newNode].type () = treeTypeRecord;
     }
     else {
       m_nodes [curNode].type () = treeTypeRecord;
-      int newNode = uniteNodesRecursively (curNode);
-      if (updateNeighboursFlag && newNode != curNode)
-        computeNeighbours ();
-      curNode = newNode;
+      newNode = uniteNodesRecursively (curNode);
     }
   }
+
+  if (updateNeighboursFlag && newNode != curNode) {
+    Vec3i newNodeCorner;
+    newX = x;
+    newY = y;
+    newZ = z;
+    Box3i mapBoundingBox (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
+    getDeepestNode (newX, newY, newZ, newNodeSize, tmp, XYZ_LIST (newNodeCorner));
+    Box3i oldNodeBox (nodeCorner - Vec3i::replicated (1), nodeCorner + Vec3i::replicated (nodeSize + 1));
+    Box3i newNodeBox (newNodeCorner - Vec3i::replicated (1), newNodeCorner + Vec3i::replicated (newNodeSize + 1));
+    computeNeighboursLocal (intersectBox (enclosingBox (oldNodeBox, newNodeBox), mapBoundingBox));
+  }
+
+  // TODO: Fix: That's wrong! We unite node on the basis of types and than spread one block's parameters to the whole big cube.
   if (BlockInfo::isLiquid (block.type))
-    m_nodes [curNode].parameter () = block.fluidSaturation * MAX_FLUID_SATURATION;
+    m_nodes [newNode].parameter () = block.fluidSaturation * MAX_FLUID_SATURATION;
   else
-    m_nodes [curNode].parameter () = block.parameters;
+    m_nodes [newNode].parameter () = block.parameters;
 }
 
 
@@ -144,8 +156,6 @@ bool Octree::hasChildren (int node) const {
 
 
 void Octree::computeNeighbours () {
-//   doComputeNeighboursRecursively (0);
-
   QTime time;
   time.start();
 
@@ -157,6 +167,45 @@ void Octree::computeNeighbours () {
 
   std::cout << "neighbours time: " << time.elapsed() << " ms" << std::endl;
 }
+
+void Octree::computeNeighboursLocal (Box3i region) {
+  QTime time;
+  time.start();
+
+  Vec3i& corner1 = region.corner1;
+  Vec3i& corner2 = region.corner2;
+
+  for (int x = corner1.x(); x < corner2.x(); ++x) {
+    for (int y = corner1.y(); y < corner2.y(); ++y) {
+      for (int z = corner1.z(); z < corner2.z(); ++z) {
+        int xTmp = x, yTmp = y, zTmp = z;
+        int node = getDeepestNode (xTmp, yTmp, zTmp);
+
+        for (int i = 0; i < 3; ++i)
+          m_nodes[node].neighbour (i) = -1;
+      }
+    }
+  }
+
+  for (int x = corner1.x(); x < corner2.x(); ++x) {
+    for (int y = corner1.y(); y < corner2.y(); ++y) {
+      for (int z = corner1.z(); z < corner2.z(); ++z) {
+        int nodeSize, iChild;
+        int xTmp = x, yTmp = y, zTmp = z;
+        int cornerX, cornerY, cornerZ;
+        int node = getDeepestNode (xTmp, yTmp, zTmp, nodeSize, iChild, cornerX, cornerY, cornerZ);
+
+        if (m_nodes[node].neighbour (0) == -1 && m_nodes[node].neighbour (1) == -1 && m_nodes[node].neighbour (2) == -1)
+          doComputeNodeNeighbours (node, iChild, nodeSize, cornerX, cornerY, cornerZ);
+      }
+    }
+  }
+
+  std::cout << "local neighbours time: " << time.elapsed() << " ms" << std::endl;
+}
+
+
+
 
 
 
@@ -199,13 +248,26 @@ int Octree::getChild (int node, int iChild) {
 }
 
 
-void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize, int& iChild) const {
+void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize, int& iChild, int& cornerX, int& cornerY, int& cornerZ) const {
   nodeSize /= 2;
-//   std::cout << "x = " << x << ", y = " << y << ", z = " << z << ", nodeSize = " << nodeSize << std::endl;
   iChild =    (z / nodeSize) * 4
             + (y / nodeSize) * 2
             + (x / nodeSize);
-//   std::cout << "iChild = " << iChild << std::endl;
+  assert (iChild < 8);
+  z %= nodeSize;
+  y %= nodeSize;
+  x %= nodeSize;
+  cornerX += ( iChild      % 2) * nodeSize;
+  cornerY += ((iChild / 2) % 2) * nodeSize;
+  cornerZ += ((iChild / 4) % 2) * nodeSize;
+  node = getChild (node, iChild);
+}
+
+void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int& nodeSize, int& iChild) const {
+  nodeSize /= 2;
+  iChild =    (z / nodeSize) * 4
+            + (y / nodeSize) * 2
+            + (x / nodeSize);
   assert (iChild < 8);
   z %= nodeSize;
   y %= nodeSize;
@@ -218,6 +280,18 @@ void Octree::stepDownOneLevel (/* i/o */ int& x, int& y, int& z, int& node, int&
   stepDownOneLevel (x, y, z, node, nodeSize, tmp);
 }
 
+
+int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize, int& iChild, int& cornerX, int& cornerY, int& cornerZ) const {
+  int curNode = 0;
+  nodeSize = m_size;
+  cornerX = 0;
+  cornerY = 0;
+  cornerZ = 0;
+  while (hasChildren (curNode))
+    stepDownOneLevel (x, y, z, curNode, nodeSize, iChild, cornerX, cornerY, cornerZ);
+  assert (nodeSize > 0);
+  return curNode;
+}
 
 int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z, /* out */ int& nodeSize, int& iChild) const {
   int curNode = 0;
@@ -240,7 +314,6 @@ int Octree::getDeepestNode (/* i/o */ int& x, int& y, int& z) const {
 
 
 void Octree::splitNode (int node) {
-//   std::cout << "splitNode (" << node << ")" << std::endl;
   for (int i = 0; i < N_NODE_CHILDREN; ++i)
     m_nodes [getChild (node, i)].type () = m_nodes [node].type ();
   m_nodes [node].type () = MIXED_TYPE;
@@ -267,21 +340,6 @@ int Octree::uniteNodesRecursively (int node) {
 }
 
 
-// bool Octree::tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ) {
-//   int neighbourSize;
-//   int neighbour = getDeepestNode (neighbourX, neighbourY, neighbourZ, neighbourSize);
-//   assert (neighbourSize > 0);
-//   if (neighbour != node) {
-//     while (neighbourSize < nodeSize) {
-//       neighbour = getParent (neighbour);
-//       neighbourSize *= 2;
-//     }
-//     m_nodes[node].neighbour (iNeighbour) = neighbour;
-//     return true;
-//   }
-//   return false;
-// }
-
 void Octree::tryToAddNeighbour (int node, int nodeSize, int iNeighbour, int neighbourX, int neighbourY, int neighbourZ) {
   if (!coordinatesValid (neighbourX, neighbourY, neighbourZ))
     return;
@@ -305,22 +363,25 @@ void Octree::doComputeNeighboursRecursively (int node, int indexInParent, int no
                                       cornerZ + ((i / 4) % 2) * childSize);
     }
   }
-  else if (indexInParent >= 0) {
-    if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_X_MINUS] == 0)
-      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_X, cornerX - 1, cornerY, cornerZ);
-    else
-      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_X, cornerX + nodeSize, cornerY, cornerZ);
+  else if (indexInParent >= 0)
+    doComputeNodeNeighbours (node, indexInParent, nodeSize, cornerX, cornerY, cornerZ);
+}
 
-    if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_Y_MINUS] == 0)
-      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Y, cornerX, cornerY - 1, cornerZ);
-    else
-      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Y, cornerX, cornerY + nodeSize, cornerZ);
+void Octree::doComputeNodeNeighbours (int node, int indexInParent, int nodeSize, int cornerX, int cornerY, int cornerZ) {
+  if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_X_MINUS] == 0)
+    tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_X, cornerX - 1, cornerY, cornerZ);
+  else
+    tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_X, cornerX + nodeSize, cornerY, cornerZ);
 
-    if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_Z_MINUS] == 0)
-      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Z, cornerX, cornerY, cornerZ - 1);
-    else
-      tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Z, cornerX, cornerY, cornerZ + nodeSize);
-  }
+  if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_Y_MINUS] == 0)
+    tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Y, cornerX, cornerY - 1, cornerZ);
+  else
+    tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Y, cornerX, cornerY + nodeSize, cornerZ);
+
+  if (siblingShiftTable [indexInParent][SIBLING_SHIFT_TABLE_Z_MINUS] == 0)
+    tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Z, cornerX, cornerY, cornerZ - 1);
+  else
+    tryToAddNeighbour (node, nodeSize, TreeNodeT::NEIGHBOUR_Z, cornerX, cornerY, cornerZ + nodeSize);
 }
 
 
