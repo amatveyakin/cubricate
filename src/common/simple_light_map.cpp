@@ -115,6 +115,9 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
   QTime time;
   time.start();
 
+  firstCorner  = xMax (firstCorner  - Vec3i::replicated (N_ITERATIONS), Vec3i::replicated (0));
+  secondCorner = xMin (secondCorner + Vec3i::replicated (N_ITERATIONS), Vec3i::replicated (MAP_SIZE));
+
   Vec3i   diagonal = secondCorner - firstCorner;
   // "1-based" array, zeroes on the border
   Array3D <SHCoefficients> changedLuminosity (diagonal.x(), diagonal.y(), diagonal.z());
@@ -122,32 +125,30 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
   // injecting lights
   for (int x = 0; x < diagonal.x(); ++x)
     for (int y = 0; y < diagonal.y(); ++y)
-      for (int z = 0; z < diagonal.z(); ++z)
-        if (simpleWorldMap.get (firstCorner + Vec3i (x, y, z)).type == BT_TEST_LIGHT) {
-          changedLuminosity (x, y, z) = SHCoefficients (200, 0, 0, 0);  //TODO change it
-        }
-        else {
-          changedLuminosity (x, y, z) = SHCoefficients (0, 0, 0, 0);  //TODO change it
-        }
+      for (int z = 0; z < diagonal.z(); ++z) {
+        changedLuminosity (x, y, z) = SHCoefficients (0, 0, 0, 0);  //TODO change it
+        if (simpleWorldMap.get (firstCorner + Vec3i (x, y, z)).type == BT_TEST_LIGHT)
+          changedLuminosity (x, y, z) += SHCoefficients (500, 0, 0, 0);  //TODO change it
+        if (z + firstCorner.z() >= simpleWorldMap.highestPoint (x, y) + 1)
+          changedLuminosity (x, y, z) += SHCoefficients (0.3, 0, 1, -2);  //TODO change it
+      }
 
   // iterating. This cycles look cool and REALLY FAST :)
   // probably, set-trick (like with water) must be implemented
   for (int iter = 0; iter < N_ITERATIONS; ++iter) {
     for (int x = 0; x < diagonal.x(); ++x) {
       for (int y = 0; y < diagonal.y(); ++y) {
-        int sourceCubesEvenness = iter % 2;
-        for (int z = (x + y + sourceCubesEvenness) % 2; z < diagonal.z(); z += 2) {
-          if (iter > 0)
-            for (int z = (x + y + sourceCubesEvenness + 1) % 2; z < diagonal.z(); z += 2) //removing old neighbours
-              changedLuminosity (x, y, z) = Vec4f (0, 0, 0, 0);
-          }
+        int zMin = (x + y + firstCorner.x() + firstCorner.y() + firstCorner.z() + iter + 1) % 2;
+        if (iter > 0)
+          for (int z = zMin; z < diagonal.z(); z += 2) //removing old neighbours
+            changedLuminosity (x, y, z) = Vec4f (0, 0, 0, 0);
       }
     }
 
     for (int x = 0; x < diagonal.x(); ++x) {
       for (int y = 0; y < diagonal.y(); ++y) {
-        int sourceCubesEvenness = iter % 2;
-        for (int z = (x + y + sourceCubesEvenness) % 2; z < diagonal.z(); z += 2) { //"chessboard"-like iterations
+        int zMin = (x + y + firstCorner.x() + firstCorner.y() + firstCorner.z() + iter) % 2;
+        for (int z = zMin; z < diagonal.z(); z += 2) { //"chessboard"-like iterations
           for (int iNeighbour = 0; iNeighbour < 6; ++iNeighbour) {
 
             Vec3i currCube (x, y, z);
@@ -200,23 +201,31 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
         }
       }
     }
-
-
   }
-    for (int y = 7; y >= 0; --y) {
-      for (int x = 0; x < 8; ++x)
-        std::cout  <<  "("  << std::setw (7) << m_luminosity (x, y, 1).r() << ","
-                            << std::setw (7) << m_luminosity (x, y, 1).g() << ","
-                            << std::setw (7) << m_luminosity (x, y, 1).b() << ","
-                            << std::setw (7) << m_luminosity (x, y, 1).a() << ")";
-      std::cout << std::endl;
-    }
-std::cout << "light time: " << time.elapsed() << " ms" << std::endl;
+
+
+  for (int x = 0; x < diagonal.x(); ++x)
+    for (int y = 0; y < diagonal.y(); ++y)
+      for (int z = 0; z < diagonal.z(); ++z)
+        m_luminosity (x, y, z) += multiplier * changedLuminosity (Vec3i (x, y, z) + firstCorner);
+
+
+
+//   for (int y = 7; y >= 0; --y) {
+//     for (int x = 0; x < 8; ++x)
+//       std::cout  <<  "("  << std::setw (7) << m_luminosity (x, y, 1).r() << ","
+//                           << std::setw (7) << m_luminosity (x, y, 1).g() << ","
+//                           << std::setw (7) << m_luminosity (x, y, 1).b() << ","
+//                           << std::setw (7) << m_luminosity (x, y, 1).a() << ")";
+//     std::cout << std::endl;
+//   }
+
+  std::cout << "light time: " << time.elapsed() << " ms" << std::endl;
 }
 
 void SimpleLightMap::calculateLight (Vec3i modifiedCube, float multiplier) {
-  calculateLight (xMax (modifiedCube - Vec3i::replicated (N_ITERATIONS), Vec3i::replicated (0)),
-                  xMin (modifiedCube + Vec3i::replicated (N_ITERATIONS + 1), Vec3i::replicated (MAP_SIZE - 1)),
+  calculateLight (xMax (modifiedCube, Vec3i::replicated (0)),
+                  xMin (modifiedCube + Vec3i::replicated (1), Vec3i::replicated (MAP_SIZE - 1)),
                   multiplier);
 }
 

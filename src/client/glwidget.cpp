@@ -127,6 +127,9 @@ void GLWidget::unlockCubes () {
 }
 
 void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius) {
+  Vec3i corner1 = Vec3i (explosionX, explosionY, explosionZ) - Vec3i::replicated (explosionRadius);
+  Vec3i corner2 = Vec3i (explosionX, explosionY, explosionZ) + Vec3i::replicated (explosionRadius + 1);
+  simpleLightMap.calculateLight (corner1, corner2, -1.);
   simpleWorldMap.lockRepaint ();
   for  (int x = std::max (explosionX - explosionRadius, 0); x <= std::min (explosionX + explosionRadius, MAP_SIZE - 1); ++x)
     for  (int y = std::max (explosionY - explosionRadius, 0); y <= std::min (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
@@ -141,6 +144,8 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
         }
       }
   simpleWorldMap.unlockRepaint ();
+  simpleLightMap.calculateLight (corner1, corner2, 1.);
+  simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, corner1, corner2);
 }
 
 void GLWidget::summonMeteorite (int meteoriteX, int meteoriteY) {
@@ -445,7 +450,7 @@ void GLWidget::initTextures () {
   glGenTextures(1, &m_lightMapTexture);
   glBindTexture(GL_TEXTURE_3D, m_lightMapTexture);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -824,6 +829,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
         break;
 //       explosion (XYZ_LIST (cube), 2);
 
+      // WARNING: This light recomputation will not work correctly tor the sunlight
       simpleLightMap.calculateLight (headOnCube, -1.);
       simpleWorldMap.set (headOnCube, BT_AIR);
       simpleLightMap.calculateLight (headOnCube, 1.);
