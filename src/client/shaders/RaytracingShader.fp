@@ -173,6 +173,7 @@ void main(void)
       vec4 surfaceSH = evaluateSH (-normal);
       vec3 lightMapSamplingPoint = (currPoint + normal * 0.5 + vec111 * (RENDER_WORLD_SIZE)) / (2 * RENDER_WORLD_SIZE);
       lightCoef += max (dot (surfaceSH, texture (lightMap, lightMapSamplingPoint)), 0);
+      lightCoef = clamp (lightCoef, 0., 1.5);
     }
     else
       lightCoef = 1.0;
