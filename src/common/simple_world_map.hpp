@@ -26,7 +26,8 @@ public:
 
   void swapCubes (Vec3i firstPos, Vec3i secondPos);
 
-//   Vec3d getGroundBeneathPos (Vec3d pos);
+  int  highestPoint (Vec2i pos) const                       { return m_highestPoint (pos); }
+  int  highestPoint (int x, int y) const                    { return m_highestPoint (x, y); }
 
   void saveToFile () const;
   void loadFromFile ();
@@ -35,6 +36,7 @@ public:
 
 protected:
   Array3D <WorldBlock> m_blocks;
+  Array2D <int> m_highestPoint;
   int m_nRepaintLocks;
 
   void doUnlockRepaint (bool octreeUpdateNeighboursFlag);

@@ -13,9 +13,11 @@ const char* SimpleWorldMap::WORLD_MAP_FILE_NAME = "world/map";
 
 
 SimpleWorldMap::SimpleWorldMap (int sizeX, int sizeY, int sizeZ) :
-  m_blocks (sizeX, sizeY, sizeZ)
+  m_blocks (sizeX, sizeY, sizeZ),
+  m_highestPoint (sizeX, sizeY)
 {
-  std::fill (m_blocks.data (), m_blocks.data () + m_blocks.totalElements (), BT_AIR);
+  m_blocks.fill (BT_AIR);
+  m_highestPoint.fill (-1);
   m_nRepaintLocks = 0;
 }
 
@@ -43,6 +45,17 @@ void SimpleWorldMap::set (Vec3i pos, WorldBlock newWorldBlock) {
     waterEngine.removeWaterCube (pos);
 
   m_blocks (pos) = newWorldBlock;
+  if (pos.z() > m_highestPoint (pos.xy()) && BlockInfo::isFirm (newWorldBlock)) {
+    m_highestPoint (pos.xy()) = pos.z();
+  }
+  else if (pos.z() == m_highestPoint (pos.xy()) && !BlockInfo::isFirm (newWorldBlock)) {
+    int z;
+    for (z = pos.z() - 1; z >= 0; --z)
+      if (BlockInfo::isFirm (m_blocks (pos.x(), pos.y(), z)))
+        break;
+    m_highestPoint (pos.xy()) = z;
+  }
+
   if (m_nRepaintLocks == 0) {
     lockRepaint ();
     cubeOctree.set (pos.x (), pos.y (), pos.z (), newWorldBlock, true);
