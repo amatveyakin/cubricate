@@ -795,6 +795,7 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
         break;
       case Qt::Key_L:
         simpleWorldMap.loadFromFile ();
+        simpleLightMap.clear();
         simpleLightMap.calculateLight (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE), 1.);
         simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
         break;

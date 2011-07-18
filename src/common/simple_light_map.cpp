@@ -121,9 +121,20 @@ SimpleLightMap::SimpleLightMap (int sizeX, int sizeY, int sizeZ) :
   m_sunVisibility (sizeX, sizeY, sizeZ)
 
 {
-  std::fill (   m_luminosity.data(),    m_luminosity.data() +    m_luminosity.totalElements(), Vec4f::zero());
   std::fill (m_sunVisibility.data(), m_sunVisibility.data() + m_sunVisibility.totalElements(), Vec4f::zero());
+  clear();
   generateRandomRays (20);
+}
+
+void SimpleLightMap::clear()
+{
+  std::fill (   m_luminosity.data(),    m_luminosity.data() +    m_luminosity.totalElements(), Vec4f::zero());
+}
+
+void SimpleLightMap::addStillLight (Vec3i position, SHCoefficients lightSH, float multiplier)
+{
+  m_luminosity (position) += lightSH * multiplier;
+  std::fill (m_sunVisibility.data(), m_sunVisibility.data() + m_sunVisibility.totalElements(), Vec4f::zero());
 }
 
 SimpleLightMap::~SimpleLightMap() {
