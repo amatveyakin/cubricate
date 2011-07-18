@@ -207,6 +207,9 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
           changedLuminosity (x, y, z) += SHCoefficients (500, 0, 0, 0);  //TODO change it
 //         if (z + firstCorner.z() >= simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
 //           changedLuminosity (x, y, z) += SHCoefficients (0.3, 0, 1, -2);  //TODO change it
+        if (z + firstCorner.z() >  simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
+          addStillLight (Vec3i (x, y, z) + firstCorner, 0.9 * SHCoefficients (0.1, 1.2, 1, -2), multiplier);  //TODO change it
+
       }
 
   // iterating. This cycles look cool and REALLY FAST :)
