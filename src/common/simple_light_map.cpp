@@ -14,7 +14,7 @@
 
 const float blockTransparency[] = { 0.95, 0.5, 0, 0, 0, 0, 1, 1}; //TODO move?
 
-const int N_ITERATIONS = 16;
+const int N_ITERATIONS = 6;
 
 // #define GRAFA_KAK_V_KRUZISE
 
@@ -84,7 +84,7 @@ const Vec3f reprojVector[] = {
 
 void SimpleLightMap::generateRandomRays(int nRays)
 {
-  srand (1713);
+  srand (75038);
   m_nRays = nRays;
   m_rays = new Vec3d [nRays];
   for (int i = 0; i < nRays; ++i) {
@@ -121,9 +121,9 @@ SimpleLightMap::SimpleLightMap (int sizeX, int sizeY, int sizeZ) :
   m_sunVisibility (sizeX, sizeY, sizeZ)
 
 {
-  std::fill (m_sunVisibility.data(), m_sunVisibility.data() + m_sunVisibility.totalElements(), Vec4f::zero());
+  m_sunVisibility.fill (Vec4f::zero());
   clear();
-  generateRandomRays (20);
+  generateRandomRays (1);
 }
 
 void SimpleLightMap::clear()
@@ -156,7 +156,7 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
     Vec3d nearestInt;
     for (int i = 0; i < 3; ++i) {
       if (forwardVector[i] > 0)
-        nearestInt[i] = MAP_SIZE;
+        nearestInt[i] = MAP_SIZE - 1;
       else
         nearestInt[i] = 0;
       assert(forwardVector[i] != 0);
@@ -169,11 +169,11 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
     currentPoint += forwardVector * t;
     forwardVector = -ray;
     Vec3i cube = getCubeByPoint (currentPoint, ray);
-    float intensity = 1;
+    float intensity = 1. / m_nRays;
     while  (      cubeIsValid (cube)
               && !BlockInfo::isFirm (simpleWorldMap.get (cube))
               && intensity > 0.05 ) {
-      m_sunVisibility (cube) += multiplier * intensity * Vec4f  (10, ray.x(), ray.y(), ray.z());
+      m_sunVisibility (cube) += multiplier * intensity * Vec4f  (0.2, ray.x(), ray.y(), ray.z());
       float currCubeTransparency = BlockInfo::isFirm (simpleWorldMap.get (cube)) ? 0 : 1;
       //intensity *= currCubeTransparency;
       Vec3d parameter;
@@ -218,8 +218,8 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
           changedLuminosity (x, y, z) += SHCoefficients (500, 0, 0, 0);  //TODO change it
 //         if (z + firstCorner.z() >= simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
 //           changedLuminosity (x, y, z) += SHCoefficients (0.3, 0, 1, -2);  //TODO change it
-        if (z + firstCorner.z() >  simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
-          addStillLight (Vec3i (x, y, z) + firstCorner, 0.9 * SHCoefficients (0.1, 1.2, 1, -2), multiplier);  //TODO change it
+//         if (z + firstCorner.z() >  simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
+//           addStillLight (Vec3i (x, y, z) + firstCorner, 0.9 * SHCoefficients (0.1, 1.2, 1, -2), multiplier);  //TODO change it
 
       }
 
@@ -349,11 +349,25 @@ void SimpleLightMap::loadSubLightMapToTexture (GLuint texture, Vec3i firstCorner
 }
 
 void SimpleLightMap::loadVisibilityMapToTexture (GLuint texture) {
+  Vec4f* data = new Vec4f [ m_sunVisibility.sizeX() *
+                            m_sunVisibility.sizeY() *
+                            m_sunVisibility.sizeZ()   ];
+  int offset = 0;
+  for (int z = 0; z < m_sunVisibility.sizeZ(); ++z) {
+   for (int y = 0; y < m_sunVisibility.sizeY(); ++y) {
+     for (int x = 0; x < m_sunVisibility.sizeX(); ++x) {
+        data [offset] = m_sunVisibility (x, y, z);
+        offset++;
+      }
+    }
+  }
   glBindTexture (GL_TEXTURE_3D, texture);
   glTexSubImage3D (GL_TEXTURE_3D, 0, 0, 0, 0,
-                   MAP_SIZE, MAP_SIZE, MAP_SIZE,
-                   GL_RGBA, GL_FLOAT, m_sunVisibility.data());
+                   m_sunVisibility.sizeX(), m_sunVisibility.sizeY(), m_sunVisibility.sizeZ(),
+                   GL_RGBA, GL_FLOAT, data);
   glBindTexture (GL_TEXTURE_3D, 0);
+
+  delete[] data;
 }
 
 void SimpleLightMap::lightThatCubePlease (Vec3i cube)
