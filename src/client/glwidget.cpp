@@ -460,6 +460,19 @@ void GLWidget::initTextures () {
                 GL_RGBA, GL_FLOAT, nullptr);
   simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i (0, 0, 0), Vec3i (MAP_SIZE-1, MAP_SIZE-1, MAP_SIZE-1));
 
+  glGenTextures(1, &m_sunVisibilityTexture);
+  glBindTexture(GL_TEXTURE_3D, m_sunVisibilityTexture);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  glTexImage3D (GL_TEXTURE_3D, 0, GL_RGBA16F_ARB, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0,
+                GL_RGBA, GL_FLOAT, nullptr);
+  simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
+
 
 }
 
@@ -505,6 +518,7 @@ void GLWidget::initShaders () {
   m_locCubeNormalMap             =  glGetUniformLocation (m_raytracingShader, "cubeNormalMap");
   m_locCubeDecal                 =  glGetUniformLocation (m_raytracingShader, "cubeDecal");
   m_locLightMap                  =  glGetUniformLocation (m_raytracingShader, "lightMap");
+  m_locSunVisibilityMap          =  glGetUniformLocation (m_raytracingShader, "sunVisibilityMap");
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Vertex,   "resources/UIShader.vp");
   result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/UIShader.fp");
   m_UIShaderProgram.bindAttributeLocation ("vPosition",  0);
@@ -586,6 +600,15 @@ void GLWidget::initializeGL () {
   loadGameMap ();
   simpleLightMap.calculateLight (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE), 1.);
   simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
+  for (int a = 0; a < MAP_SIZE; ++a)
+    for (int b = 0; b < MAP_SIZE; ++b) {
+      simpleLightMap.calculateSunlight (Vec3i (a, b, MAP_SIZE - 1), 1);
+      simpleLightMap.calculateSunlight (Vec3i (a, 0, b), 1);
+      simpleLightMap.calculateSunlight (Vec3i (a, MAP_SIZE - 1, b), 1);
+      simpleLightMap.calculateSunlight (Vec3i (0, a, b), 1);
+      simpleLightMap.calculateSunlight (Vec3i (MAP_SIZE - 1, a, b), 1);
+    }
+  simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
 
 //   glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
 //   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
@@ -690,6 +713,10 @@ void GLWidget::paintGL () {
   glActiveTexture (GL_TEXTURE7);
   glBindTexture (GL_TEXTURE_3D, m_lightMapTexture);
   glUniform1i (m_locLightMap, 7);
+
+  glActiveTexture (GL_TEXTURE8);
+  glBindTexture (GL_TEXTURE_3D, m_sunVisibilityTexture);
+  glUniform1i (m_locSunVisibilityMap, 8);
 
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);

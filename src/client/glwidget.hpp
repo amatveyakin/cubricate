@@ -39,7 +39,7 @@ protected:
   GLint   m_raytracingShader, m_raytracingDepthPassShader;
   GLuint  m_locOctTree,     m_locOrigin,       m_locViewMatrix;
   GLuint  m_locCubeTexture, m_locDepthTexture, m_locCubePropertiesTexture, m_locSiblingShiftTableTexture;
-  GLuint  m_locCubeNormalMap, m_locCubeDecal, m_locLightMap;
+  GLuint  m_locCubeNormalMap, m_locCubeDecal, m_locLightMap, m_locSunVisibilityMap
 ;
   GLuint  m_locDepthPassOctTree, m_locDepthPassOrigin, m_locDepthPassViewMatrix, m_locDepthPassSiblingShiftTableTexture;
   GLuint  m_locDepthPassCubeNormalMap;
@@ -49,7 +49,7 @@ protected:
   GLuint  m_raytracingFirstPassResult;
   GLuint  m_raytracingVAO,  m_raytracingVBO,   m_raytracingFBO;
   GLuint  m_cubeTexture, m_cubeNormalMap, m_cubeDecal;
-  GLuint  m_lightMapTexture;
+  GLuint  m_lightMapTexture, m_sunVisibilityTexture;
 
   GLuint  m_renderTimeQuery[3];
   GLuint  m_totalDepthPassTime, m_totalMainPassTime, m_totalUITime

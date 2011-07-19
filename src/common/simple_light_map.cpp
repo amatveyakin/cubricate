@@ -3,12 +3,12 @@
 #include <iostream>
 #include <iomanip>
 
-
+#include <stdlib.h>
 
 #include <cmath>
 
 #include "common/simple_light_map.hpp"
-
+#include "common/cube_geometry.hpp"
 #include "client/client_world.hpp"
 
 
@@ -82,6 +82,20 @@ const Vec3f reprojVector[] = {
   Vec3f ( 0,   -0.5,  REPROJ_VECTOR_PARAMETER)
 };
 
+void SimpleLightMap::generateRandomRays(int nRays)
+{
+  srand (1713);
+  m_nRays = nRays;
+  m_rays = new Vec3d [nRays];
+  for (int i = 0; i < nRays; ++i) {
+    float z   = ((double) rand() )/ RAND_MAX;
+    float phi = 2 * M_PI * ((double) rand()) / RAND_MAX;
+    m_rays[i] = Vec3d (sqrt (1 - z*z) * cos (phi),
+                       sqrt (1 - z*z) * sin (phi),
+                                               z);
+
+  }
+}
 
 
 SHCoefficients SimpleLightMap::deltaFunctionSH (Vec3f direction) {
@@ -103,12 +117,74 @@ SHCoefficients SimpleLightMap::cosineLobeSH (Vec3f direction) {
 
 
 SimpleLightMap::SimpleLightMap (int sizeX, int sizeY, int sizeZ) :
-  m_luminosity (sizeX, sizeY, sizeZ)
+  m_luminosity (sizeX, sizeY, sizeZ),
+  m_sunVisibility (sizeX, sizeY, sizeZ)
+
 {
-  std::fill (m_luminosity.data(), m_luminosity.data() + m_luminosity.totalElements(), Vec4f::zero());
+  std::fill (   m_luminosity.data(),    m_luminosity.data() +    m_luminosity.totalElements(), Vec4f::zero());
+  std::fill (m_sunVisibility.data(), m_sunVisibility.data() + m_sunVisibility.totalElements(), Vec4f::zero());
+  generateRandomRays (20);
 }
 
-SimpleLightMap::~SimpleLightMap() { }
+SimpleLightMap::~SimpleLightMap() {
+  delete[] m_rays;
+}
+
+void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
+{
+  // TODO Change algorithm to 3DDA
+  // TODO Change constants
+  // TODO Add normal transparency
+  for (int iRay = 0; iRay < m_nRays; ++iRay) {
+    // zapilit normalniy algoritm Brezenhama, bleyat
+    Vec3d ray = m_rays [iRay];
+    Vec3d currentPoint = Vec3d::fromVectorConverted (changedCube);
+    Vec3d forwardVector = ray;
+
+    Vec3d parameter;
+    Vec3d nearestInt;
+    for (int i = 0; i < 3; ++i) {
+      if (forwardVector[i] > 0)
+        nearestInt[i] = MAP_SIZE;
+      else
+        nearestInt[i] = 0;
+      assert(forwardVector[i] != 0);
+      parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
+      assert (parameter[i] >= 0);
+    }
+    float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-3);
+
+
+    currentPoint += forwardVector * t;
+    forwardVector = -ray;
+    Vec3i cube = getCubeByPoint (currentPoint, ray);
+    float intensity = 1;
+    while  (      cubeIsValid (cube)
+              && !BlockInfo::isFirm (simpleWorldMap.get (cube))
+              && intensity > 0.05 ) {
+      m_sunVisibility (cube) += multiplier * intensity * Vec4f  (10, ray.x(), ray.y(), ray.z());
+      float currCubeTransparency = BlockInfo::isFirm (simpleWorldMap.get (cube)) ? 0 : 1;
+      //intensity *= currCubeTransparency;
+      Vec3d parameter;
+      Vec3d nearestInt;
+      for (int i = 0; i < 3; ++i) {
+        if (forwardVector[i] > 0)
+          nearestInt[i] = floor (currentPoint[i]) + 1;
+        else
+        if (forwardVector[i] < 0)
+          nearestInt[i] = ceil  (currentPoint[i]) - 1;
+        else
+          nearestInt[i] = 1;
+        parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
+        assert (parameter[i] >= 0);
+      }
+      float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-3);
+      currentPoint += forwardVector * t;
+      cube = getCubeByPoint (currentPoint, forwardVector);
+    }
+  }
+}
+
 
 // now i consider that secondCorner > firstCorner
 void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, float multiplier) {
@@ -129,8 +205,8 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
         changedLuminosity (x, y, z) = SHCoefficients (0, 0, 0, 0);  //TODO change it
         if (simpleWorldMap.get (firstCorner + Vec3i (x, y, z)).type == BT_TEST_LIGHT)
           changedLuminosity (x, y, z) += SHCoefficients (500, 0, 0, 0);  //TODO change it
-        if (z + firstCorner.z() >= simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
-          changedLuminosity (x, y, z) += SHCoefficients (0.3, 0, 1, -2);  //TODO change it
+//         if (z + firstCorner.z() >= simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
+//           changedLuminosity (x, y, z) += SHCoefficients (0.3, 0, 1, -2);  //TODO change it
       }
 
   // iterating. This cycles look cool and REALLY FAST :)
@@ -256,6 +332,14 @@ void SimpleLightMap::loadSubLightMapToTexture (GLuint texture, Vec3i firstCorner
   glBindTexture (GL_TEXTURE_3D, 0);
 
   delete[] data;
+}
+
+void SimpleLightMap::loadVisibilityMapToTexture (GLuint texture) {
+  glBindTexture (GL_TEXTURE_3D, texture);
+  glTexSubImage3D (GL_TEXTURE_3D, 0, 0, 0, 0,
+                   MAP_SIZE, MAP_SIZE, MAP_SIZE,
+                   GL_RGBA, GL_FLOAT, m_sunVisibility.data());
+  glBindTexture (GL_TEXTURE_3D, 0);
 }
 
 void SimpleLightMap::lightThatCubePlease (Vec3i cube)

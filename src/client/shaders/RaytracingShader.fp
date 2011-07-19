@@ -20,7 +20,7 @@ uniform samplerCubeArray cubeTexture;
 uniform samplerCubeArray cubeNormalMap;
 uniform samplerCubeArray cubeDecal;
 uniform sampler3D        lightMap;
-
+uniform sampler3D        sunVisibilityMap;
 uniform vec3             origin;
 
 in  vec3    fDirection;
@@ -171,8 +171,10 @@ void main(void)
       //lightCoef = dot (normal, vec3 (3, -1, 7)) / 30 + 0.05;
       lightCoef = 0.0;
       vec4 surfaceSH = evaluateSH (-normal);
-      vec3 lightMapSamplingPoint = (currPoint + normal * 0.5 + vec111 * (RENDER_WORLD_SIZE)) / (2 * RENDER_WORLD_SIZE);
-      lightCoef += max (dot (surfaceSH, texture (lightMap, lightMapSamplingPoint)), 0);
+      vec4 sunlightSH = vec4 (0.5, 0.3, 0.2, 1);
+      vec3 samplingPoint = (currPoint + normal * 0.5 + vec111 * (RENDER_WORLD_SIZE)) / (2 * RENDER_WORLD_SIZE);
+      lightCoef += 10 * max (dot (surfaceSH,  texture (lightMap, samplingPoint)), 0);
+      lightCoef += 10 * max (dot (sunlightSH, texture (sunVisibilityMap, samplingPoint)), 0);
       lightCoef = clamp (lightCoef, 0., 1.5);
     }
     else

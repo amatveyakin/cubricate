@@ -72,11 +72,9 @@ void Player::setFlying (bool flyingState) {
 
 #ifdef CLIENT_APP  // TODO: delete
 
-static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
-  return worldToCube (point + direction * 0.00001);
-}
 
 CubeWithFace Player::getHeadOnCube() const {
+  // zapilit normalniy algoritm Brezenhama, bleyat
   Vec3d currentPoint = m_viewFrame.origin();
   Vec3d forwardVector = m_viewFrame.dirForward();
 

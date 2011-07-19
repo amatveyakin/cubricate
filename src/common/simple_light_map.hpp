@@ -23,9 +23,19 @@ public:
   void lightThatCubePlease (Vec3i cube);
   //void recalculateLight (Vec3i changedCube);
 
+  void calculateSunlight (Vec3i changedCube, float multiplier);
+
+  void loadVisibilityMapToTexture (GLuint texture);
+
+
 protected:
   //Vec4f consists of 4 SH coefficients
   Array3D <SHCoefficients>  m_luminosity;
+  Array3D <SHCoefficients>  m_sunVisibility;
+  int                       m_nRays;
+  Vec3d*                    m_rays;
+
+  void generateRandomRays (int nRays);
 
   SHCoefficients cosineLobeSH    (Vec3f direction);
   SHCoefficients deltaFunctionSH (Vec3f direction);
