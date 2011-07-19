@@ -129,7 +129,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
         changedLuminosity (x, y, z) = SHCoefficients (0, 0, 0, 0);  //TODO change it
         if (simpleWorldMap.get (firstCorner + Vec3i (x, y, z)).type == BT_TEST_LIGHT)
           changedLuminosity (x, y, z) += SHCoefficients (500, 0, 0, 0);  //TODO change it
-        if (z + firstCorner.z() >= simpleWorldMap.highestPoint (x, y) + 1)
+        if (z + firstCorner.z() >= simpleWorldMap.highestPoint (x + firstCorner.x(), y + firstCorner.y()) + 1)
           changedLuminosity (x, y, z) += SHCoefficients (0.3, 0, 1, -2);  //TODO change it
       }
 
