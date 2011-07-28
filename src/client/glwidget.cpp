@@ -402,13 +402,13 @@ void GLWidget::initTextures () {
     }
   glGenerateMipmap(GL_TEXTURE_CUBE_MAP_ARRAY);
 
-  const float cubeProperties[] = { 1,     1,     1,
-                                   0.85,  1.333, 1,
-                                   0,     99,    0,
-                                   0,     99,    0,
-                                   0,     99,    0,
-                                   0,     99,    0,
-                                   0,     0.001, 0  };
+  const float cubeProperties[] = { 1,     1,     1,     0,
+                                   0.85,  1.333, 1,     0,
+                                   0,     99,    0,     0,
+                                   0,     99,    0,     0,
+                                   0,     99,    0,     0,
+                                   0,     99,    0,     0,
+                                   0,     0.001, 0,     0  };
 
 
   glGenBuffers (1, &m_cubePropertiesBuffer);
@@ -419,7 +419,7 @@ void GLWidget::initTextures () {
   glGenTextures   (1, &m_cubePropertiesTexture);
   glActiveTexture (GL_TEXTURE3);
   glBindTexture   (GL_TEXTURE_BUFFER, m_cubePropertiesTexture);
-  glTexBuffer     (GL_TEXTURE_BUFFER, GL_RGB32F, m_cubePropertiesBuffer);
+  glTexBuffer     (GL_TEXTURE_BUFFER, GL_RGBA32F, m_cubePropertiesBuffer);
   glBindTexture   (GL_TEXTURE_BUFFER, 0);
 
 
