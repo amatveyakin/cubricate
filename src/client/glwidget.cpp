@@ -4,8 +4,11 @@
 #include <fstream>    // TODO: delete
 #include <iomanip>    // TODO: delete
 
-#include <QTime>
-#include <QKeyEvent>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+
+#include <QImage>
+#include <QGLWidget>
 
 #include "common/utils.hpp"
 #include "common/game_parameters.hpp"
@@ -14,6 +17,7 @@
 #include "common/linear_algebra.hpp"
 #include "common/cube_geometry.hpp"
 
+#include "client/GLTools/GLShaderLoader.h"
 #include "client/visible_cube_set.hpp"
 #include "client/client_world.hpp"
 #include "client/glwidget.hpp"
@@ -22,11 +26,14 @@
 #define GL_TIME_ELAPSED 0x88BF
 #endif
 
+#ifndef GL_TEXTURE_CUBE_MAP_ARRAY
+#define GL_TEXTURE_CUBE_MAP_ARRAY 0x9009
+#endif
+
 const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
 const double FPS_MEASURE_INTERVAL         = 1.; // sec
 const double PHYSICS_PROCESSING_INTERVAL  = 0.2; // sec
-
 
 
 // 0 means success
@@ -242,7 +249,7 @@ void GLWidget::initTextures () {
   assert (!imageTarget.isNull ());
   assert (imageTarget.format () == QImage::Format_ARGB32);
 
-  QImage textureTarget = convertToGLFormat (imageTarget);
+  QImage textureTarget = QGLWidget::convertToGLFormat (imageTarget);
   assert (!textureTarget.isNull ());
 
   glGenTextures (1, &m_UITexture);
@@ -327,7 +334,7 @@ void GLWidget::initTextures () {
       QMatrix rotateMatrix;
       rotateMatrix.rotate (angles[j]);
       rawTexture =  rawTexture.transformed(rotateMatrix);
-      QImage texture = convertToGLFormat (rawTexture);
+      QImage texture = QGLWidget::convertToGLFormat (rawTexture);
       assert (!texture.isNull ());
       glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
     }
@@ -362,7 +369,7 @@ void GLWidget::initTextures () {
       QMatrix rotateMatrix;
       rotateMatrix.rotate (angles[j]);
       rawTexture =  rawTexture.transformed(rotateMatrix);
-      QImage texture = convertToGLFormat (rawTexture);
+      QImage texture = QGLWidget::convertToGLFormat (rawTexture);
       assert (!texture.isNull ());
       glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
     }
@@ -396,7 +403,7 @@ void GLWidget::initTextures () {
       QMatrix rotateMatrix;
       rotateMatrix.rotate (angles[j]);
       rawTexture =  rawTexture.transformed(rotateMatrix);
-      QImage texture = convertToGLFormat (rawTexture);
+      QImage texture = QGLWidget::convertToGLFormat (rawTexture);
       assert (!texture.isNull ());
       glTexSubImage3D (GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 6 * i + j, texture.width (), texture.height (), 1, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits ());
     }
@@ -478,20 +485,15 @@ void GLWidget::initTextures () {
 
 // TODO: rename shader program files
 void GLWidget::initShaders () {
-  if (!QGLShaderProgram::hasOpenGLShaderPrograms()) {
-    std::cout << "Your system does not support OpenGL custom shader programs :-(" << std::endl;
-    exit (1);
-  }
-
-  bool result;
+//   if (!QGLShaderProgram::hasOpenGLShaderPrograms()) {
+//     std::cout << "Your system does not support OpenGL custom shader programs :-(" << std::endl;
+//     exit (1);
+//   }
 
   //Raytracing shader initialization
-  result = m_raytracingDepthPassShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/RaytracingShader.vp");
-  result = m_raytracingDepthPassShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/RaytracingShaderDepthPass.fp");
-  m_raytracingDepthPassShaderProgram.bindAttributeLocation ("vPosition",  0);
-  m_raytracingDepthPassShaderProgram.bindAttributeLocation ("vDirection", 1);
-  result = m_raytracingDepthPassShaderProgram.link ();
-  m_raytracingDepthPassShader = m_raytracingDepthPassShaderProgram.programId ();
+  m_raytracingDepthPassShader = gltLoadShaderPairWithAttributes ("resources/RaytracingShader.vp", "resources/RaytracingShaderDepthPass.fp", 2,
+                                                                 0, "vPosition",
+                                                                 1, "vDirection");
   glLinkProgram (m_raytracingDepthPassShader);
   glUseProgram (m_raytracingDepthPassShader);
   m_locDepthPassOctTree       = glGetUniformLocation (m_raytracingDepthPassShader, "octTree");
@@ -500,12 +502,9 @@ void GLWidget::initShaders () {
   m_locDepthPassViewMatrix    = glGetUniformLocation (m_raytracingDepthPassShader, "matView");
   m_locDepthPassCubeNormalMap = glGetUniformLocation (m_raytracingDepthPassShader, "cubeNormalMap");
 
-  result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Vertex, "resources/RaytracingShader.vp");
-  result = m_raytracingShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/RaytracingShader.fp");
-  m_raytracingShaderProgram.bindAttributeLocation ("vPosition",  0);
-  m_raytracingShaderProgram.bindAttributeLocation ("vDirection", 1);
-  result = m_raytracingShaderProgram.link ();
-  m_raytracingShader = m_raytracingShaderProgram.programId ();
+  m_raytracingShader = gltLoadShaderPairWithAttributes ("resources/RaytracingShader.vp", "resources/RaytracingShader.fp", 2,
+                                                        0, "vPosition",
+                                                        1, "vDirection");
   glLinkProgram (m_raytracingShader);
   glUseProgram (m_raytracingShader);
   m_locOctTree                   =  glGetUniformLocation (m_raytracingShader, "octTree");
@@ -519,12 +518,10 @@ void GLWidget::initShaders () {
   m_locCubeDecal                 =  glGetUniformLocation (m_raytracingShader, "cubeDecal");
   m_locLightMap                  =  glGetUniformLocation (m_raytracingShader, "lightMap");
   m_locSunVisibilityMap          =  glGetUniformLocation (m_raytracingShader, "sunVisibilityMap");
-  result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Vertex,   "resources/UIShader.vp");
-  result = m_UIShaderProgram.addShaderFromSourceFile (QGLShader::Fragment, "resources/UIShader.fp");
-  m_UIShaderProgram.bindAttributeLocation ("vPosition",  0);
-  m_UIShaderProgram.bindAttributeLocation ("vDirection", 1);
-  result = m_UIShaderProgram.link ();
-  m_UIShader = m_UIShaderProgram.programId ();
+
+  m_UIShader = gltLoadShaderPairWithAttributes ("resources/UIShader.vp", "resources/UIShader.fp", 2,
+                                                0, "vPosition",
+                                                1, "vDirection");
   glLinkProgram (m_UIShader);
   glUseProgram (m_UIShader);
   m_locUITexture                 =  glGetUniformLocation (m_UIShader, "UITexture");
@@ -569,17 +566,10 @@ void GLWidget::shutdownRenderContext () {
 
 
 
-GLWidget::GLWidget () {
-  setMouseTracking (true);
-  setCursor (Qt::BlankCursor);
-
-  m_isMovingForward   = false;
-  m_isMovingBackward  = false;
-  m_isMovingLeft      = false;
-  m_isMovingRight     = false;
-  m_isJumping         = false;
-
-  m_worldFreezed      = true;
+GLWidget::GLWidget (sf::Window& app) :
+  m_app (app)
+{
+  m_worldFreezed    = true;
 }
 
 GLWidget::~GLWidget () {
@@ -620,10 +610,9 @@ void GLWidget::initializeGL () {
 //
 //   glUnmapBuffer (GL_ARRAY_BUFFER);
 
-  m_time.start ();
-  m_fpsTime.start ();
-  m_physicsTime.start ();
-  startTimer (1);
+  m_time.Reset ();
+  m_fpsTime.Reset ();
+  m_physicsTime.Reset ();
 }
 
 
@@ -749,61 +738,49 @@ void GLWidget::renderUI () {
   glBindTexture (GL_TEXTURE_2D, 0);
 }
 
-void GLWidget::resizeGL (int width, int height) {
-  FIX_UNUSED (width);
-  if (height <= 0)
-    height = 1;
 
-  updateGL ();
+void GLWidget::updateGL() {
+  paintGL();
 }
 
 
-void GLWidget::keyPressEvent (QKeyEvent* event) {
-//   TODO: use this: event->nativeScanCode ()
+void GLWidget::resizeEvent (const sf::Event::SizeEvent& /*event*/) {
+  updateGL ();
+}
 
-  if (event->modifiers () == Qt::NoModifier) {
-    switch (event->key ()) {
-      case Qt::Key_W:
-        m_isMovingForward = true;
-        break;
-      case Qt::Key_S:
-        m_isMovingBackward = true;
-        break;
-      case Qt::Key_A:
-        m_isMovingLeft = true;
-        break;
-      case Qt::Key_D:
-        m_isMovingRight = true;
-        break;
-      case Qt::Key_Space:
-        m_isJumping = true;
-        break;
-      case Qt::Key_X: {
+void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
+  if (!event.Control && !event.Alt && !event.Shift) {
+    switch (event.Code) {
+      case sf::Key::X: {
         Vec3d playerPos = player.pos ();
         summonMeteorite ((int) (playerPos[0]), (int) (playerPos[1]));
         break;
       }
-      case Qt::Key_Escape:
+      case sf::Key::Escape:
         exit (0);
+        break;
+      default:
         break;
     }
   }
-  else if (event->modifiers () == Qt::ControlModifier) {
-    switch (event->key ()) {
-      case Qt::Key_S:
+  else if (event.Control && !event.Alt && !event.Shift) {
+    switch (event.Code) {
+      case sf::Key::S:
         simpleWorldMap.saveToFile ();
         break;
-      case Qt::Key_L:
+      case sf::Key::L:
         simpleWorldMap.loadFromFile ();
         simpleLightMap.clear();
         simpleLightMap.calculateLight (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE), 1.);
         simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
         break;
-      case Qt::Key_F:
+      case sf::Key::F:
         m_worldFreezed = !m_worldFreezed;
         break;
-      case Qt::Key_G:
+      case sf::Key::G:
         player.setFlying (!player.flying());
+        break;
+      default:
         break;
     }
   }
@@ -811,47 +788,9 @@ void GLWidget::keyPressEvent (QKeyEvent* event) {
   updateGL ();
 }
 
-void GLWidget::keyReleaseEvent (QKeyEvent* event) {
-//   TODO: use this: event->nativeScanCode ()
-
-  switch (event->key ()) {
-    case Qt::Key_W:
-      m_isMovingForward = false;
-      break;
-    case Qt::Key_S:
-      m_isMovingBackward = false;
-      break;
-    case Qt::Key_A:
-      m_isMovingLeft = false;
-      break;
-    case Qt::Key_D:
-      m_isMovingRight = false;
-      break;
-    case Qt::Key_Space:
-      m_isJumping = false;
-      break;
-  }
-}
-
-void GLWidget::mouseMoveEvent (QMouseEvent* event) {
-  static bool isLocked = false;
-  if (isLocked)
-    return;
-  isLocked = true;
-  int centerX = width ()  / 2;
-  int centerY = height () / 2;
-
-  player.viewFrame ().rotateWorld ((event->x () - centerX) / 100., 0., 0., 1.);
-  player.viewFrame ().rotateLocalX (-(event->y () - centerY) / 100.);
-
-  cursor ().setPos (mapToGlobal (QPoint (centerX, centerY)));
-  isLocked = false;
-  updateGL ();
-}
-
-void GLWidget::mousePressEvent (QMouseEvent* event) {
-  switch (event->button ()) {
-    case Qt::LeftButton: {
+void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
+  switch (event.Button) {
+    case sf::Mouse::Left: {
       Vec3i headOnCube = player.getHeadOnCube ().cube;
       if (!cubeIsValid (headOnCube))
         break;
@@ -864,7 +803,7 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
       simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, headOnCube);
       break;
     }
-    case Qt::RightButton: {
+    case sf::Mouse::Right: {
       CubeWithFace headOnCube = player.getHeadOnCube ();
       if (!directionIsValid (headOnCube.face)) {
         std::cout << "Invalid cube position" << std::endl;
@@ -888,28 +827,34 @@ void GLWidget::mousePressEvent (QMouseEvent* event) {
   }
 }
 
-void GLWidget::wheelEvent (QWheelEvent* event) {
-  player.setBlockInHand (static_cast <BlockType> ((player.getBlockInHand () + xSgn (event->delta()) + N_BLOCK_TYPES) % N_BLOCK_TYPES));
+void GLWidget::mouseWheelEvent (const sf::Event::MouseWheelEvent& event) {
+  player.setBlockInHand (static_cast <BlockType> ((player.getBlockInHand () + xSgn (event.Delta) + N_BLOCK_TYPES) % N_BLOCK_TYPES));
   std::cout << "Cur cube type: " << player.getBlockInHand () << std::endl;
 }
 
-void GLWidget::timerEvent (QTimerEvent* event) {
-  FIX_UNUSED (event);
+void GLWidget::timerEvent() {
+  const sf::Input& input = m_app.GetInput();
+  double timeElasped = m_time.GetElapsedTime ();
+  m_time.Reset ();
 
-  double timeElasped = m_time.elapsed () / 1000.;
-  if (m_isMovingForward)
+  if (input.IsKeyDown (sf::Key::W))
     player.moveForward (8. * timeElasped);
-  if (m_isMovingBackward)
+  if (input.IsKeyDown (sf::Key::S))
     player.moveForward (-6. * timeElasped);
-  if (m_isMovingLeft)
+  if (input.IsKeyDown (sf::Key::A))
     player.moveRight (-6. * timeElasped);
-  if (m_isMovingRight)
+  if (input.IsKeyDown (sf::Key::D))
     player.moveRight (6. * timeElasped);
-  if (m_isJumping)
+  if (input.IsKeyDown (sf::Key::Space))
     player.jump();
-  m_time.restart ();
 
-  double fpsTimeElapsed = m_fpsTime.elapsed () / 1000.;
+  int centerX = m_app.GetWidth()  / 2;
+  int centerY = m_app.GetHeight() / 2;
+  player.viewFrame ().rotateWorld ((input.GetMouseX() - centerX) / 100., 0., 0., 1.);
+  player.viewFrame ().rotateLocalX (-(input.GetMouseY() - centerY) / 100.);
+  m_app.SetCursorPosition (centerX, centerY);
+
+  double fpsTimeElapsed = m_fpsTime.GetElapsedTime ();
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {
     std::cout << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed
               << ", video fps =" << std::setw (8) << 1000. / (0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn) << std::endl;
@@ -923,15 +868,15 @@ void GLWidget::timerEvent (QTimerEvent* event) {
     m_totalUITime = 0;
 
     m_nPhysicsStepsProcessed = 0;
-    m_fpsTime.restart ();
+    m_fpsTime.Reset ();
   }
 
   if (!m_worldFreezed) {
-    double physicsTimeElapsed = m_physicsTime.elapsed () / 1000.;
+    double physicsTimeElapsed = m_physicsTime.GetElapsedTime ();
     if (physicsTimeElapsed > PHYSICS_PROCESSING_INTERVAL) {
       waterEngine.processWater ();
       m_nPhysicsStepsProcessed++;
-      m_physicsTime.restart ();
+      m_physicsTime.Reset ();
     }
   }
 
