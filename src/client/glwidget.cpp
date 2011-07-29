@@ -4,6 +4,7 @@
 #include <fstream>    // TODO: delete
 #include <iomanip>    // TODO: delete
 
+// TODO: delete when QGLWidget will be deleted
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 
@@ -751,12 +752,12 @@ void GLWidget::resizeEvent (const sf::Event::SizeEvent& /*event*/) {
 void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
   if (!event.Control && !event.Alt && !event.Shift) {
     switch (event.Code) {
-      case sf::Key::X: {
+      case sf::Keyboard::Key::X: {
         Vec3d playerPos = player.pos ();
         summonMeteorite ((int) (playerPos[0]), (int) (playerPos[1]));
         break;
       }
-      case sf::Key::Escape:
+      case sf::Keyboard::Key::Escape:
         exit (0);
         break;
       default:
@@ -765,19 +766,19 @@ void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
   }
   else if (event.Control && !event.Alt && !event.Shift) {
     switch (event.Code) {
-      case sf::Key::S:
+      case sf::Keyboard::Key::S:
         simpleWorldMap.saveToFile ();
         break;
-      case sf::Key::L:
+      case sf::Keyboard::Key::L:
         simpleWorldMap.loadFromFile ();
         simpleLightMap.clear();
         simpleLightMap.calculateLight (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE), 1.);
         simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
         break;
-      case sf::Key::F:
+      case sf::Keyboard::Key::F:
         m_worldFreezed = !m_worldFreezed;
         break;
-      case sf::Key::G:
+      case sf::Keyboard::Key::G:
         player.setFlying (!player.flying());
         break;
       default:
@@ -833,28 +834,27 @@ void GLWidget::mouseWheelEvent (const sf::Event::MouseWheelEvent& event) {
 }
 
 void GLWidget::timerEvent() {
-  const sf::Input& input = m_app.GetInput();
-  double timeElasped = m_time.GetElapsedTime ();
+  double timeElasped = m_time.GetElapsedTime () / 1000.;
   m_time.Reset ();
 
-  if (input.IsKeyDown (sf::Key::W))
+  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::W))
     player.moveForward (8. * timeElasped);
-  if (input.IsKeyDown (sf::Key::S))
+  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::S))
     player.moveForward (-6. * timeElasped);
-  if (input.IsKeyDown (sf::Key::A))
+  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::A))
     player.moveRight (-6. * timeElasped);
-  if (input.IsKeyDown (sf::Key::D))
+  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::D))
     player.moveRight (6. * timeElasped);
-  if (input.IsKeyDown (sf::Key::Space))
+  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::Space))
     player.jump();
 
-  int centerX = m_app.GetWidth()  / 2;
-  int centerY = m_app.GetHeight() / 2;
-  player.viewFrame ().rotateWorld ((input.GetMouseX() - centerX) / 100., 0., 0., 1.);
-  player.viewFrame ().rotateLocalX (-(input.GetMouseY() - centerY) / 100.);
-  m_app.SetCursorPosition (centerX, centerY);
+  sf::Vector2i windowsCenter (m_app.GetWidth() / 2, m_app.GetHeight() / 2);
+  sf::Vector2i mouseDelta = sf::Mouse::GetPosition (m_app) - windowsCenter;
+  player.viewFrame ().rotateWorld (mouseDelta.x / 100., 0., 0., 1.);
+  player.viewFrame ().rotateLocalX (-mouseDelta.y / 100.);
+  sf::Mouse::SetPosition (windowsCenter, m_app);
 
-  double fpsTimeElapsed = m_fpsTime.GetElapsedTime ();
+  double fpsTimeElapsed = m_fpsTime.GetElapsedTime () / 1000.;
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {
     std::cout << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed
               << ", video fps =" << std::setw (8) << 1000. / (0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn) << std::endl;
@@ -872,7 +872,7 @@ void GLWidget::timerEvent() {
   }
 
   if (!m_worldFreezed) {
-    double physicsTimeElapsed = m_physicsTime.GetElapsedTime ();
+    double physicsTimeElapsed = m_physicsTime.GetElapsedTime () / 1000.;
     if (physicsTimeElapsed > PHYSICS_PROCESSING_INTERVAL) {
       waterEngine.processWater ();
       m_nPhysicsStepsProcessed++;

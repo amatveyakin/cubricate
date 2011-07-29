@@ -9,4 +9,5 @@ Bugs:
 * Restore GL_MAP_READ_BIT in GLWidget::lockCubes
 
 Improvements:
+* Exclude Qt from project (at least, exclude everything but QtCore)
 * Find or write a logging system (with message ranking: information, warning, error, etc.)

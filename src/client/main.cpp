@@ -24,7 +24,7 @@ int main (int /*argc*/, char** /*argv*/) {
     app.SetPosition ((desktopMode.Width - SCREEN_WIDTH) / 2, (desktopMode.Height - SCREEN_HEIGHT) / 2);
   }
   app.ShowMouseCursor (false);
-  app.SetCursorPosition (app.GetWidth() / 2, app.GetHeight() / 2);
+  sf::Mouse::SetPosition (sf::Vector2i (app.GetWidth() / 2, app.GetHeight() / 2), app);
   app.SetActive();
 
   GLWidget glWidget (app);
@@ -34,7 +34,7 @@ int main (int /*argc*/, char** /*argv*/) {
   while (app.IsOpened())
   {
     sf::Event event;
-    while (app.GetEvent(event))
+    while (app.PollEvent (event))
     {
       switch (event.Type) {
         case sf::Event::Closed:
