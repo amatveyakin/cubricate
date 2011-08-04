@@ -15,15 +15,12 @@ class GLWidget
 {
 public:
   GLWidget (sf::Window& app);
-  ~GLWidget ();
-
-  void initializeGL ();
-  void paintGL ();
+  ~GLWidget();
 
   void updateGL();
 
-  void lockCubes ();
-  void unlockCubes ();
+  void lockCubes();
+  void unlockCubes();
 
   void resizeEvent (const sf::Event::SizeEvent& event);
   void keyPressEvent (const sf::Event::KeyEvent& event);
@@ -33,6 +30,9 @@ public:
   void timerEvent();
 
 protected:
+  void initializeGL();
+  void paintGL();
+
   sf::Window& m_app;
 
   int m_nFramesDrawn;

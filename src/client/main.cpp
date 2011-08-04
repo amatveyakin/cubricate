@@ -28,8 +28,6 @@ int main (int /*argc*/, char** /*argv*/) {
   app.SetActive();
 
   GLWidget glWidget (app);
-  renderingEngine = &glWidget;
-  glWidget.initializeGL();
 
   while (app.IsOpened())
   {
@@ -66,7 +64,6 @@ int main (int /*argc*/, char** /*argv*/) {
       }
     }
 
-    app.SetActive();            // It's useless here because active window is always the same,
     glWidget.timerEvent();
     app.Display();
   }

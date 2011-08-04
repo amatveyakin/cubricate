@@ -575,8 +575,10 @@ GLWidget::GLWidget (sf::Window& app) :
   m_isMovingLeft      = 0;
   m_isMovingRight     = 0;
   m_isJumping         = 0;
-
   m_worldFreezed      = true;
+
+  renderingEngine     = this;
+  initializeGL();
 }
 
 GLWidget::~GLWidget () {
@@ -747,6 +749,7 @@ void GLWidget::renderUI () {
 
 
 void GLWidget::updateGL() {
+  m_app.SetActive();
   paintGL();
 }
 

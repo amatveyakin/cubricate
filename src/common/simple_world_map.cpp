@@ -3,9 +3,9 @@
 
 #include <QDir>
 
-#include "client/glwidget.hpp"
 #include "common/simple_world_map.hpp"
 
+#include "client/glwidget.hpp"
 #include "client/client_world.hpp"
 
 
@@ -119,6 +119,6 @@ void SimpleWorldMap::doUnlockRepaint (bool octreeUpdateNeighboursFlag) {
     if (octreeUpdateNeighboursFlag)
       cubeOctree.computeNeighbours ();
     renderingEngine->unlockCubes ();
-    renderingEngine->paintGL ();
+    renderingEngine->updateGL ();
   }
 }
