@@ -49,6 +49,10 @@ int main (int /*argc*/, char** /*argv*/) {
           glWidget.keyPressEvent (event.Key);
           break;
 
+        case sf::Event::KeyReleased:
+          glWidget.keyReleaseEvent (event.Key);
+          break;
+
         case sf::Event::MouseButtonPressed:
           glWidget.mousePressEvent (event.MouseButton);
           break;

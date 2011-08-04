@@ -27,6 +27,7 @@ public:
 
   void resizeEvent (const sf::Event::SizeEvent& event);
   void keyPressEvent (const sf::Event::KeyEvent& event);
+  void keyReleaseEvent (const sf::Event::KeyEvent& event);
   void mousePressEvent (const sf::Event::MouseButtonEvent& event);
   void mouseWheelEvent (const sf::Event::MouseWheelEvent& event);
   void timerEvent();
@@ -58,6 +59,12 @@ protected:
   GLint  m_UIShader;
   GLuint m_locUITexture;
   GLuint m_UITexture;
+
+  bool m_isMovingForward;
+  bool m_isMovingBackward;
+  bool m_isMovingLeft;
+  bool m_isMovingRight;
+  bool m_isJumping;
 
   bool m_worldFreezed;
 

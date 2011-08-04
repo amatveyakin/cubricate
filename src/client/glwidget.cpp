@@ -570,7 +570,13 @@ void GLWidget::shutdownRenderContext () {
 GLWidget::GLWidget (sf::Window& app) :
   m_app (app)
 {
-  m_worldFreezed    = true;
+  m_isMovingForward   = 0;
+  m_isMovingBackward  = 0;
+  m_isMovingLeft      = 0;
+  m_isMovingRight     = 0;
+  m_isJumping         = 0;
+
+  m_worldFreezed      = true;
 }
 
 GLWidget::~GLWidget () {
@@ -752,6 +758,21 @@ void GLWidget::resizeEvent (const sf::Event::SizeEvent& /*event*/) {
 void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
   if (!event.Control && !event.Alt && !event.Shift) {
     switch (event.Code) {
+      case sf::Keyboard::Key::W:
+        m_isMovingForward = true;
+        break;
+      case sf::Keyboard::Key::S:
+        m_isMovingBackward = true;
+        break;
+      case sf::Keyboard::Key::A:
+        m_isMovingLeft = true;
+        break;
+      case sf::Keyboard::Key::D:
+        m_isMovingRight = true;
+        break;
+      case sf::Keyboard::Key::Space:
+        m_isJumping = true;
+        break;
       case sf::Keyboard::Key::X: {
         Vec3d playerPos = player.pos ();
         summonMeteorite ((int) (playerPos[0]), (int) (playerPos[1]));
@@ -787,6 +808,28 @@ void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
   }
 
   updateGL ();
+}
+
+void GLWidget::keyReleaseEvent (const sf::Event::KeyEvent& event) {
+  switch (event.Code) {
+    case sf::Keyboard::Key::W:
+      m_isMovingForward = false;
+      break;
+    case sf::Keyboard::Key::S:
+      m_isMovingBackward = false;
+      break;
+    case sf::Keyboard::Key::A:
+      m_isMovingLeft = false;
+      break;
+    case sf::Keyboard::Key::D:
+      m_isMovingRight = false;
+      break;
+    case sf::Keyboard::Key::Space:
+      m_isJumping = false;
+      break;
+    default:
+      break;
+  }
 }
 
 void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
@@ -837,15 +880,15 @@ void GLWidget::timerEvent() {
   double timeElasped = m_time.GetElapsedTime () / 1000.;
   m_time.Reset ();
 
-  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::W))
+  if (m_isMovingForward)
     player.moveForward (8. * timeElasped);
-  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::S))
+  if (m_isMovingBackward)
     player.moveForward (-6. * timeElasped);
-  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::A))
+  if (m_isMovingLeft)
     player.moveRight (-6. * timeElasped);
-  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::D))
+  if (m_isMovingRight)
     player.moveRight (6. * timeElasped);
-  if (sf::Keyboard::IsKeyPressed (sf::Keyboard::Key::Space))
+  if (m_isJumping)
     player.jump();
 
   sf::Vector2i windowsCenter (m_app.GetWidth() / 2, m_app.GetHeight() / 2);
