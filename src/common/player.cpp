@@ -19,7 +19,7 @@ const double Player::FLYING_SPEED_COEFF = 2.;
 const double Player::AIR_SPEED_COEFF = 0.3;
 
 const double Player::MAX_SOARING_HEIGHT = 1e-3;
-const double Player::MAX_MOVEMENT_DELTA = 1e-2;
+const double Player::MAX_MOVEMENT_DELTA = 1e-1;
 
 const int    Player::N_VERTICAL_SEGMENTS = int (BODY_HEIGHT + 1.);
 
