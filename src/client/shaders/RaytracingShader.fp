@@ -174,7 +174,7 @@ void main(void)
       vec4 sunlightSH = vec4 (1, 0.0, 0.0, 1);
       vec3 samplingPoint = (currPoint + normal * 0.5 + vec111 * (RENDER_WORLD_SIZE)) / (2 * RENDER_WORLD_SIZE);
       lightCoef += 10 * max (dot (surfaceSH,  texture (lightMap, samplingPoint)), 0);
-      lightCoef += 0.2 * max (dot (sunlightSH, texture (sunVisibilityMap, samplingPoint)), 0);
+      lightCoef += 0.8 * max (dot (sunlightSH, texture (sunVisibilityMap, samplingPoint)), 0);
       lightCoef = clamp (lightCoef, 0., 1.5);
     }
     else

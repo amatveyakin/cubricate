@@ -845,9 +845,12 @@ void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
 
       // WARNING: This light recomputation will not work correctly tor the sunlight
       simpleLightMap.calculateLight (headOnCube, -1.);
+      simpleLightMap.calculateSunlight (headOnCube, -1);
       simpleWorldMap.set (headOnCube, BT_AIR);
       simpleLightMap.calculateLight (headOnCube, 1.);
+      simpleLightMap.calculateSunlight (headOnCube, 1);
       simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, headOnCube);
+      simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
       break;
     }
     case sf::Mouse::Right: {
@@ -862,10 +865,13 @@ void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
         break;
       }
       simpleLightMap.calculateLight (newCube, -1.);
+      simpleLightMap.calculateSunlight (newCube, -1.);
       simpleWorldMap.set (newCube, player.getBlockInHand ());
       simpleLightMap.calculateLight (newCube, 1.);
       //simpleLightMap.lightThatCubePlease(newCube);
+      simpleLightMap.calculateSunlight (newCube, 1);
       simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, newCube);
+      simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
       std::cout << "Cube " << player.getBlockInHand () << " set" << std::endl;
       break;
     }

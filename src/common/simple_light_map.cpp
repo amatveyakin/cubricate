@@ -88,12 +88,13 @@ void SimpleLightMap::generateRandomRays(int nRays)
   m_nRays = nRays;
   m_rays = new Vec3d [nRays];
   for (int i = 0; i < nRays; ++i) {
-    float z   = ((double) rand() )/ RAND_MAX;
-    float phi = 2 * M_PI * ((double) rand()) / RAND_MAX;
-    m_rays[i] = Vec3d (sqrt (1 - z*z) * cos (phi),
-                       sqrt (1 - z*z) * sin (phi),
-                                               z);
-
+//     float z   = ((double) rand() )/ RAND_MAX;
+//     float phi = 2 * M_PI * ((double) rand()) / RAND_MAX;
+//     m_rays[i] = Vec3d (sqrt (1 - z*z) * cos (phi),
+//                        sqrt (1 - z*z) * sin (phi),
+//                                                z);
+       //m_rays[i] = L2::normalize (Vec3d (0.0001, 0.0001, 1.));
+       m_rays[i] = Vec3d (0.0001, 0.0001, 1.);
   }
 }
 
@@ -121,20 +122,19 @@ SimpleLightMap::SimpleLightMap (int sizeX, int sizeY, int sizeZ) :
   m_sunVisibility (sizeX, sizeY, sizeZ)
 
 {
-  m_sunVisibility.fill (Vec4f::zero());
   clear();
   generateRandomRays (1);
 }
 
 void SimpleLightMap::clear()
 {
-  std::fill (   m_luminosity.data(),    m_luminosity.data() +    m_luminosity.totalElements(), Vec4f::zero());
+  m_luminosity.fill (Vec4f::zero());
+  m_sunVisibility.fill (Vec4f::zero());
 }
 
 void SimpleLightMap::addStillLight (Vec3i position, SHCoefficients lightSH, float multiplier)
 {
   m_luminosity (position) += lightSH * multiplier;
-  std::fill (m_sunVisibility.data(), m_sunVisibility.data() + m_sunVisibility.totalElements(), Vec4f::zero());
 }
 
 SimpleLightMap::~SimpleLightMap() {
@@ -149,7 +149,7 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
   for (int iRay = 0; iRay < m_nRays; ++iRay) {
     // zapilit normalniy algoritm Brezenhama, bleyat
     Vec3d ray = m_rays [iRay];
-    Vec3d currentPoint = Vec3d::fromVectorConverted (changedCube);
+    Vec3d currentPoint = getCubeCenter (changedCube);
     Vec3d forwardVector = ray;
 
     Vec3d parameter;
@@ -159,23 +159,25 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
         nearestInt[i] = MAP_SIZE - 1;
       else
         nearestInt[i] = 0;
+      // We should just choose ray vectors that do not have zero (or too small) coordinates and everyting will be OK.
       assert(forwardVector[i] != 0);
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
       assert (parameter[i] >= 0);
     }
-    float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-3);
+    float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-30);
 
 
     currentPoint += forwardVector * t;
     forwardVector = -ray;
     Vec3i cube = getCubeByPoint (currentPoint, ray);
+    currentPoint = getCubeCenter (cube);
     float intensity = 1. / m_nRays;
     while  (      cubeIsValid (cube)
               && !BlockInfo::isFirm (simpleWorldMap.get (cube))
-              && intensity > 0.05 ) {
-      m_sunVisibility (cube) += multiplier * intensity * Vec4f  (0.2, ray.x(), ray.y(), ray.z());
+              && intensity > 0.01 ) {
+      m_sunVisibility (cube) += multiplier * intensity * Vec4f  (0.1, ray.x(), ray.y(), ray.z());
       float currCubeTransparency = BlockInfo::isFirm (simpleWorldMap.get (cube)) ? 0 : 1;
-      //intensity *= currCubeTransparency;
+      intensity *= currCubeTransparency;
       Vec3d parameter;
       Vec3d nearestInt;
       for (int i = 0; i < 3; ++i) {
@@ -189,7 +191,7 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
         parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
         assert (parameter[i] >= 0);
       }
-      float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-3);
+      float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-30);
       currentPoint += forwardVector * t;
       cube = getCubeByPoint (currentPoint, forwardVector);
     }
