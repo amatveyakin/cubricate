@@ -31,7 +31,6 @@
 #define GL_TEXTURE_CUBE_MAP_ARRAY 0x9009
 #endif
 
-const int N_MAX_BLOCKS_DRAWN = N_MAP_BLOCKS;
 
 const double FPS_MEASURE_INTERVAL         = 1.; // sec
 const double PHYSICS_PROCESSING_INTERVAL  = 0.2; // sec
@@ -608,16 +607,6 @@ void GLWidget::initializeGL () {
       simpleLightMap.calculateSunlight (Vec3i (MAP_SIZE - 1, a, b), 1);
     }
   simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
-
-//   glBindBuffer (GL_ARRAY_BUFFER, m_cubeVbo);
-//   GLfloat* bufferPos = (GLfloat *) glMapBufferRange (GL_ARRAY_BUFFER, m_CUBES_INFORMATION_OFFSET, N_MAX_BLOCKS_DRAWN * (4 * sizeof (GLfloat) + sizeof (GLfloat)),
-//                                                      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT );
-//   GLfloat* bufferType = (GLfloat *) (bufferPos + 4 * N_MAX_BLOCKS_DRAWN);
-//
-//   cubeArray.setPointers (bufferPos, bufferType);
-//   loadGameMap ();
-//
-//   glUnmapBuffer (GL_ARRAY_BUFFER);
 
   m_time.Reset ();
   m_fpsTime.Reset ();
