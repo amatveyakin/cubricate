@@ -2,6 +2,20 @@
 #define LINEAR_ALGEBRA_HPP
 
 
+// TODO: Use some external code generator instead of templates.
+//       That will certainly be less beautiful, but
+//       1. It will compile faster
+//       2. It looks that gcc doen't unroll fixed-width loops in debug
+//       3. I'm not sure that MSVC is capable of unrolling loops at all
+//       4. I don't know how to realize construction-based vector type conversation
+//          in this model
+//          (especially with implicit int-to-float and explicit float-to-integer
+//           conversation, as we wish)
+//
+// Known problems:
+//       1. Functions that work with defferent vector types (like mastrix by vector
+//          multiplication) will require an (n^2) amount of genetated code.
+
 // TODO: check disassemble for variants ``foo (Vec2d)'' and ``foo (const Vec2d&)''
 //      (and better use the second one: the underlying class may potentially be quite complex)
 
