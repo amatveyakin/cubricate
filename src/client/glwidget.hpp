@@ -17,6 +17,8 @@ public:
   GLWidget (sf::Window& app);
   ~GLWidget();
 
+  int  getGameTime() const; // msec  // TODO: Should it be in this class?
+
   void updateGL();
 
   void lockCubes();
@@ -42,7 +44,7 @@ protected:
   GLint   m_raytracingShader, m_raytracingDepthPassShader;
   GLuint  m_locOctTree,     m_locOrigin,       m_locViewMatrix;
   GLuint  m_locCubeTexture, m_locDepthTexture, m_locCubePropertiesTexture, m_locSiblingShiftTableTexture;
-  GLuint  m_locCubeNormalMap, m_locCubeDecal, m_locLightMap, m_locSunVisibilityMap;
+  GLuint  m_locCubeNormalMap, m_locCubeDecal, m_locLightMap, m_locSunVisibilityMap, m_locSunlightSH;
   GLuint  m_locDepthPassOctTree, m_locDepthPassOrigin, m_locDepthPassViewMatrix, m_locDepthPassSiblingShiftTableTexture;
   GLuint  m_locDepthPassCubeNormalMap;
   GLuint  m_octTreeBuffer,           m_octTreeTexture;
@@ -68,7 +70,8 @@ protected:
 
   bool m_worldFreezed;
 
-  sf::Clock m_time;
+  sf::Clock m_gameTime;
+  sf::Clock m_eventTime;
   sf::Clock m_fpsTime;
   sf::Clock m_physicsTime;
 

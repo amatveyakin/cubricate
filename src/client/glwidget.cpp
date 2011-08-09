@@ -31,6 +31,7 @@
 #define GL_TEXTURE_CUBE_MAP_ARRAY 0x9009
 #endif
 
+const double SUNLIGHT_AMBIENT_INTENSITY   = 0.5; // TODO: SUNLIGHT_AMBIENT_INTENSITY should vary too.
 
 const double FPS_MEASURE_INTERVAL         = 1.; // sec
 const double PHYSICS_PROCESSING_INTERVAL  = 0.2; // sec
@@ -518,6 +519,7 @@ void GLWidget::initShaders () {
   m_locCubeDecal                 =  glGetUniformLocation (m_raytracingShader, "cubeDecal");
   m_locLightMap                  =  glGetUniformLocation (m_raytracingShader, "lightMap");
   m_locSunVisibilityMap          =  glGetUniformLocation (m_raytracingShader, "sunVisibilityMap");
+  m_locSunlightSH                =  glGetUniformLocation (m_raytracingShader, "sunlightSH");
 
   m_UIShader = gltLoadShaderPairWithAttributes ("resources/UIShader.vp", "resources/UIShader.fp", 2,
                                                 0, "vPosition",
@@ -608,13 +610,15 @@ void GLWidget::initializeGL () {
     }
   simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
 
-  m_time.Reset ();
+  m_eventTime.Reset ();
   m_fpsTime.Reset ();
   m_physicsTime.Reset ();
 }
 
 
 void GLWidget::paintGL () {
+
+  int gameTime = getGameTime();
 
   GLenum windowBuff[] = {GL_BACK_LEFT};
   //GLenum fboBuffs[] = {GL_COLOR_ATTACHMENT0};
@@ -667,6 +671,10 @@ void GLWidget::paintGL () {
   glUseProgram (m_raytracingShader);
 
   glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin() - Vec3d::replicated (MAP_SIZE / 2.)).data());
+
+  double sunAngle = double (gameTime) / DAY_DURATION * 2 * M_PI;
+  glUniform4f (m_locSunlightSH, SUNLIGHT_AMBIENT_INTENSITY, cos (sunAngle), 0, sin (sunAngle));
+
   glUniformMatrix4fv (m_locViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
@@ -734,6 +742,11 @@ void GLWidget::renderUI () {
   glBindVertexArray (m_raytracingVAO);
   glDrawArrays (GL_QUADS, 0, 4);
   glBindTexture (GL_TEXTURE_2D, 0);
+}
+
+
+int GLWidget::getGameTime() const {
+  return m_gameTime.GetElapsedTime();
 }
 
 
@@ -875,8 +888,8 @@ void GLWidget::mouseWheelEvent (const sf::Event::MouseWheelEvent& event) {
 }
 
 void GLWidget::timerEvent() {
-  double timeElasped = m_time.GetElapsedTime () / 1000.;
-  m_time.Reset ();
+  double timeElasped = m_eventTime.GetElapsedTime () / 1000.;
+  m_eventTime.Reset ();
 
   if (m_isMovingForward)
     player.moveForward (8. * timeElasped);

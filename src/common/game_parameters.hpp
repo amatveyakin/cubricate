@@ -16,5 +16,7 @@ const double  GRAVITY = 20.;
 
 const int     PLAYER_SIGHT_RADIUS = 9; // chunks
 
+const int     DAY_DURATION = 120000; // msec
+
 
 #endif

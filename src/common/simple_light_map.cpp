@@ -88,13 +88,13 @@ void SimpleLightMap::generateRandomRays(int nRays)
   m_nRays = nRays;
   m_rays = new Vec3d [nRays];
   for (int i = 0; i < nRays; ++i) {
-//     float z   = ((double) rand() )/ RAND_MAX;
-//     float phi = 2 * M_PI * ((double) rand()) / RAND_MAX;
-//     m_rays[i] = Vec3d (sqrt (1 - z*z) * cos (phi),
-//                        sqrt (1 - z*z) * sin (phi),
-//                                                z);
+    float z   = ((double) rand() )/ RAND_MAX;
+    float phi = 2 * M_PI * ((double) rand()) / RAND_MAX;
+    m_rays[i] = Vec3d (sqrt (1 - z*z) * cos (phi),
+                       sqrt (1 - z*z) * sin (phi),
+                                               z);
        //m_rays[i] = L2::normalize (Vec3d (0.0001, 0.0001, 1.));
-       m_rays[i] = Vec3d (0.0001, 0.0001, 1.);
+       //m_rays[i] = Vec3d (0.0001, 0.0001, 1.);
   }
 }
 
@@ -123,7 +123,7 @@ SimpleLightMap::SimpleLightMap (int sizeX, int sizeY, int sizeZ) :
 
 {
   clear();
-  generateRandomRays (1);
+  generateRandomRays (30);
 }
 
 void SimpleLightMap::clear()
