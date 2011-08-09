@@ -240,12 +240,18 @@ static inline Direction getAdjacentFace (Vec3i cube, Vec3i neighbour) {
   return Direction::INVALID;
 }
 
+// TODO: Decide whether cube centers or cube corners have integer coordinates.
 static inline Vec3i worldToCube (Vec3d pos) {
 //   return Vec3i::fromVectorConverted (floor (pos + Vec3d (0.5, 0.5, 0.5)));
   return Vec3i::fromVectorConverted (floor (pos));
 }
 
+static inline Vec3d getCubeCenter (Vec3i cube) {
+  return Vec3d::fromVectorConverted (cube) + Vec3d (0.5, 0.5, 0.5);
+}
 
+
+// TODO: delete
 static inline Vec3i getCubeByPoint (Vec3d point, Vec3d direction) {
   return worldToCube (point + direction * 0.0001);
 }
