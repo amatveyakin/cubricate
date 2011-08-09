@@ -757,7 +757,6 @@ void GLWidget::updateGL() {
 
 
 void GLWidget::resizeEvent (const sf::Event::SizeEvent& /*event*/) {
-  updateGL ();
 }
 
 void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
@@ -811,8 +810,6 @@ void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
         break;
     }
   }
-
-  updateGL ();
 }
 
 void GLWidget::keyReleaseEvent (const sf::Event::KeyEvent& event) {

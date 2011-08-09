@@ -119,6 +119,5 @@ void SimpleWorldMap::doUnlockRepaint (bool octreeUpdateNeighboursFlag) {
     if (octreeUpdateNeighboursFlag)
       cubeOctree.computeNeighbours ();
     renderingEngine->unlockCubes ();
-    renderingEngine->updateGL ();
   }
 }
