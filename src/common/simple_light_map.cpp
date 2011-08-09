@@ -108,7 +108,7 @@ SHCoefficients SimpleLightMap::deltaFunctionSH (Vec3f direction) {
 }
 
 SHCoefficients SimpleLightMap::cosineLobeSH (Vec3f direction) {
-  direction = L2::normalize (direction);
+  direction = L2::normalized (direction);
   return SHCoefficients (SH_COSLOBE_C0,
                          direction.x() * SH_COSLOBE_C1,
                          direction.y() * SH_COSLOBE_C1,

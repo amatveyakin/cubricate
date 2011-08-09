@@ -139,7 +139,7 @@ bool Player::tryToMove (Vec3d direction, double moveBy) {
 //   while (!positionIsValid (m_pos))
 //     m_pos += Vec3d::e3() * MAX_MOVEMENT_DELTA;
 
-  direction = L2::normalize (direction);
+  direction = L2::normalized (direction);
 
   while (xAbs (moveBy) > MAX_SOARING_HEIGHT / 4.) {
     double step = xMin (MAX_MOVEMENT_DELTA, moveBy);

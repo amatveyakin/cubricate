@@ -433,7 +433,7 @@ namespace L1 {
   }
 
   template <int DIMENSION, typename ElementT>
-  Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
+  Vector <DIMENSION, ElementT> normalized (Vector <DIMENSION, ElementT> a) {
     double normA = norm (a);
     assert (normA > MIN_NORM); // You a trying to normalize an almost zero vector
     return a / normA;
@@ -466,7 +466,7 @@ namespace L2 {
   }
 
   template <int DIMENSION, typename ElementT>
-  Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
+  Vector <DIMENSION, ElementT> normalized (Vector <DIMENSION, ElementT> a) {
     double normA = norm (a);
     assert (normA > MIN_NORM); // You a trying to normalize an almost zero vector
     return a / normA;
@@ -491,7 +491,7 @@ namespace Linf {
   }
 
   template <int DIMENSION, typename ElementT>
-  Vector <DIMENSION, ElementT> normalize (Vector <DIMENSION, ElementT> a) {
+  Vector <DIMENSION, ElementT> normalized (Vector <DIMENSION, ElementT> a) {
     double normA = norm (a);
     assert (normA > MIN_NORM); // You a trying to normalize an almost zero vector
     return a / normA;
