@@ -2,7 +2,7 @@
 #define GAME_PARAMETERS_HPP
 
 
-#include "client/shaders_common.h"
+#include "common/shaders_common.h"
 
 
 const int     CHUNK_SIZE = 16;
