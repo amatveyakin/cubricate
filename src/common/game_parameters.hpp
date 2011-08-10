@@ -3,6 +3,7 @@
 
 
 #include "common/shaders_common.h"
+#include "common/time.hpp"
 
 
 const int     CHUNK_SIZE = 16;
@@ -16,7 +17,7 @@ const double  GRAVITY = 20.;
 
 const int     PLAYER_SIGHT_RADIUS = 9; // chunks
 
-const int     DAY_DURATION = 120000; // msec
+const Time    DAY_DURATION = Time::fromSec (120);
 
 
 #endif

@@ -8,6 +8,7 @@
 #include <SFML/Window.hpp>
 
 #include "common/linear_algebra.hpp"
+#include "common/clock.hpp"
 
 
 
@@ -17,7 +18,7 @@ public:
   GLWidget (sf::Window& app);
   ~GLWidget();
 
-  int  getGameTime() const; // msec  // TODO: Should it be in this class?
+  Time getGameTime() const; // TODO: Should it be in this class?
 
   void updateGL();
 
@@ -70,10 +71,10 @@ protected:
 
   bool m_worldFreezed;
 
-  sf::Clock m_gameTime;
-  sf::Clock m_eventTime;
-  sf::Clock m_fpsTime;
-  sf::Clock m_physicsTime;
+  Clock m_gameTime;
+  Clock m_eventTime;
+  Clock m_fpsTime;
+  Clock m_physicsTime;
 
 
   void explosion (int explosionX, int explosionY, int explosionZ, int explosionRadius);
