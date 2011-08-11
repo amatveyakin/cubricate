@@ -480,7 +480,7 @@ void GLWidget::initTextures () {
 
   glTexImage3D (GL_TEXTURE_3D, 0, GL_RGBA16F_ARB, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0,
                 GL_RGBA, GL_FLOAT, nullptr);
-  simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
+  simpleLightMap.loadSunVisibilityMapToTexture (m_sunVisibilityTexture);
 
 
 }
@@ -612,7 +612,7 @@ void GLWidget::initializeGL () {
       simpleLightMap.calculateSunlight (Vec3i (0, a, b), 1);
       simpleLightMap.calculateSunlight (Vec3i (MAP_SIZE - 1, a, b), 1);
     }
-  simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
+  simpleLightMap.loadSunVisibilityMapToTexture (m_sunVisibilityTexture);
   END_TIME_MEASUREMENT (0, "calculateSunlight (initial)");
 
   m_eventTime.reset ();
@@ -865,7 +865,7 @@ void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
       simpleLightMap.calculateLight (headOnCube, 1.);
       simpleLightMap.calculateSunlight (headOnCube, 1);
       simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, headOnCube);
-      simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
+      simpleLightMap.loadSunVisibilityMapToTexture (m_sunVisibilityTexture);
       break;
     }
     case sf::Mouse::Right: {
@@ -886,7 +886,7 @@ void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
       //simpleLightMap.lightThatCubePlease(newCube);
       simpleLightMap.calculateSunlight (newCube, 1);
       simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, newCube);
-      simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
+      simpleLightMap.loadSunVisibilityMapToTexture (m_sunVisibilityTexture);
       std::cout << "Cube " << player.getBlockInHand () << " set" << std::endl;
       break;
     }

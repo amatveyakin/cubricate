@@ -18,19 +18,18 @@ public:
 
   void clear();
 
-  void loadSubLightMapToTexture (GLuint texture, Vec3i firstCorner, Vec3i secondCorner);
-  void loadSubLightMapToTexture (GLuint texture, Vec3i modifiedCube);
   void calculateLight (Vec3i firstCorner, Vec3i secondCorner, float multiplier);
   void calculateLight (Vec3i modifiedCube, float multiplier);
-  void lightThatCubePlease (Vec3i cube);
-  void  addStillLight  (Vec3i position, SHCoefficients lightSH, float multiplier);
-  //void  addLightSource (Vec3i position, SHCoefficients lightSH, float multiplier);
+  void loadSubLightMapToTexture (GLuint texture, Vec3i firstCorner, Vec3i secondCorner);
+  void loadSubLightMapToTexture (GLuint texture, Vec3i modifiedCube);
+
+  //void addLightSource (Vec3i position, SHCoefficients lightSH, float multiplier);
   //void recalculateLight (Vec3i changedCube);
 
   void calculateSunlight (Vec3i changedCube, float multiplier);
+  void loadSunVisibilityMapToTexture (GLuint texture);
 
-  void loadVisibilityMapToTexture (GLuint texture);
-
+  //void addStillLight (Vec3i position, SHCoefficients lightSH, float multiplier);
 
 protected:
   //Vec4f consists of 4 SH coefficients

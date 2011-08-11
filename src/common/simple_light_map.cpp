@@ -94,121 +94,22 @@ const Vec3f   reprojVector[] = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SimpleLightMap class
 
-void SimpleLightMap::generateRandomRays (int nRays)
-{
-  srand (75038);
-  m_nRays = nRays;
-  m_rays = new Vec3d [nRays];
-  for (int i = 0; i < nRays; ++i) {
-    float z   = ((double) rand() )/ RAND_MAX;
-    float phi = 2 * M_PI * ((double) rand()) / RAND_MAX;
-    m_rays[i] = Vec3d (sqrt (1 - z*z) * cos (phi),
-                       sqrt (1 - z*z) * sin (phi),
-                                               z);
-       //m_rays[i] = L2::normalize (Vec3d (0.0001, 0.0001, 1.));
-       //m_rays[i] = Vec3d (0.0001, 0.0001, 1.);
-  }
-}
-
-
-SHCoefficients SimpleLightMap::deltaFunctionSH (Vec3f direction) {
-  return SHCoefficients (SH_DELTA_FUNCTION_C0,
-                         direction.x() * SH_DELTA_FUNCTION_C1,
-                         direction.y() * SH_DELTA_FUNCTION_C1,
-                         direction.z() * SH_DELTA_FUNCTION_C1);
-
-}
-
-SHCoefficients SimpleLightMap::cosineLobeSH (Vec3f direction) {
-  direction = L2::normalized (direction);
-  return SHCoefficients (SH_COSLOBE_C0,
-                         direction.x() * SH_COSLOBE_C1,
-                         direction.y() * SH_COSLOBE_C1,
-                         direction.z() * SH_COSLOBE_C1);
-}
-
-
 
 SimpleLightMap::SimpleLightMap (int sizeX, int sizeY, int sizeZ) :
   m_luminosity (sizeX, sizeY, sizeZ),
   m_sunVisibility (sizeX, sizeY, sizeZ)
-
 {
   clear();
   generateRandomRays (30);
-}
-
-void SimpleLightMap::clear()
-{
-  m_luminosity.fill (SHCoefficients::zero());
-  m_sunVisibility.fill (SHCoefficients::zero());
-}
-
-void SimpleLightMap::addStillLight (Vec3i position, SHCoefficients lightSH, float multiplier)
-{
-  m_luminosity (position) += lightSH * multiplier;
 }
 
 SimpleLightMap::~SimpleLightMap() {
   delete[] m_rays;
 }
 
-void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
-{
-  // TODO Change algorithm to 3DDA
-  // TODO Change constants
-  // TODO Add normal transparency
-
-  for (int iRay = 0; iRay < m_nRays; ++iRay) {
-    // zapilit normalniy algoritm Brezenhama, bleyat
-    Vec3d ray = m_rays [iRay];
-    Vec3d currentPoint = getCubeCenter (changedCube);
-    Vec3d forwardVector = ray;
-
-    Vec3d parameter;
-    Vec3d nearestInt;
-    for (int i = 0; i < 3; ++i) {
-      if (forwardVector[i] > 0)
-        nearestInt[i] = MAP_SIZE - 1;
-      else
-        nearestInt[i] = 0;
-      // We should just choose ray vectors that do not have zero (or too small) coordinates and everyting will be OK.
-      assert (forwardVector[i] != 0);
-      parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
-      assert (parameter[i] >= 0);
-    }
-    float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-30);
-
-
-    currentPoint += forwardVector * t;
-    forwardVector = -ray;
-    Vec3i cube = getCubeByPoint (currentPoint, ray);
-    currentPoint = getCubeCenter (cube);
-    float intensity = 1. / m_nRays;
-    while  (      cubeIsValid (cube)
-              && !BlockInfo::isFirm (simpleWorldMap.get (cube))
-              && intensity > 0.01 ) {
-      m_sunVisibility (cube) += multiplier * intensity * Vec4f  (0.1, ray.x(), ray.y(), ray.z());
-      float currCubeTransparency = BlockInfo::isFirm (simpleWorldMap.get (cube)) ? 0 : 1;
-      intensity *= currCubeTransparency;
-      Vec3d parameter;
-      Vec3d nearestInt;
-      for (int i = 0; i < 3; ++i) {
-        if (forwardVector[i] > 0)
-          nearestInt[i] = floor (currentPoint[i]) + 1;
-        else
-        if (forwardVector[i] < 0)
-          nearestInt[i] = ceil  (currentPoint[i]) - 1;
-        else
-          nearestInt[i] = 1;
-        parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
-        assert (parameter[i] >= 0);
-      }
-      float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-30);
-      currentPoint += forwardVector * t;
-      cube = getCubeByPoint (currentPoint, forwardVector);
-    }
-  }
+void SimpleLightMap::clear() {
+  m_luminosity.fill (SHCoefficients::zero());
+  m_sunVisibility.fill (SHCoefficients::zero());
 }
 
 
@@ -237,7 +138,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
 
       }
 
-  // iterating. This cycles look cool and REALLY FAST :)
+  // iterating. These loops look cool and REALLY FAST :)
   // probably, set-trick (like with water) must be implemented
   for (int iter = 0; iter < N_ITERATIONS; ++iter) {
     for (int x = 0; x < diagonal.x(); ++x) {
@@ -307,22 +208,10 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
     }
   }
 
-
   for (int x = 0; x < diagonal.x(); ++x)
     for (int y = 0; y < diagonal.y(); ++y)
       for (int z = 0; z < diagonal.z(); ++z)
         m_luminosity (x, y, z) += multiplier * changedLuminosity (Vec3i (x, y, z) + firstCorner);
-
-
-
-//   for (int y = 7; y >= 0; --y) {
-//     for (int x = 0; x < 8; ++x)
-//       std::cout  <<  "("  << std::setw (7) << m_luminosity (x, y, 1).r() << ","
-//                           << std::setw (7) << m_luminosity (x, y, 1).g() << ","
-//                           << std::setw (7) << m_luminosity (x, y, 1).b() << ","
-//                           << std::setw (7) << m_luminosity (x, y, 1).a() << ")";
-//     std::cout << std::endl;
-//   }
 
   END_TIME_MEASUREMENT (0, "calculateLight")
 }
@@ -332,7 +221,6 @@ void SimpleLightMap::calculateLight (Vec3i modifiedCube, float multiplier) {
                   xMin (modifiedCube + Vec3i::replicated (1), Vec3i::replicated (MAP_SIZE - 1)),
                   multiplier);
 }
-
 
 void SimpleLightMap::loadSubLightMapToTexture (GLuint texture, Vec3i modifiedCube) {
   loadSubLightMapToTexture (texture,
@@ -362,7 +250,65 @@ void SimpleLightMap::loadSubLightMapToTexture (GLuint texture, Vec3i firstCorner
   delete[] data;
 }
 
-void SimpleLightMap::loadVisibilityMapToTexture (GLuint texture) {
+
+void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier) {
+  // TODO Change algorithm to 3DDA
+  // TODO Change constants
+  // TODO Add normal transparency
+
+  for (int iRay = 0; iRay < m_nRays; ++iRay) {
+    // zapilit normalniy algoritm Brezenhama, bleyat
+    Vec3d ray = m_rays [iRay];
+    Vec3d currentPoint = getCubeCenter (changedCube);
+    Vec3d forwardVector = ray;
+
+    Vec3d parameter;
+    Vec3d nearestInt;
+    for (int i = 0; i < 3; ++i) {
+      if (forwardVector[i] > 0)
+        nearestInt[i] = MAP_SIZE - 1;
+      else
+        nearestInt[i] = 0;
+      // We should just choose ray vectors that do not have zero (or too small) coordinates and everyting will be OK.
+      assert (forwardVector[i] != 0);
+      parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
+      assert (parameter[i] >= 0);
+    }
+    float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-30);
+
+
+    currentPoint += forwardVector * t;
+    forwardVector = -ray;
+    Vec3i cube = getCubeByPoint (currentPoint, ray);
+    currentPoint = getCubeCenter (cube);
+    float intensity = 1. / m_nRays;
+    while  (      cubeIsValid (cube)
+              && !BlockInfo::isFirm (simpleWorldMap.get (cube))
+              && intensity > 0.01 ) {
+      m_sunVisibility (cube) += multiplier * intensity * Vec4f  (0.1, ray.x(), ray.y(), ray.z());
+      float currCubeTransparency = BlockInfo::isFirm (simpleWorldMap.get (cube)) ? 0 : 1;
+      intensity *= currCubeTransparency;
+      Vec3d parameter;
+      Vec3d nearestInt;
+      for (int i = 0; i < 3; ++i) {
+        if (forwardVector[i] > 0)
+          nearestInt[i] = floor (currentPoint[i]) + 1;
+        else
+        if (forwardVector[i] < 0)
+          nearestInt[i] = ceil  (currentPoint[i]) - 1;
+        else
+          nearestInt[i] = 1;
+        parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
+        assert (parameter[i] >= 0);
+      }
+      float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-30);
+      currentPoint += forwardVector * t;
+      cube = getCubeByPoint (currentPoint, forwardVector);
+    }
+  }
+}
+
+void SimpleLightMap::loadSunVisibilityMapToTexture (GLuint texture) {
   Vec4f* data = new Vec4f [ m_sunVisibility.sizeX() *
                             m_sunVisibility.sizeY() *
                             m_sunVisibility.sizeZ()   ];
@@ -384,9 +330,40 @@ void SimpleLightMap::loadVisibilityMapToTexture (GLuint texture) {
   delete[] data;
 }
 
-void SimpleLightMap::lightThatCubePlease (Vec3i cube)
-{
-  m_luminosity (cube) = SHCoefficients (10, 0, 0, 0);
+
+// void SimpleLightMap::addStillLight (Vec3i position, SHCoefficients lightSH, float multiplier) {
+//   m_luminosity (position) += lightSH * multiplier;
+// }
+
+
+void SimpleLightMap::generateRandomRays (int nRays) {
+  srand (75038);
+  m_nRays = nRays;
+  m_rays = new Vec3d [nRays];
+  for (int i = 0; i < nRays; ++i) {
+    float z   = ((double) rand() )/ RAND_MAX;
+    float phi = 2 * M_PI * ((double) rand()) / RAND_MAX;
+    m_rays[i] = Vec3d (sqrt (1 - z*z) * cos (phi),
+                       sqrt (1 - z*z) * sin (phi),
+                                               z);
+       //m_rays[i] = L2::normalize (Vec3d (0.0001, 0.0001, 1.));
+       //m_rays[i] = Vec3d (0.0001, 0.0001, 1.);
+  }
 }
 
 
+SHCoefficients SimpleLightMap::cosineLobeSH (Vec3f direction) {
+  direction = L2::normalized (direction);
+  return SHCoefficients (SH_COSLOBE_C0,
+                         direction.x() * SH_COSLOBE_C1,
+                         direction.y() * SH_COSLOBE_C1,
+                         direction.z() * SH_COSLOBE_C1);
+}
+
+SHCoefficients SimpleLightMap::deltaFunctionSH (Vec3f direction) {
+  return SHCoefficients (SH_DELTA_FUNCTION_C0,
+                         direction.x() * SH_DELTA_FUNCTION_C1,
+                         direction.y() * SH_DELTA_FUNCTION_C1,
+                         direction.z() * SH_DELTA_FUNCTION_C1);
+
+}
