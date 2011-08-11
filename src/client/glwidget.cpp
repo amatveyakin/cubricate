@@ -17,6 +17,7 @@
 #include "common/string_utils.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/cube_geometry.hpp"
+#include "common/debug.hpp"
 
 #include "client/GLTools/GLShaderLoader.h"
 #include "client/visible_cube_set.hpp"
@@ -598,8 +599,11 @@ void GLWidget::initializeGL () {
 
   setupRenderContext ();
   loadGameMap ();
+
   simpleLightMap.calculateLight (Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE), 1.);
   simpleLightMap.loadSubLightMapToTexture (m_lightMapTexture, Vec3i::replicated (0), Vec3i::replicated (MAP_SIZE));
+
+  BEGIN_TIME_MEASUREMENT
   for (int a = 0; a < MAP_SIZE; ++a)
     for (int b = 0; b < MAP_SIZE; ++b) {
       simpleLightMap.calculateSunlight (Vec3i (a, b, MAP_SIZE - 1), 1);
@@ -609,6 +613,7 @@ void GLWidget::initializeGL () {
       simpleLightMap.calculateSunlight (Vec3i (MAP_SIZE - 1, a, b), 1);
     }
   simpleLightMap.loadVisibilityMapToTexture (m_sunVisibilityTexture);
+  END_TIME_MEASUREMENT (0, "calculateSunlight (initial)");
 
   m_eventTime.reset ();
   m_fpsTime.reset ();
@@ -617,6 +622,13 @@ void GLWidget::initializeGL () {
 
 
 void GLWidget::paintGL () {
+  static sf::Clock globalClock;
+
+  BEGIN_TIME_MEASUREMENT
+
+  int nonPaintingTime = globalClock.GetElapsedTime();
+  if (nonPaintingTime >= 50)
+    std::cerr << "nonPaintingTime: " << nonPaintingTime << std::endl;
 
   Time gameTime = getGameTime();
 
@@ -731,6 +743,10 @@ void GLWidget::paintGL () {
   m_totalMainPassTime  += mainPassTime;
   m_totalUITime        += UITime;
   m_nFramesDrawn++;
+
+  END_TIME_MEASUREMENT (50, "repaintTime")
+
+  globalClock.Reset();
 }
 
 void GLWidget::renderUI () {
@@ -885,6 +901,8 @@ void GLWidget::mouseWheelEvent (const sf::Event::MouseWheelEvent& event) {
 }
 
 void GLWidget::timerEvent() {
+  BEGIN_TIME_MEASUREMENT
+
   double timeElasped = m_eventTime.getElapsedTime ().sec();
   m_eventTime.reset ();
 
@@ -907,9 +925,9 @@ void GLWidget::timerEvent() {
 
   Time fpsTimeElapsed = m_fpsTime.getElapsedTime ();
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {
-    std::cout << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed
+    std::cerr << "fps =" << std::setw (4) << m_nFramesDrawn << ", pps =" << std::setw (4) << m_nPhysicsStepsProcessed
               << ", video fps =" << std::setw (8) << 1000. / (0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn) << std::endl;
-//     std::cout << "Depth pass time: "      << 0.000001 * m_totalDepthPassTime / m_nFramesDrawn
+//     std::cerr << "Depth pass time: "      << 0.000001 * m_totalDepthPassTime / m_nFramesDrawn
 //               << ", Main pass time: "     << 0.000001 * m_totalMainPassTime  / m_nFramesDrawn
 //               << ", UI time: "            << 0.000001 * m_totalUITime        / m_nFramesDrawn
 //               << ", total drawing time: " << 0.000001 * (m_totalDepthPassTime + m_totalMainPassTime + m_totalUITime) / m_nFramesDrawn << std::endl;
@@ -931,7 +949,11 @@ void GLWidget::timerEvent() {
     }
   }
 
+  BEGIN_TIME_MEASUREMENT
   player.processPlayer (timeElasped);
+  END_TIME_MEASUREMENT (10, "processPlayer");
+
+  END_TIME_MEASUREMENT (30, "timerEvent");
 
   updateGL ();
 }

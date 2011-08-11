@@ -1,5 +1,4 @@
 // TODO: delete
-#include <QtCore/QTime>
 #include <iostream>
 
 
@@ -7,6 +6,7 @@
 #include <cassert>
 
 #include "common/utils.hpp"
+#include "common/debug.hpp"
 
 #include "client/octree.hpp"
 
@@ -156,8 +156,7 @@ bool Octree::hasChildren (int node) const {
 
 
 void Octree::computeNeighbours () {
-  QTime time;
-  time.start();
+  BEGIN_TIME_MEASUREMENT
 
   for (int i = 0; i < m_nNodes; ++i)
     for (int j = 0; j < 3; ++j)
@@ -165,12 +164,11 @@ void Octree::computeNeighbours () {
 
   doComputeNeighboursRecursively (0, -1, m_size, 0, 0, 0);
 
-  std::cout << "neighbours time: " << time.elapsed() << " ms" << std::endl;
+  END_TIME_MEASUREMENT (0, "computeNeighbours");
 }
 
 void Octree::computeNeighboursLocal (Box3i region) {
-  QTime time;
-  time.start();
+  BEGIN_TIME_MEASUREMENT
 
   Vec3i& corner1 = region.corner1;
   Vec3i& corner2 = region.corner2;
@@ -201,7 +199,7 @@ void Octree::computeNeighboursLocal (Box3i region) {
     }
   }
 
-  std::cout << "local neighbours time: " << time.elapsed() << " ms" << std::endl;
+  END_TIME_MEASUREMENT (0, "computeNeighboursLocal");
 }
 
 

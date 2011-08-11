@@ -26,6 +26,6 @@ add_custom_command (TARGET shaders PRE_BUILD
                     COMMAND ../build_shaders.sh)
 
 set (CMAKE_CXX_FLAGS  "-std=gnu++0x -Wall -Wextra")
-set (CMAKE_CXX_FLAGS_DEBUG "-g")
+set (CMAKE_CXX_FLAGS_DEBUG "-g -DENABLE_DEBUG_PRINTING")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_DEBUG}")

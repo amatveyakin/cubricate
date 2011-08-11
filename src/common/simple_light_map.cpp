@@ -1,14 +1,14 @@
 // TODO: delete
-#include <QtCore/QTime>
 #include <iostream>
 #include <iomanip>
 
-#include <stdlib.h>
-
+#include <cstdlib>
 #include <cmath>
 
 #include "common/simple_light_map.hpp"
 #include "common/cube_geometry.hpp"
+#include "common/debug.hpp"
+
 #include "client/client_world.hpp"
 
 
@@ -146,6 +146,7 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
   // TODO Change algorithm to 3DDA
   // TODO Change constants
   // TODO Add normal transparency
+
   for (int iRay = 0; iRay < m_nRays; ++iRay) {
     // zapilit normalniy algoritm Brezenhama, bleyat
     Vec3d ray = m_rays [iRay];
@@ -201,8 +202,7 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
 
 // now i consider that secondCorner > firstCorner
 void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, float multiplier) {
-  QTime time;
-  time.start();
+  BEGIN_TIME_MEASUREMENT
 
   firstCorner  = xMax (firstCorner  - Vec3i::replicated (N_ITERATIONS), Vec3i::replicated (0));
   secondCorner = xMin (secondCorner + Vec3i::replicated (N_ITERATIONS), Vec3i::replicated (MAP_SIZE));
@@ -312,7 +312,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
 //     std::cout << std::endl;
 //   }
 
-  std::cout << "light time: " << time.elapsed() << " ms" << std::endl;
+  END_TIME_MEASUREMENT (0, "calculateLight")
 }
 
 void SimpleLightMap::calculateLight (Vec3i modifiedCube, float multiplier) {
