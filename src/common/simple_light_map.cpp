@@ -14,37 +14,47 @@
 
 const float blockTransparency[] = { 0.95, 0.5, 0, 0, 0, 0, 1, 1}; //TODO move?
 
-const int N_ITERATIONS = 6;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Light parameters
+
+const int     N_ITERATIONS = 6;
 
 // #define GRAFA_KAK_V_KRUZISE
 
-// this cool constants are spizzhened (from Andreas Kirsch), need to check them
-#define SH_DELTA_FUNCTION_C0 0.282094792f // 1 / 2sqrt(pi)
-#define SH_DELTA_FUNCTION_C1 0.488602512f // sqrt(3/pi) / 2
+// these cool constants are spizzhened (from Andreas Kirsch), need to check them
+const float   SH_DELTA_FUNCTION_C0 = 1. / (2. * sqrt (M_PI));
+const float   SH_DELTA_FUNCTION_C1 = sqrt (3. / M_PI) / 2.;
 
-#define MAIN_DIRECTION_SOLID_ANGLE (0.4006696846f / M_PI)
-#define SIDE_DIRECTION_SOLID_ANGLE (0.4234413544f / M_PI)
-#define NEAREST_FACE_SOLID_ANGLE   0.6666666666f
+const float   MAIN_DIRECTION_SOLID_ANGLE = 0.4006696846 / M_PI;
+const float   SIDE_DIRECTION_SOLID_ANGLE = 0.4234413544 / M_PI;
+const float   NEAREST_FACE_SOLID_ANGLE   = 2. / 3.;
 
 #ifndef GRAFA_KAK_V_KRUZISE
-//this cool constants are spizzhened from Andreas Kirsch
-#define SH_COSLOBE_C0 0.886226925f /* sqrt(pi)/2 */
-#define SH_COSLOBE_C1 1.02332671f /* sqrt(pi/3) */
+//these cool constants are spizzhened from Andreas Kirsch
+const float   SH_COSLOBE_C0 = sqrt (M_PI) / 2.;
+const float   SH_COSLOBE_C1 = sqrt (M_PI / 3.);
 #else // GRAFA_KAK_V_KRUZISE
-//and this - from crytek paper
-#define SH_COSLOBE_C0 0.25f
-#define SH_COSLOBE_C1 0.5f
+//and these - from the crytek paper
+const float   SH_COSLOBE_C0 = 0.25;
+const float   SH_COSLOBE_C1 = 0.5;
 #endif // GRAFA_KAK_V_KRUZISE
 
-const Vec3f neighbourVector[] = { Vec3f (1,  0,  0),
-                                  Vec3f (0,  1,  0),
-                                  Vec3f (0,  0,  1)
-                                };
+const float   REPROJ_VECTOR_PARAMETER = 0.;
 
-#define NEIGHBOUR_FACE_VECTOR_X 0.894427 //  2 / sqrt (5)
-#define NEIGHBOUR_FACE_VECTOR_Y 0.447213 //  1 / sqrt (5)
 
-const Vec3f neigbourFaceVector[] = {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Auxiliary consts
+
+const Vec3f   neighbourVector[] = { Vec3f (1,  0,  0),
+                                    Vec3f (0,  1,  0),
+                                    Vec3f (0,  0,  1)
+                                  };
+
+const float   NEIGHBOUR_FACE_VECTOR_X = 2. / sqrt (5.);
+const float   NEIGHBOUR_FACE_VECTOR_Y = 1. / sqrt (5.);
+
+const Vec3f   neigbourFaceVector[] = {
   // (1, 0, 0) neighbour
   Vec3f ( NEIGHBOUR_FACE_VECTOR_X,  NEIGHBOUR_FACE_VECTOR_Y,  0                      ),
   Vec3f ( NEIGHBOUR_FACE_VECTOR_X,  0,                        NEIGHBOUR_FACE_VECTOR_Y),
@@ -62,9 +72,7 @@ const Vec3f neigbourFaceVector[] = {
   Vec3f ( 0,                       -NEIGHBOUR_FACE_VECTOR_Y,  NEIGHBOUR_FACE_VECTOR_X)
 };
 
-#define REPROJ_VECTOR_PARAMETER 0.0
-
-const Vec3f reprojVector[] = {
+const Vec3f   reprojVector[] = {
   // (1, 0, 0) neighbour
   Vec3f ( REPROJ_VECTOR_PARAMETER,  0.5,    0),
   Vec3f ( REPROJ_VECTOR_PARAMETER,  0,    0.5),
@@ -82,7 +90,11 @@ const Vec3f reprojVector[] = {
   Vec3f ( 0,   -0.5,  REPROJ_VECTOR_PARAMETER)
 };
 
-void SimpleLightMap::generateRandomRays(int nRays)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SimpleLightMap class
+
+void SimpleLightMap::generateRandomRays (int nRays)
 {
   srand (75038);
   m_nRays = nRays;
@@ -128,8 +140,8 @@ SimpleLightMap::SimpleLightMap (int sizeX, int sizeY, int sizeZ) :
 
 void SimpleLightMap::clear()
 {
-  m_luminosity.fill (Vec4f::zero());
-  m_sunVisibility.fill (Vec4f::zero());
+  m_luminosity.fill (SHCoefficients::zero());
+  m_sunVisibility.fill (SHCoefficients::zero());
 }
 
 void SimpleLightMap::addStillLight (Vec3i position, SHCoefficients lightSH, float multiplier)
@@ -161,7 +173,7 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier)
       else
         nearestInt[i] = 0;
       // We should just choose ray vectors that do not have zero (or too small) coordinates and everyting will be OK.
-      assert(forwardVector[i] != 0);
+      assert (forwardVector[i] != 0);
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
       assert (parameter[i] >= 0);
     }
@@ -374,7 +386,7 @@ void SimpleLightMap::loadVisibilityMapToTexture (GLuint texture) {
 
 void SimpleLightMap::lightThatCubePlease (Vec3i cube)
 {
-  m_luminosity (cube) = Vec4f (10, 0, 0, 0);
+  m_luminosity (cube) = SHCoefficients (10, 0, 0, 0);
 }
 
 
