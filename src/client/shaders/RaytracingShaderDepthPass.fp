@@ -11,7 +11,7 @@ in  vec3    fDirection;
 out vec4    vFragColor;
 
 
-include(`RaytracingShadersCommon.h')
+\include "RaytracingShadersCommon.h"
 
 
 void main(void)

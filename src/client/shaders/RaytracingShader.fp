@@ -30,7 +30,7 @@ in  vec2    fPosition;
 out vec4    vFragColor;
 
 
-include(`RaytracingShadersCommon.h')
+\include "RaytracingShadersCommon.h"
 
 vec4 evaluateSH( vec3 direction ) {
   const float band0Factor = 0.282094792f;

@@ -1,4 +1,4 @@
-include(`../../common/shaders_common.h')
+\include "../../common/shaders_common.h"
 
 
 #define EXIT_IF(condition__, r__, g__, b__)   if (bool (condition__)) { vFragColor = vec4 ((r__), (g__), (b__), 1.); return; }
