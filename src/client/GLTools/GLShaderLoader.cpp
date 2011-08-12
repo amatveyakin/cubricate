@@ -88,7 +88,7 @@ GLuint gltLoadShaderPairWithAttributes (const char *szVertexProg, const char *sz
   {
     glDeleteShader (hVertexShader);
     glDeleteShader (hFragmentShader);
-    fprintf (stderr, "The shader at %s could ot be found.\n", szVertexProg);
+    fprintf (stderr, "The shader at %s could not be found.\n", szVertexProg);
     return (GLuint)NULL;
   }
 
