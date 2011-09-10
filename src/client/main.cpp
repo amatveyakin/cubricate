@@ -10,6 +10,8 @@
 #include "client/glwidget.hpp"
 
 
+const int  approximateTaskbarSize = 32;
+
 const bool showFullscreen = false;
 
 
@@ -21,7 +23,8 @@ int main (int /*argc*/, char** /*argv*/) {
   }
   else {
     app.Create (sf::VideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 32), "Cubricate");
-    app.SetPosition ((desktopMode.Width - SCREEN_WIDTH) / 2, (desktopMode.Height - SCREEN_HEIGHT) / 2);
+    app.SetPosition ((int (desktopMode.Width) - SCREEN_HEIGHT) / 2,
+                     xMax ((int (desktopMode.Height) - SCREEN_WIDTH) / 2 - approximateTaskbarSize, 0));
   }
   app.ShowMouseCursor (false);
   sf::Mouse::SetPosition (sf::Vector2i (app.GetWidth() / 2, app.GetHeight() / 2), app);
