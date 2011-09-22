@@ -326,7 +326,7 @@ void GLWidget::initTextures () {
       // Load this texture map
       //pBytes = gltReadTGABits(("resources/textures" + std::string(szCubeFaces[i])).c_str(), &iWidth, &iHeight, &iComponents, &eFormat);
       char textureFileName[256];
-      sprintf (textureFileName, "resources/textures/blocks/%d/%s.tga", i, szCubeFaces[j]);
+      sprintf (textureFileName, "resources/textures/blocks/%d/%s.png", i, szCubeFaces[j]);
       //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
       QImage rawTexture (textureFileName);
       if (rawTexture.isNull ()) {
@@ -361,7 +361,7 @@ void GLWidget::initTextures () {
   for (int i = 0; i < N_NORMAL_MAPS; ++i)
     for(int j = 0; j < 6; ++j) {
       char textureFileName[256];
-      sprintf (textureFileName, "resources/textures/normals/%d/%s.tga", i, szCubeFaces[j]);
+      sprintf (textureFileName, "resources/textures/normals/%d/%s.png", i, szCubeFaces[j]);
       //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
       QImage rawTexture (textureFileName);
       if (rawTexture.isNull ()) {
@@ -395,7 +395,7 @@ void GLWidget::initTextures () {
   for (int i = 0; i < N_DECALS; ++i)
     for(int j = 0; j < 6; ++j) {
       char textureFileName[256];
-      sprintf (textureFileName, "resources/textures/decals/%d/%s.tga", i, szCubeFaces[j]);
+      sprintf (textureFileName, "resources/textures/decals/%d/%s.png", i, szCubeFaces[j]);
       //QImage rawTexture (("resources/textures/cubemaps/" + std::string(szCubeFaces[i])).c_str());
       QImage rawTexture (textureFileName);
       if (rawTexture.isNull ()) {
