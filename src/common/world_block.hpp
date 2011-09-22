@@ -4,6 +4,7 @@
 
 #include <cassert>
 
+#include "common/c++11_feature_tests.hpp"
 
 enum BlockType : unsigned char {
   // Gases
@@ -47,7 +48,9 @@ struct WorldBlock {
     // All parameters as an integer
     unsigned int parameters;
   };
+#if CPP11_CLASS_STATIC_ASSERTS
   static_assert (sizeof (fluidSaturation) == sizeof (parameters), "");
+#endif // CPP11_CLASS_STATIC_ASSERTS
 
 
   WorldBlock() { }
