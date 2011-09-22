@@ -3,6 +3,7 @@
 #include <iomanip>
 
 #include <cstdlib>
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "common/simple_light_map.hpp"
