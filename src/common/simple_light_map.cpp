@@ -211,7 +211,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
   for (int x = 0; x < diagonal.x(); ++x)
     for (int y = 0; y < diagonal.y(); ++y)
       for (int z = 0; z < diagonal.z(); ++z)
-        m_luminosity (x, y, z) += multiplier * changedLuminosity (Vec3i (x, y, z) + firstCorner);
+        m_luminosity (Vec3i (x, y, z) + firstCorner) += multiplier * changedLuminosity (x, y, z);
 
   END_TIME_MEASUREMENT (0, "calculateLight")
 }
