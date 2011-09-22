@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 
+#include "common/c++11_feature_tests.hpp"
 #include "common/game_parameters.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/string_utils.hpp"
@@ -98,7 +99,11 @@
 //        -4  -3  -2  -1   0   1   2   3   4   5   6   7
 
 
+#ifdef CPP11_ENUM_ENCHANTMENTS
 enum class Direction {
+#else // !CPP11_ENUM_ENCHANTMENTS
+enum Direction {
+#endif // !CPP11_ENUM_ENCHANTMENTS
   X_PLUS,
   Y_PLUS,
   Z_PLUS,
