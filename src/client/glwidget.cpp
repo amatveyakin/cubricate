@@ -572,6 +572,8 @@ void GLWidget::shutdownRenderContext () {
 GLWidget::GLWidget (sf::Window& app) :
   m_app (app)
 {
+  m_hasFocus          = 0;
+
   m_isMovingForward   = 0;
   m_isMovingBackward  = 0;
   m_isMovingLeft      = 0;
@@ -775,6 +777,14 @@ void GLWidget::updateGL() {
 void GLWidget::resizeEvent (const sf::Event::SizeEvent& /*event*/) {
 }
 
+void GLWidget::lostFocusEvent() {
+  m_hasFocus = false;
+}
+
+void GLWidget::gainedFocusEvent() {
+  m_hasFocus = true;
+}
+
 void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
   if (!event.Control && !event.Alt && !event.Shift) {
     switch (event.Code) {
@@ -917,11 +927,13 @@ void GLWidget::timerEvent() {
   if (m_isJumping)
     player.jump();
 
-  sf::Vector2i windowsCenter (m_app.GetWidth() / 2, m_app.GetHeight() / 2);
-  sf::Vector2i mouseDelta = sf::Mouse::GetPosition (m_app) - windowsCenter;
-  player.viewFrame ().rotateWorld (mouseDelta.x / 100., 0., 0., 1.);
-  player.viewFrame ().rotateLocalX (-mouseDelta.y / 100.);
-  sf::Mouse::SetPosition (windowsCenter, m_app);
+  if (m_hasFocus) {
+    sf::Vector2i windowsCenter (m_app.GetWidth() / 2, m_app.GetHeight() / 2);
+    sf::Vector2i mouseDelta = sf::Mouse::GetPosition (m_app) - windowsCenter;
+    player.viewFrame ().rotateWorld (mouseDelta.x / 100., 0., 0., 1.);
+    player.viewFrame ().rotateLocalX (-mouseDelta.y / 100.);
+    sf::Mouse::SetPosition (windowsCenter, m_app);
+  }
 
   Time fpsTimeElapsed = m_fpsTime.getElapsedTime ();
   if (fpsTimeElapsed > FPS_MEASURE_INTERVAL) {

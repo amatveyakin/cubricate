@@ -24,6 +24,8 @@ public:
   void unlockCubes();
 
   void resizeEvent (const sf::Event::SizeEvent& event);
+  void lostFocusEvent();
+  void gainedFocusEvent();
   void keyPressEvent (const sf::Event::KeyEvent& event);
   void keyReleaseEvent (const sf::Event::KeyEvent& event);
   void mousePressEvent (const sf::Event::MouseButtonEvent& event);
@@ -35,6 +37,7 @@ protected:
   void paintGL();
 
   sf::Window& m_app;
+  bool m_hasFocus;
 
   int m_nFramesDrawn;
   int m_nPhysicsStepsProcessed;

@@ -46,6 +46,14 @@ int main (int /*argc*/, char** /*argv*/) {
           glWidget.resizeEvent (event.Size);
           break;
 
+        case sf::Event::LostFocus:
+          glWidget.lostFocusEvent ();
+          break;
+
+        case sf::Event::GainedFocus:
+          glWidget.gainedFocusEvent ();
+          break;
+
         case sf::Event::KeyPressed:
           glWidget.keyPressEvent (event.Key);
           break;
