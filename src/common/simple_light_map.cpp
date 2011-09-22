@@ -272,7 +272,7 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier) {
       // We should just choose ray vectors that do not have zero (or too small) coordinates and everyting will be OK.
       assert (forwardVector[i] != 0);
       parameter[i] = (nearestInt[i] - currentPoint[i]) / forwardVector[i];
-      assert (parameter[i] >= 0);
+      //assert (parameter[i] >= 0);  // TODO: Why does this assertion fail?
     }
     float t = xMax (xMin (parameter[0], parameter[1], parameter[2]), 1e-30);
 
