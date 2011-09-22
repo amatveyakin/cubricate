@@ -11,19 +11,33 @@ static inline NumericT xMin (NumericT x, NumericT y) {
 }
 
 template <typename NumericT>
+static inline NumericT xMin (NumericT x, NumericT y, NumericT z)
+{
+  return xMin (x, xMin (y, z));
+}
+
+template <typename NumericT>
+static inline NumericT xMin (NumericT x, NumericT y, NumericT z, NumericT t)
+{
+  return xMin (x, xMin (y, z, t));
+}
+
+
+template <typename NumericT>
 static inline NumericT xMax (NumericT x, NumericT y) {
   return (x < y) ? y : x;
 }
 
-// Two explicit arguments force all the same types
-template <typename NumericT, typename... OtherT>
-static inline NumericT xMin (NumericT first, NumericT second, OtherT... other) {
-  return xMin (first, xMin (second, other...));
+template <typename NumericT>
+static inline NumericT xMax (NumericT x, NumericT y, NumericT z)
+{
+  return xMax (x, xMax (y, z));
 }
 
-template <typename NumericT, typename... OtherT>
-static inline NumericT xMax (NumericT first, NumericT second, OtherT... other) {
-  return xMax (first, xMax (second, other...));
+template <typename NumericT>
+static inline NumericT xMax (NumericT x, NumericT y, NumericT z, NumericT t)
+{
+  return xMax (x, xMax (y, z, t));
 }
 
 
