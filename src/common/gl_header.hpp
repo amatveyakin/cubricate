@@ -2,8 +2,8 @@
 #define GL_HEADER_HPP
 
 
-#ifdef WINDOWS
-  #define GL_GLEXT_PROTOTYPES   // TODO: is this necessary?
+#ifdef _WIN32
+  #include "windows.h"
   #include "common/gl/gl.h"
   #include "common/gl/glprocs.h"
 #else // !WINDOWS

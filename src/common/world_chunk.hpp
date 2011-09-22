@@ -16,7 +16,7 @@ class DataBuffer;
 class ChunksForRender;
 
 
-#ifdef CPP11_ENUM_ENCHANTMENTS
+#if CPP11_ENUM_ENCHANTMENTS
 enum class ChunkState {
 #else // !CPP11_ENUM_ENCHANTMENTS
 enum ChunkState {

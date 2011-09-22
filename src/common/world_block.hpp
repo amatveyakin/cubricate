@@ -7,7 +7,7 @@
 #include "common/c++11_feature_tests.hpp"
 
 
-#ifdef CPP11_ENUM_ENCHANTMENTS
+#if CPP11_ENUM_ENCHANTMENTS
 enum BlockType : unsigned char {
 #else // !CPP11_ENUM_ENCHANTMENTS
 typedef unsigned char BlockType;
