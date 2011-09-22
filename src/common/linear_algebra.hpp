@@ -230,7 +230,8 @@ public:
 
 template <int VECTOR_DIMENSION, typename ElementT>
 class Vector {
-  Vector () = delete;
+private:
+  Vector(); // = delete; TODO: uncomment when MSVC supports ``delete'' & ``default'' keywords.
 };
 
 

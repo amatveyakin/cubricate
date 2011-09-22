@@ -38,7 +38,6 @@ public:
   static const int N_NODE_CHILDREN = 8;
 
   Octree (int height, int heightOffset);
-  Octree (const Octree&) = delete;
   ~Octree ();
 
   void        setPointer (TreeDataT* newPointer);
@@ -91,8 +90,9 @@ protected:
   void        doComputeNodeNeighbours (int node, int indexInParent, int nodeSize, int cornerX, int cornerY, int cornerZ);
 
   static bool blockShouldBeUnited (BlockType type);
+
 private:
-  Vec3i replicated (int arg1);
+  Octree (const Octree&); // = delete; TODO: uncomment when MSVC supports ``delete'' & ``default'' keywords.
 };
 
 

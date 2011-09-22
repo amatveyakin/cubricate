@@ -9,7 +9,7 @@ template <int DIMENSION, typename ElementT>
 struct Box {
   typedef Vector <DIMENSION, ElementT> VectorType;
 
-  Box() = default;
+  Box() { }
   Box (VectorType corner1Value, VectorType corner2Value) : corner1 (corner1Value), corner2 (corner2Value) { }
 
   // All corner1 coordinates must be not larger than respactive corner2 coordinates

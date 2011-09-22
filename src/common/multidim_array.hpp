@@ -15,7 +15,6 @@ public:
     m_sizeY = sizeY;
     m_elements = new ElementT [totalElements ()];
   }
-  Array2D (const Array2D& other) = delete;   // Do you really need it? Ok, do implement.
   ~Array2D () {
     delete[] m_elements;
   }
@@ -42,6 +41,9 @@ private:
   int m_sizeX;
   int m_sizeY;
   ElementT* m_elements;
+
+  Array2D (const Array2D&); // = delete; TODO: uncomment when MSVC supports ``delete'' & ``default'' keywords.
+                            // Do you really need it? Ok, do implement.
 };
 
 
@@ -54,7 +56,6 @@ public:
     m_sizeZ = sizeZ;
     m_elements = new ElementT [totalElements ()];
   }
-  Array3D (const Array3D& other) = delete;   // Do you really need it? Ok, do implement.
   ~Array3D () {
     delete[] m_elements;
   }
@@ -84,6 +85,9 @@ private:
   int m_sizeY;
   int m_sizeZ;
   ElementT* m_elements;
+
+  Array3D (const Array3D&); // = delete; TODO: uncomment when MSVC supports ``delete'' & ``default'' keywords.
+                            // Do you really need it? Ok, do implement.
 };
 
 

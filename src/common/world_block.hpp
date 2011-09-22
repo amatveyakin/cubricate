@@ -50,7 +50,7 @@ struct WorldBlock {
   static_assert (sizeof (fluidSaturation) == sizeof (parameters), "");
 
 
-  WorldBlock () = default;
+  WorldBlock() { }
 
   WorldBlock (BlockType type__) {
     type = type__;
