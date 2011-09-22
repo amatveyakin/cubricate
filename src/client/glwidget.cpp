@@ -140,9 +140,9 @@ void GLWidget::explosion (int explosionX, int explosionY, int explosionZ, int ex
   Vec3i corner2 = Vec3i (explosionX, explosionY, explosionZ) + Vec3i::replicated (explosionRadius + 1);
   simpleLightMap.calculateLight (corner1, corner2, -1.);
   simpleWorldMap.lockRepaint ();
-  for  (int x = std::max (explosionX - explosionRadius, 0); x <= std::min (explosionX + explosionRadius, MAP_SIZE - 1); ++x)
-    for  (int y = std::max (explosionY - explosionRadius, 0); y <= std::min (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
-      for  (int z = std::max (explosionZ - explosionRadius, 0); z <= std::min (explosionZ + explosionRadius, MAP_SIZE - 1); ++z) {
+  for  (int x = xMax (explosionX - explosionRadius, 0); x <= xMin (explosionX + explosionRadius, MAP_SIZE - 1); ++x)
+    for  (int y = xMax (explosionY - explosionRadius, 0); y <= xMin (explosionY + explosionRadius, MAP_SIZE - 1); ++y)
+      for  (int z = xMax (explosionZ - explosionRadius, 0); z <= xMin (explosionZ + explosionRadius, MAP_SIZE - 1); ++z) {
         if  (xSqr (x - explosionX) + xSqr (y - explosionY) + xSqr (z - explosionZ) < xSqr (explosionRadius)) {
           simpleWorldMap.set (x, y, z, BT_AIR);
         }
