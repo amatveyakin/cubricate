@@ -221,14 +221,6 @@ public:
       elements[i] = derived ()[i];
   }
 
-
-  template <typename OtherVectorT>
-  static VectorT fromVectorConverted (OtherVectorT source) {
-    VectorT result;
-    result.copyFromVectorConverted (source);
-    return result;
-  }
-
   DECLARE_DERIVED (VectorT)
 };
 
@@ -251,9 +243,11 @@ private:
   typedef VectorBase <2, ElementT> Parent;
 
 public:
-  Vector ()                                 { }
-  Vector (ElementT x__, ElementT y__)       { setCoordinates (x__, y__); }
-  Vector (ElementT* coords__)               { fromArray (coords__); }
+  Vector ()                                           { }
+  template <typename OtherElementT>
+  explicit Vector (Vector <2, OtherElementT> other)   { copyFromVectorConverted (other); }
+  Vector (ElementT x__, ElementT y__)                 { setCoordinates (x__, y__); }
+  explicit Vector (ElementT* coords__)                { fromArray (coords__); }
 
   ElementT x () const                       { return Parent::at (0); }
   ElementT& x ()                            { return Parent::at (0); }
@@ -280,8 +274,10 @@ private:
 
 public:
   Vector ()                                           { }
+  template <typename OtherElementT>
+  explicit Vector (Vector <3, OtherElementT> other)   { copyFromVectorConverted (other); }
   Vector (ElementT x__, ElementT y__, ElementT z__)   { setCoordinates (x__, y__, z__); }
-  Vector (ElementT* coords__)                         { fromArray (coords__); }
+  explicit Vector (ElementT* coords__)                { fromArray (coords__); }
 
   ElementT x () const                       { return Parent::at (0); }
   ElementT& x ()                            { return Parent::at (0); }
@@ -321,8 +317,10 @@ private:
 
 public:
   Vector ()                                                         { }
+  template <typename OtherElementT>
+  explicit Vector (Vector <4, OtherElementT> other)                 { copyFromVectorConverted (other); }
   Vector (ElementT x__, ElementT y__, ElementT z__, ElementT w__)   { setCoordinates (x__, y__, z__, w__); }
-  Vector (ElementT* coords__)                                       { fromArray (coords__); }
+  explicit Vector (ElementT* coords__)                              { fromArray (coords__); }
 
   ElementT x () const                       { return Parent::at (0); }
   ElementT& x ()                            { return Parent::at (0); }

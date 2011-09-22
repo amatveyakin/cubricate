@@ -650,7 +650,7 @@ void GLWidget::paintGL () {
 
   glUseProgram (m_raytracingDepthPassShader);
 
-  glUniform3fv (m_locDepthPassOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin() - Vec3d::replicated (MAP_SIZE / 2.)).data());
+  glUniform3fv (m_locDepthPassOrigin, 1, Vec3f (player.viewFrame().origin() - Vec3d::replicated (MAP_SIZE / 2.)).data());
   glUniformMatrix4fv (m_locDepthPassViewMatrix, 1, GL_TRUE, matView);
 
   glActiveTexture (GL_TEXTURE0);
@@ -682,7 +682,7 @@ void GLWidget::paintGL () {
 
   glUseProgram (m_raytracingShader);
 
-  glUniform3fv (m_locOrigin, 1, Vec3f::fromVectorConverted (player.viewFrame().origin() - Vec3d::replicated (MAP_SIZE / 2.)).data());
+  glUniform3fv (m_locOrigin, 1, Vec3f (player.viewFrame().origin() - Vec3d::replicated (MAP_SIZE / 2.)).data());
 
   double sunAngle = gameTime / DAY_DURATION * 2 * M_PI;
   glUniform4f (m_locSunlightSH, SUNLIGHT_AMBIENT_INTENSITY, cos (sunAngle), 0, sin (sunAngle));

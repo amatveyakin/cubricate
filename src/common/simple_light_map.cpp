@@ -164,7 +164,7 @@ void SimpleLightMap::calculateLight (Vec3i firstCorner, Vec3i secondCorner, floa
             Vec3f currNeighbourVector (neighbourVector [iNeighbour % 3]);
             if (iNeighbour >= 3) currNeighbourVector = -currNeighbourVector;
 
-            Vec3i currNeighbour = currCube + Vec3i::fromVectorConverted (currNeighbourVector);
+            Vec3i currNeighbour = currCube + Vec3i (currNeighbourVector);
 
             if (currNeighbour.x() < 0 || currNeighbour.y() < 0 || currNeighbour.z() < 0 ||
                 currNeighbour.x() >= diagonal.x() || currNeighbour.y() >= diagonal.y() || currNeighbour.z() >= diagonal.z()) continue;

@@ -60,7 +60,7 @@ void WorldChunk::onPlayerMove (int playerId, Vec3d oldPos, Vec3d newPos) {
   FIX_UNUSED (oldPos);
   m_chunkIsActiveFor.erase (playerId);
   m_chunkIsReservedFor.erase (playerId);
-  ChunkState necessity = necessityForPlayer (Vec2i::fromVectorConverted (newPos.xy ()), m_pos);
+  ChunkState necessity = necessityForPlayer (Vec2i (newPos.xy ()), m_pos);
   switch (necessity) {
     case ChunkState::ACTIVE:
       m_chunkIsActiveFor.insert (playerId);
