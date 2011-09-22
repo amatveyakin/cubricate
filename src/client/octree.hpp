@@ -7,7 +7,7 @@
 
 #include <cassert>
 
-#include "common/c++0x_workaround.hpp"
+#include "common/c++11_workaround.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/box_geometry.hpp"
 #include "common/cube_geometry.hpp"

@@ -1,8 +1,9 @@
-#ifndef CPP0X_WORKAROUND_HPP
-#define CPP0X_WORKAROUND_HPP
+#ifndef CPP11_WORKAROUND_HPP
+#define CPP11_WORKAROUND_HPP
 
+#include "common/c++11_feature_tests.hpp"
 
-// TODO: delete when we switch to gcc-4.6
+#if !CPP11_NULLPTR
 const                        // this is a const object...
 class {
 public:
@@ -15,6 +16,6 @@ public:
 private:
   void operator&() const;    // whose address can't be taken
 } nullptr = {};              // and whose name is nullptr
-
+#endif // !CPP11_NULLPTR
 
 #endif
