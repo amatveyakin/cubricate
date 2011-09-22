@@ -5,8 +5,7 @@
 #include <iomanip>    // TODO: delete
 
 // TODO: delete when QGLWidget will be deleted
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+#include "common/gl_header.hpp"
 
 #include <QImage>
 #include <QGLWidget>

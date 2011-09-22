@@ -2,11 +2,9 @@
 #define GLWIDGET_HPP
 
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-
 #include <SFML/Window.hpp>
 
+#include "common/gl_header.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/clock.hpp"
 

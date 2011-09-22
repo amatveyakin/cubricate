@@ -3,8 +3,7 @@
 #include <cassert>
 
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+#include "common/gl_header.hpp"
 
 #include "client/GLTools/GLShaderLoader.h"
 

@@ -2,11 +2,10 @@
 #define SIMPLE_LIGHT_MAP_HPP
 
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-
+#include "common/gl_header.hpp"
 #include "common/linear_algebra.hpp"
 #include "common/multidim_array.hpp"
+
 
 typedef Vec4f SHCoefficients;
 

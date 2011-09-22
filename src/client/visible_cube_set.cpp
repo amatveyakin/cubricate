@@ -1,10 +1,7 @@
 #include "common/cube_geometry.hpp"
+#include "common/gl_header.hpp"
 
 #include "client/visible_cube_set.hpp"
-
-
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
 
 
 
