@@ -230,18 +230,20 @@ void SimpleLightMap::loadSubLightMapToTexture (GLuint texture, Vec3i modifiedCub
 }
 
 void SimpleLightMap::loadSubLightMapToTexture (GLuint texture, Vec3i firstCorner, Vec3i secondCorner) {
-  Vec4f* data = new Vec4f [(secondCorner.x() - firstCorner.x()) *
-                           (secondCorner.y() - firstCorner.y()) *
-                           (secondCorner.z() - firstCorner.z())   ];
+  float* data = new float [4 * (secondCorner.x() - firstCorner.x())
+                             * (secondCorner.y() - firstCorner.y())
+                             * (secondCorner.z() - firstCorner.z())];
   int offset = 0;
   for (int z = firstCorner.z(); z < secondCorner.z(); ++z) {
-   for (int y = firstCorner.y(); y < secondCorner.y(); ++y) {
-     for (int x = firstCorner.x(); x < secondCorner.x(); ++x) {
-        data [offset] = m_luminosity (x, y, z);
-        offset++;
+    for (int y = firstCorner.y(); y < secondCorner.y(); ++y) {
+      for (int x = firstCorner.x(); x < secondCorner.x(); ++x) {
+        float* source = m_luminosity (x, y, z).data();
+        std::copy (source, source + 4, data + offset);
+        offset += 4;
       }
     }
   }
+
   glBindTexture (GL_TEXTURE_3D, texture);
   glTexSubImage3D (GL_TEXTURE_3D, 0, firstCorner.x(), firstCorner.y(), firstCorner.z(),
                    secondCorner.x() - firstCorner.x(), secondCorner.y() - firstCorner.y(), secondCorner.z() - firstCorner.z(),
@@ -310,15 +312,16 @@ void SimpleLightMap::calculateSunlight(Vec3i changedCube, float multiplier) {
 }
 
 void SimpleLightMap::loadSunVisibilityMapToTexture (GLuint texture) {
-  Vec4f* data = new Vec4f [ m_sunVisibility.sizeX() *
-                            m_sunVisibility.sizeY() *
-                            m_sunVisibility.sizeZ()   ];
+  float* data = new float [4 * m_sunVisibility.sizeX()
+                             * m_sunVisibility.sizeY()
+                             * m_sunVisibility.sizeZ()];
   int offset = 0;
   for (int z = 0; z < m_sunVisibility.sizeZ(); ++z) {
-   for (int y = 0; y < m_sunVisibility.sizeY(); ++y) {
-     for (int x = 0; x < m_sunVisibility.sizeX(); ++x) {
-        data [offset] = m_sunVisibility (x, y, z);
-        offset++;
+    for (int y = 0; y < m_sunVisibility.sizeY(); ++y) {
+      for (int x = 0; x < m_sunVisibility.sizeX(); ++x) {
+        float* source = m_sunVisibility (x, y, z).data();
+        std::copy (source, source + 4, data + offset);
+        offset += 4;
       }
     }
   }
