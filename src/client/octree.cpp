@@ -240,8 +240,6 @@ int Octree::getParent (int node) {
 }
 
 int Octree::getChild (int node, int iChild) {
-  assert (iChild >= 0);
-  assert (iChild < 8);
   return node * 8 + 1 + iChild;
 }
 
