@@ -62,7 +62,8 @@ static inline NumericT xSgn (NumericT x) {
 }
 
 
-static_assert ((-3) / 2 == -1, "If this assertion fails, intDivFloored and intModFloored functions will not work");
+static_assert ((-3) / 2 == -1, "If this assertion fails, divFloored and modFloored functions will not work");
+
 
 // TODO: try to speed up this function, it should be a bottleneck
 // WARNING: divisor must be positive
@@ -72,12 +73,14 @@ inline NumericT divFloored (NumericT dividend, NumericT divisor) {
   return (dividend - (dividend < 0) * (divisor - 1)) / divisor;
 }
 
+//
 // TODO: try to speed up this function, it should be a bottleneck
 // WARNING: divisor must be positive
 template <typename NumericT>
 inline NumericT modFloored (NumericT dividend, NumericT divisor) {
   static_assert (std::numeric_limits <NumericT>::is_integer, "This function expects an integral type");
-  return (dividend - (dividend < 0) * (divisor - 1)) % divisor;
+  NumericT stupidMod = dividend % divisor;
+  return stupidMod + (stupidMod < 0) * divisor;
 }
 
 
