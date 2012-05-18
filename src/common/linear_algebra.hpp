@@ -13,7 +13,7 @@
 //           conversation, as we wish)
 //
 // Known problems:
-//       1. Functions that work with defferent vector types (like mastrix by vector
+//       1. Functions that work with different vector types (like mastrix by vector
 //          multiplication) will require an (n^2) amount of genetated code.
 
 // TODO: check disassemble for variants ``foo (Vec2d)'' and ``foo (const Vec2d&)''
