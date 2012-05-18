@@ -11,3 +11,4 @@ Bugs:
 Improvements:
 * Exclude Qt from project (at least, exclude everything but QtCore)
 * Find or write a logging system (with message ranking: information, warning, error, etc.)
+* Use always_inline gcc's attribute to speed up debug version
