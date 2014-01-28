@@ -246,7 +246,7 @@ private:
 public:
   Vector ()                                           { }
   template <typename OtherElementT>
-  explicit Vector (Vector <2, OtherElementT> other)   { copyFromVectorConverted (other); }
+  explicit Vector (Vector <2, OtherElementT> other)   { this->copyFromVectorConverted (other); }
   Vector (ElementT x__, ElementT y__)                 { setCoordinates (x__, y__); }
   explicit Vector (ElementT* coords__)                { fromArray (coords__); }
 
@@ -276,7 +276,7 @@ private:
 public:
   Vector ()                                           { }
   template <typename OtherElementT>
-  explicit Vector (Vector <3, OtherElementT> other)   { copyFromVectorConverted (other); }
+  explicit Vector (Vector <3, OtherElementT> other)   { this->copyFromVectorConverted (other); }
   Vector (ElementT x__, ElementT y__, ElementT z__)   { setCoordinates (x__, y__, z__); }
   explicit Vector (ElementT* coords__)                { fromArray (coords__); }
 
@@ -319,7 +319,7 @@ private:
 public:
   Vector ()                                                         { }
   template <typename OtherElementT>
-  explicit Vector (Vector <4, OtherElementT> other)                 { copyFromVectorConverted (other); }
+  explicit Vector (Vector <4, OtherElementT> other)                 { this->copyFromVectorConverted (other); }
   Vector (ElementT x__, ElementT y__, ElementT z__, ElementT w__)   { setCoordinates (x__, y__, z__, w__); }
   explicit Vector (ElementT* coords__)                              { fromArray (coords__); }
 

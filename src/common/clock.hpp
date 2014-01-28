@@ -12,8 +12,8 @@ public:
   Clock() : sf::Clock() { }
   ~Clock() { }
 
-  Time getElapsedTime() const               { return Time::fromMsec (sf::Clock::GetElapsedTime()); }
-  void reset()                              { sf::Clock::Reset(); }
+  Time getElapsedTime() const               { return Time::fromUsec (sf::Clock::getElapsedTime ().asMicroseconds ()); }
+  void reset()                              { sf::Clock::restart (); }
 };
 
 

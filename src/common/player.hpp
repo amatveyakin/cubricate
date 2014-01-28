@@ -57,7 +57,7 @@ public:
 
   // TODO: rewrite
   void getCameraMatrix (M3DMatrix44f result, bool rotationOnly = false) {
-    Vec3d a = Vec3d::zero();
+//    Vec3d a = Vec3d::zero();
     Vec3d z = m_dirForward;
     Vec3d x = crossProduct (-m_dirUp, z);
 

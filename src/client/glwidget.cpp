@@ -210,7 +210,7 @@ void GLWidget::initBuffers () {
   glGenBuffers(1, &m_raytracingVBO);
   glBindBuffer(GL_ARRAY_BUFFER, m_raytracingVBO);
   glBufferData    (GL_ARRAY_BUFFER, sizeof (proxySurfaceVertices) + sizeof (proxySurfaceDirections), nullptr, GL_STATIC_DRAW);
-  int offset = 0;
+  GLintptr offset = 0;
   glBufferSubData (GL_ARRAY_BUFFER, offset, sizeof (proxySurfaceVertices)  , proxySurfaceVertices);
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *) offset);
   offset += sizeof (proxySurfaceVertices);
@@ -628,9 +628,9 @@ void GLWidget::paintGL () {
 
   BEGIN_TIME_MEASUREMENT
 
-  int nonPaintingTime = globalClock.GetElapsedTime();
-  if (nonPaintingTime >= 50)
-    std::cerr << "nonPaintingTime: " << nonPaintingTime << std::endl;
+  sf::Time nonPaintingTime = globalClock.getElapsedTime ();
+  if (nonPaintingTime.asMilliseconds () >= 50)
+    std::cerr << "nonPaintingTime: " << nonPaintingTime.asMilliseconds () << std::endl;
 
   Time gameTime = getGameTime();
 
@@ -748,7 +748,7 @@ void GLWidget::paintGL () {
 
   END_TIME_MEASUREMENT (50, "repaintTime")
 
-  globalClock.Reset();
+  globalClock.restart ();
 }
 
 void GLWidget::renderUI () {
@@ -769,7 +769,7 @@ Time GLWidget::getGameTime() const {
 
 
 void GLWidget::updateGL() {
-  m_app.SetActive();
+  m_app.setActive ();
   paintGL();
 }
 
@@ -786,8 +786,8 @@ void GLWidget::gainedFocusEvent() {
 }
 
 void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
-  if (!event.Control && !event.Alt && !event.Shift) {
-    switch (event.Code) {
+  if (!event.control && !event.alt && !event.shift) {
+    switch (event.code) {
       case sf::Keyboard::Key::W:
         m_isMovingForward = true;
         break;
@@ -815,8 +815,8 @@ void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
         break;
     }
   }
-  else if (event.Control && !event.Alt && !event.Shift) {
-    switch (event.Code) {
+  else if (event.control && !event.alt && !event.shift) {
+    switch (event.code) {
       case sf::Keyboard::Key::S:
         simpleWorldMap.saveToFile ();
         break;
@@ -839,7 +839,7 @@ void GLWidget::keyPressEvent (const sf::Event::KeyEvent& event) {
 }
 
 void GLWidget::keyReleaseEvent (const sf::Event::KeyEvent& event) {
-  switch (event.Code) {
+  switch (event.code) {
     case sf::Keyboard::Key::W:
       m_isMovingForward = false;
       break;
@@ -861,7 +861,7 @@ void GLWidget::keyReleaseEvent (const sf::Event::KeyEvent& event) {
 }
 
 void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
-  switch (event.Button) {
+  switch (event.button) {
     case sf::Mouse::Left: {
       Vec3i headOnCube = player.getHeadOnCube ().cube;
       if (!cubeIsValid (headOnCube))
@@ -906,7 +906,7 @@ void GLWidget::mousePressEvent (const sf::Event::MouseButtonEvent& event) {
 }
 
 void GLWidget::mouseWheelEvent (const sf::Event::MouseWheelEvent& event) {
-  player.setBlockInHand (static_cast <BlockType> ((player.getBlockInHand () + xSgn (event.Delta) + N_BLOCK_TYPES) % N_BLOCK_TYPES));
+  player.setBlockInHand (static_cast <BlockType> ((player.getBlockInHand () + xSgn (event.delta) + N_BLOCK_TYPES) % N_BLOCK_TYPES));
   std::cout << "Cur cube type: " << player.getBlockInHand () << std::endl;
 }
 
@@ -928,11 +928,11 @@ void GLWidget::timerEvent() {
     player.jump();
 
   if (m_hasFocus) {
-    sf::Vector2i windowsCenter (m_app.GetWidth() / 2, m_app.GetHeight() / 2);
-    sf::Vector2i mouseDelta = sf::Mouse::GetPosition (m_app) - windowsCenter;
+      sf::Vector2i windowsCenter (m_app.getSize () / 2u);
+    sf::Vector2i mouseDelta = sf::Mouse::getPosition (m_app) - windowsCenter;
     player.viewFrame ().rotateWorld (mouseDelta.x / 100., 0., 0., 1.);
     player.viewFrame ().rotateLocalX (-mouseDelta.y / 100.);
-    sf::Mouse::SetPosition (windowsCenter, m_app);
+    sf::Mouse::setPosition (windowsCenter, m_app);
   }
 
   Time fpsTimeElapsed = m_fpsTime.getElapsedTime ();

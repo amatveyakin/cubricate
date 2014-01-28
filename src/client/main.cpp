@@ -17,33 +17,33 @@ const bool showFullscreen = false;
 
 int main (int /*argc*/, char** /*argv*/) {
   sf::Window app;
-  sf::VideoMode desktopMode = sf::VideoMode::GetDesktopMode();
+  sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode ();
   if (showFullscreen) {
-    app.Create (desktopMode, "Cubricate", sf::Style::Fullscreen);
+    app.create (desktopMode, "Cubricate", sf::Style::Fullscreen);
   }
   else {
-    app.Create (sf::VideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 32), "Cubricate");
-    app.SetPosition ((int (desktopMode.Width) - SCREEN_HEIGHT) / 2,
-                     xMax ((int (desktopMode.Height) - SCREEN_WIDTH) / 2 - approximateTaskbarSize, 0));
+    app.create (sf::VideoMode (SCREEN_WIDTH, SCREEN_HEIGHT, 32), "Cubricate");
+    app.setPosition (sf::Vector2i ((int (desktopMode.width) - SCREEN_HEIGHT) / 2,
+                                   xMax ((int (desktopMode.height) - SCREEN_WIDTH) / 2 - approximateTaskbarSize, 0)));
   }
-  app.ShowMouseCursor (false);
-  sf::Mouse::SetPosition (sf::Vector2i (app.GetWidth() / 2, app.GetHeight() / 2), app);
-  app.SetActive();
+  app.setMouseCursorVisible (false);
+  sf::Mouse::setPosition (sf::Vector2i (app.getSize () / 2u), app);
+  app.setActive ();
 
   GLWidget glWidget (app);
 
-  while (app.IsOpened())
+  while (app.isOpen ())
   {
     sf::Event event;
-    while (app.PollEvent (event))
+    while (app.pollEvent (event))
     {
-      switch (event.Type) {
+      switch (event.type) {
         case sf::Event::Closed:
-          app.Close();
+          app.close ();
           break;
 
         case sf::Event::Resized:
-          glWidget.resizeEvent (event.Size);
+          glWidget.resizeEvent (event.size);
           break;
 
         case sf::Event::LostFocus:
@@ -55,19 +55,19 @@ int main (int /*argc*/, char** /*argv*/) {
           break;
 
         case sf::Event::KeyPressed:
-          glWidget.keyPressEvent (event.Key);
+          glWidget.keyPressEvent (event.key);
           break;
 
         case sf::Event::KeyReleased:
-          glWidget.keyReleaseEvent (event.Key);
+          glWidget.keyReleaseEvent (event.key);
           break;
 
         case sf::Event::MouseButtonPressed:
-          glWidget.mousePressEvent (event.MouseButton);
+          glWidget.mousePressEvent (event.mouseButton);
           break;
 
         case sf::Event::MouseWheelMoved:
-          glWidget.mouseWheelEvent (event.MouseWheel);
+          glWidget.mouseWheelEvent (event.mouseWheel);
           break;
 
         default:
@@ -75,8 +75,8 @@ int main (int /*argc*/, char** /*argv*/) {
       }
     }
 
-    glWidget.timerEvent();
-    app.Display();
+    glWidget.timerEvent ();
+    app.display ();
   }
 
   return 0;

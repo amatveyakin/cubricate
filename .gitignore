@@ -8,3 +8,4 @@ build-*
 /world
 .kdev_include_paths
 gmon.out
+CMakeLists.txt.user

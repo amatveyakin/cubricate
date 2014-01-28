@@ -1,5 +1,6 @@
 project (Cubricate_client)
 cmake_minimum_required (VERSION 2.6)
+find_package (OpenGL REQUIRED)
 find_package (Qt4 REQUIRED)
 
 set (project_root ${CMAKE_SOURCE_DIR}/..)
@@ -20,8 +21,9 @@ set (Cubricate_client_SRCS ${src_dir}/client/main.cpp ${src_dir}/client/client_w
 
 qt4_automoc (${Cubricate_client_SRCS})
 
+link_directories (/usr/local/lib)
 add_executable (cubricate_client ${Cubricate_client_SRCS})
-target_link_libraries (cubricate_client sfml-window ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTOPENGL_LIBRARY})
+target_link_libraries (cubricate_client sfml-system sfml-window ${OPENGL_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTOPENGL_LIBRARY})
 
 add_custom_target (shaders ALL ../build_shaders.sh)
 add_dependencies (shaders macro_processor)
